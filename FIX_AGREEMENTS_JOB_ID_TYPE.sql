@@ -1,0 +1,1 @@
+❌ Error sending agreement: You can only send testing emails to your own email address (andy@herculesmovingsolutions.com). To send emails to other recipients, please verify a domain at resend.com/domains, and change the `from` address to an email using this domain.

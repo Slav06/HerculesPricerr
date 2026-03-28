@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Make Icons</title>
+</head>
+<body>
+    <h1>Icon Generator</h1>
+    <canvas id="canvas" width="128" height="128" style="border:1px solid #ccc;"></canvas>
+    <br><br>
+    <button onclick="createFronterIcons()">Create Fronter Icons (Blue F)</button>
+    <button onclick="createCloserIcons()">Create Closer Icons (Orange C)</button>
+    
+    <script>
+        function createIcon(letter, color, size) {
+            const canvas = document.getElementById('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, size, size);
+            
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size/2}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(letter, size/2, size/2);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        function downloadIcon(filename, dataUrl) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = dataUrl;
+            link.click();
+        }
+        
+        function createFronterIcons() {
+            downloadIcon('fronter-icon16.png', createIcon('F', '#007bff', 16));
+            downloadIcon('fronter-icon48.png', createIcon('F', '#007bff', 48));
+            downloadIcon('fronter-icon128.png', createIcon('F', '#007bff', 128));
+            alert('Fronter icons downloaded! Save them to fronter-extension folder.');
+        }
+        
+        function createCloserIcons() {
+            downloadIcon('closer-icon16.png', createIcon('C', '#fd7e14', 16));
+            downloadIcon('closer-icon48.png', createIcon('C', '#fd7e14', 48));
+            downloadIcon('closer-icon128.png', createIcon('C', '#fd7e14', 128));
+            alert('Closer icons downloaded! Save them to closer-extension folder.');
+        }
+    </script>
+</body>
+</html>

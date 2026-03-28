@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            width: 300px;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .logo {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .title {
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 4px;
+        }
+        .subtitle {
+            font-size: 12px;
+            color: #666;
+        }
+        .status {
+            background: #e8f5e8;
+            border: 1px solid #28a745;
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+        .status-icon {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+        .status-text {
+            font-size: 14px;
+            color: #28a745;
+            font-weight: 500;
+        }
+        .info {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 12px;
+            color: #666;
+            line-height: 1.4;
+        }
+        .button {
+            width: 100%;
+            padding: 10px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-top: 12px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">🎯</div>
+        <div class="title">Closer Job Tracker</div>
+        <div class="subtitle">Professional Edition</div>
+    </div>
+    
+    <div class="status">
+        <div class="status-icon">✅</div>
+        <div class="status-text">Extension Active</div>
+    </div>
+    
+    <div class="info">
+        <strong>Available Actions:</strong><br>
+        • Submit Job<br>
+        • Inv Done<br>
+        • Mark Booked<br>
+        • Dropped<br>
+        • CB Scheduled<br>
+        • Disqualified<br>
+        • Hung Up<br><br>
+        <strong>Note:</strong> Buttons appear automatically on HelloMoving pricing pages.
+    </div>
+    
+    <button class="button" onclick="testOverlays()">Test Overlays</button>
+    
+    <script>
+        function testOverlays() {
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                chrome.scripting.executeScript({
+                    target: {tabId: tabs[0].id},
+                    function: () => {
+                        if (typeof testCreateOverlays === 'function') {
+                            testCreateOverlays();
+                        } else {
+                            alert('Please navigate to a HelloMoving pricing page first.');
+                        }
+                    }
+                });
+            });
+        }
+    </script>
+</body>
+</html>

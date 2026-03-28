@@ -1,0 +1,21 @@
+ICON DESIGN FOR CHROME EXTENSION
+
+You need to create 3 icon files:
+- icon16.png (16x16 pixels)
+- icon48.png (48x48 pixels) 
+- icon128.png (128x128 pixels)
+
+Suggested design:
+- Background: Purple gradient (#6b46c1 to #805ad5)
+- Icon: White document/page symbol with a magnifying glass
+- Text: "JE" (Job Extractor) in white
+
+You can create these using:
+1. Online tools like Canva, Figma, or GIMP
+2. AI image generators like DALL-E or Midjourney
+3. Professional designers
+
+Or use a simple placeholder for now and update later.
+
+For Chrome Web Store submission, icons are required.
+

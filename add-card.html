@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Card – Secure Payment</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif; margin: 0; padding: 24px; background: linear-gradient(180deg, #f8fafc 0%, #e2e8f0 100%); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .secure-bar { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 20px; background: #0f172a; color: #e2e8f0; font-size: 13px; font-weight: 500; border-radius: 10px 10px 0 0; max-width: 420px; width: 100%; }
+        .secure-bar svg { flex-shrink: 0; }
+        .card { background: #fff; border-radius: 0 0 12px 12px; box-shadow: 0 4px 24px rgba(0,0,0,0.08); max-width: 420px; width: 100%; padding: 28px; border: 1px solid #e2e8f0; border-top: none; }
+        h1 { margin: 0 0 8px; font-size: 22px; color: #1e293b; display: flex; align-items: center; gap: 10px; }
+        h1 .lock-icon { color: #16a34a; }
+        .sub { color: #64748b; font-size: 14px; margin-bottom: 24px; }
+        label { display: block; font-weight: 600; color: #334155; font-size: 13px; margin-bottom: 6px; }
+        input { width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 16px; margin-bottom: 14px; }
+        input:focus { outline: none; border-color: #3b82f6; }
+        button { width: 100%; padding: 14px; background: linear-gradient(135deg, #2563eb 0%, #FFA23F 100%); color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; margin-top: 8px; }
+        button:hover { opacity: 0.95; }
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+        .error { background: #fef2f2; color: #dc2626; padding: 12px; border-radius: 8px; font-size: 14px; margin-bottom: 16px; }
+        .success { background: #f0fdf4; color: #16a34a; padding: 16px; border-radius: 8px; font-size: 15px; text-align: center; }
+        .success h2 { margin: 0 0 8px; font-size: 18px; }
+        .hidden { display: none; }
+        .trust-badges { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 16px; margin-top: 24px; padding-top: 20px; border-top: 1px solid #e2e8f0; }
+        .trust-badge { display: flex; align-items: center; gap: 8px; font-size: 12px; color: #64748b; }
+        .trust-badge svg { flex-shrink: 0; color: #16a34a; }
+        .proc-toggle { display: flex; border-radius: 8px; overflow: hidden; border: 2px solid #e2e8f0; margin-bottom: 20px; }
+        .proc-toggle button { flex: 1; padding: 10px; border: none; font-weight: 700; font-size: 13px; cursor: pointer; }
+        .proc-toggle .active { background: #6366f1; color: #fff; }
+        .proc-toggle .inactive { background: #f8fafc; color: #64748b; }
+        #stripe-card-element { background: #fff; border: 2px solid #c7d2fe; border-radius: 8px; padding: 13px; margin-bottom: 14px; min-height: 44px; }
+        #stripe-error { color: #dc2626; font-size: 13px; margin-bottom: 10px; }
+        .card-brands { display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 20px; }
+        .card-brand { font-size: 11px; font-weight: 700; color: #64748b; padding: 6px 10px; background: #f1f5f9; border-radius: 6px; }
+        .card-brand.visa { color: #1a1f71; }
+        .card-brand.mc { color: #eb001b; }
+        .card-brand.amex { color: #006fcf; }
+        .card-brand.disc { color: #003366; }
+        .branding { text-align: center; margin-bottom: 20px; }
+        .branding img { max-height: 48px; max-width: 180px; width: auto; object-fit: contain; display: block; margin: 0 auto 8px; }
+        .branding .company-name { font-size: 20px; font-weight: 700; color: #1e293b; margin: 0; }
+        .customer-info { background: #f8fafc; border-radius: 8px; padding: 12px 16px; margin-bottom: 20px; border: 1px solid #e2e8f0; }
+        .customer-info .label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.05em; color: #64748b; margin-bottom: 4px; }
+        .customer-info .name { font-weight: 600; color: #1e293b; }
+        .customer-info .email { font-size: 14px; color: #475569; }
+    </style>
+</head>
+<body>
+    <div id="brandingBlock" class="branding hidden">
+        <img id="companyLogo" alt="" role="presentation">
+        <p id="companyName" class="company-name"></p>
+    </div>
+    <div class="secure-bar">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>Secure payment · 256-bit SSL encryption</span>
+    </div>
+    <div class="card">
+        <div id="formBlock">
+            <div id="customerInfoBlock" class="customer-info hidden">
+                <div class="label">Paying for</div>
+                <div id="customerName" class="name"></div>
+                <div id="customerEmail" class="email"></div>
+            </div>
+            <h1>
+                <svg class="lock-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Add your card
+            </h1>
+            <div class="proc-toggle">
+                <button class="inactive" onclick="showTab('manual',this)">Manual Entry</button>
+                <button class="active" onclick="showTab('stripe',this)" id="stripeTabBtn">⚡ Pay via Stripe</button>
+            </div>
+            <p class="sub" id="jobLabel">Loading…</p>
+            <div class="card-brands" aria-hidden="true">
+                <span class="card-brand visa">Visa</span>
+                <span class="card-brand mc">Mastercard</span>
+                <span class="card-brand amex">Amex</span>
+                <span class="card-brand disc">Discover</span>
+            </div>
+            <div id="errorMsg" class="error hidden"></div>
+
+            <!-- Stripe tab -->
+            <div id="stripeTab">
+                <p style="font-size:13px;color:#64748b;margin-bottom:14px;">Your card details are secured by Stripe — we never see or store your full card number.</p>
+                <div id="stripe-card-element"></div>
+                <div id="stripe-error"></div>
+                <button type="button" id="stripeSubmitBtn" onclick="submitStripeCard()" style="width:100%;padding:14px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;border-radius:8px;font-size:16px;font-weight:700;cursor:pointer;margin-bottom:10px;">⚡ Save Card via Stripe</button>
+            </div>
+
+            <!-- Manual tab (existing form, hidden by default) -->
+            <div id="manualTab" style="display:none;">
+            <form id="cardForm">
+                <label for="cardNumber">Card number</label>
+                <input type="text" id="cardNumber" inputmode="numeric" autocomplete="cc-number" placeholder="1234 5678 9012 3456" maxlength="19">
+                <label for="expDate">Expiration (MM/YY)</label>
+                <input type="text" id="expDate" placeholder="MM/YY" maxlength="5" autocomplete="cc-exp">
+                <label for="cvv">CVV</label>
+                <input type="text" id="cvv" inputmode="numeric" placeholder="123" maxlength="4" autocomplete="cc-csc">
+                <label for="cardholderName">Name on card</label>
+                <input type="text" id="cardholderName" placeholder="As it appears on card" autocomplete="cc-name">
+                <label for="billingAddress">Billing address (optional)</label>
+                <input type="text" id="billingAddress" placeholder="Street, city, state, ZIP" autocomplete="street-address">
+                <button type="submit" id="submitBtn">Save card</button>
+            </form>
+            </div><!-- end manualTab -->
+            <div class="trust-badges">
+                <span class="trust-badge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Secured by industry standards
+                </span>
+                <span class="trust-badge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Your data is protected
+                </span>
+                <span class="trust-badge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Safe &amp; encrypted
+                </span>
+            </div>
+        </div>
+        <div id="successBlock" class="success hidden">
+            <h2>&#10003; Card saved securely</h2>
+            <p>You can close this page. We’ll charge this card only when you authorize a payment.</p>
+            <div class="trust-badges" style="margin-top:16px;padding-top:16px;border-top:1px solid #bbf7d0;">
+                <span class="trust-badge">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    Stored securely
+                </span>
+            </div>
+        </div>
+    </div>
+    <script>
+        // Company branding (same as admin dashboard)
+        window.ADD_CARD_BRANDING = {
+            companyName: 'Hercules Moving Solutions',
+            logoUrl: '/logo.svg'
+        };
+
+        const params = new URLSearchParams(window.location.search);
+        const job = params.get('job') || params.get('job_number') || '';
+        const apiBase = window.location.origin;
+
+        (function initBranding() {
+            var b = window.ADD_CARD_BRANDING || {};
+            var block = document.getElementById('brandingBlock');
+            var logo = document.getElementById('companyLogo');
+            var nameEl = document.getElementById('companyName');
+            if (b.logoUrl && b.logoUrl.trim()) {
+                logo.src = b.logoUrl;
+                logo.alt = (b.companyName || 'Company').trim();
+                logo.style.display = 'block';
+            } else {
+                logo.style.display = 'none';
+            }
+            if (b.companyName && b.companyName.trim()) {
+                nameEl.textContent = b.companyName.trim();
+                nameEl.style.display = 'block';
+            } else {
+                nameEl.style.display = 'none';
+            }
+            if ((b.logoUrl && b.logoUrl.trim()) || (b.companyName && b.companyName.trim())) {
+                block.classList.remove('hidden');
+            }
+        })();
+
+        function showError(msg) {
+            const el = document.getElementById('errorMsg');
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+        function hideError() {
+            document.getElementById('errorMsg').classList.add('hidden');
+        }
+
+        if (!job) {
+            document.getElementById('jobLabel').textContent = 'Missing job number in link. Use the link you received.';
+            document.getElementById('cardForm').querySelector('button').disabled = true;
+        } else {
+            fetch(apiBase + '/api/get-job-for-link?job=' + encodeURIComponent(job))
+                .then(r => r.json())
+                .then(data => {
+                    const name = (data.customer_name || '').trim();
+                    const email = (data.customer_email || '').trim();
+                    document.getElementById('jobLabel').textContent = 'Job ' + (data.job_number || job);
+                    var custBlock = document.getElementById('customerInfoBlock');
+                    // Only show "Paying for" when we have a real name or email from the job
+                    if (name || email) {
+                        document.getElementById('customerName').textContent = name || 'Customer';
+                        document.getElementById('customerEmail').textContent = email;
+                        document.getElementById('customerEmail').style.display = email ? 'block' : 'none';
+                        custBlock.classList.remove('hidden');
+                    }
+                    // If DB has no customer_name/email for this job, block stays hidden (no "Paying for / Customer")
+                })
+                .catch(() => {
+                    document.getElementById('jobLabel').textContent = 'Job ' + job;
+                });
+        }
+
+        document.getElementById('cardForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            hideError();
+            const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+            const expDate = document.getElementById('expDate').value.trim();
+            const cvv = document.getElementById('cvv').value.trim();
+            const cardholderName = document.getElementById('cardholderName').value.trim();
+            const billingAddress = document.getElementById('billingAddress').value.trim() || undefined;
+            const expDigits = expDate.replace(/\D/g, '');
+            const expMMYY = expDigits.length >= 4 ? expDigits.slice(0, 2) + expDigits.slice(-2) : expDigits;
+
+            if (!cardNumber || cardNumber.length < 13) { showError('Please enter a valid card number.'); return; }
+            if (!expMMYY || expMMYY.length !== 4) { showError('Please enter expiration as MM/YY.'); return; }
+            if (!cvv || cvv.length < 3) { showError('Please enter the CVV.'); return; }
+            if (!cardholderName || cardholderName.length < 2) { showError('Please enter the name on the card.'); return; }
+
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = true;
+            btn.textContent = 'Saving…';
+
+            try {
+                const res = await fetch(apiBase + '/api/save-card', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        job_number: job,
+                        cardNumber,
+                        expDate: expMMYY,
+                        cvv,
+                        cardholderName,
+                        billingAddress
+                    })
+                });
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
+                    document.getElementById('formBlock').classList.add('hidden');
+                    document.getElementById('successBlock').classList.remove('hidden');
+                } else {
+                    showError(data.error || 'Could not save card. Please try again.');
+                    btn.disabled = false;
+                    btn.textContent = 'Save card';
+                }
+            } catch (err) {
+                showError('Network error. Please check your connection and try again.');
+                btn.disabled = false;
+                btn.textContent = 'Save card';
+            }
+        });
+
+        // ── Stripe tab ──────────────────────────────────────────────
+        const STRIPE_PK = 'pk_live_51Sv2HE3Vm2xod16QgHjHyYZUutbTU9wtvttCftX5RZpo7rqV5wFCvrtSM2dSck1FOxgHi8AUDqGFY9AB8IreHdeC00gHhxYNiU';
+        let _stripe = null, _stripeCard = null;
+
+        function showTab(tab, btn) {
+            document.getElementById('stripeTab').style.display  = tab === 'stripe' ? 'block' : 'none';
+            document.getElementById('manualTab').style.display  = tab === 'manual' ? 'block' : 'none';
+            btn.closest('.proc-toggle').querySelectorAll('button').forEach(b => { b.className = 'inactive'; });
+            btn.className = 'active';
+            if (tab === 'stripe') initStripeEl();
+        }
+
+        async function initStripeEl() {
+            if (_stripeCard) return;
+            const s = document.createElement('script');
+            s.src = 'https://js.stripe.com/v3/';
+            document.head.appendChild(s);
+            await new Promise(r => s.onload = r);
+            _stripe = window.Stripe(STRIPE_PK);
+            const elements = _stripe.elements();
+            _stripeCard = elements.create('card', { style: { base: { fontSize: '16px', color: '#1e293b', '::placeholder': { color: '#94a3b8' } } } });
+            _stripeCard.mount('#stripe-card-element');
+            _stripeCard.on('change', e => { document.getElementById('stripe-error').textContent = e.error ? e.error.message : ''; });
+        }
+
+        // Default to Stripe tab — init on load
+        initStripeEl();
+
+        async function submitStripeCard() {
+            if (!_stripe || !_stripeCard) { alert('Stripe not loaded yet, please wait.'); return; }
+            const btn = document.getElementById('stripeSubmitBtn');
+            btn.disabled = true; btn.textContent = 'Saving…';
+            try {
+                // Create SetupIntent server-side
+                const jobData = await fetch(apiBase + '/api/get-job-for-link?job=' + encodeURIComponent(job)).then(r => r.json()).catch(() => ({}));
+                const siRes = await fetch(apiBase + '/api/stripe-setup-intent', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ jobNumber: job, customerName: jobData.customer_name || '', customerEmail: jobData.customer_email || '' })
+                });
+                const siData = await siRes.json();
+                if (!siData.success) throw new Error(siData.error || 'Could not create setup intent');
+
+                const { setupIntent, error } = await _stripe.confirmCardSetup(siData.clientSecret, { payment_method: { card: _stripeCard } });
+                if (error) throw new Error(error.message);
+
+                // Card saved in Stripe — show success
+                document.getElementById('formBlock').classList.add('hidden');
+                document.getElementById('successBlock').classList.remove('hidden');
+                document.querySelector('#successBlock h2').textContent = '✓ Card saved via Stripe';
+            } catch(err) {
+                document.getElementById('stripe-error').textContent = err.message;
+                btn.disabled = false; btn.textContent = '⚡ Save Card via Stripe';
+            }
+        }
+
+        document.getElementById('cardNumber').addEventListener('input', function() {
+            let v = this.value.replace(/\D/g, '');
+            this.value = v.replace(/(.{4})/g, '$1 ').trim();
+        });
+        document.getElementById('expDate').addEventListener('input', function() {
+            let v = this.value.replace(/\D/g, '');
+            if (v.length >= 2) this.value = v.slice(0, 2) + '/' + v.slice(2, 4);
+            else this.value = v;
+        });
+    </script>
+</body>
+</html>

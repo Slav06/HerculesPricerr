@@ -1,0 +1,40 @@
+{
+  "manifest_version": 3,
+  "name": "Job Tracker - Fronter Edition",
+  "version": "1.0.0",
+  "description": "Chrome extension for fronters to track job statuses on HelloMoving pages",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "host_permissions": [
+    "<all_urls>"
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "*://*.hellomoving.com/*",
+        "*://ant.hellomoving.com/*"
+      ],
+      "js": ["content.js"]
+    }
+  ],
+      "web_accessible_resources": [
+        {
+          "resources": ["payment-service.js", "payment-config.js", "payment-encryption.js", "payment-fields-test.html", "payment-test-script.js"],
+          "matches": ["*://*.hellomoving.com/*", "*://ant.hellomoving.com/*"]
+        }
+      ],
+  "background": {
+    "service_worker": "background.js"
+  }
+}

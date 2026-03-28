@@ -1,0 +1,1016 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>HMS Agent Portal</title>
+<script src="inventory-data.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #1f2937;
+  background: #f3f4f6;
+  min-height: 100vh;
+}
+.header {
+  background: #fff;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header h1 {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  text-decoration: none;
+}
+.btn:active { opacity: 0.7; }
+.btn-primary { background: #2563eb; color: #fff; }
+.btn-yellow { background: #f59e0b; color: #fff; }
+.btn-green { background: #10b981; color: #fff; }
+.btn-red { background: #ef4444; color: #fff; }
+.btn-outline {
+  background: transparent;
+  color: #2563eb;
+  border: 1.5px solid #2563eb;
+}
+.btn-sm {
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+.btn-logout {
+  background: transparent;
+  color: #6b7280;
+  border: 1px solid #d1d5db;
+  min-height: 36px;
+  padding: 6px 14px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 16px;
+}
+.view { display: none; }
+.view.active { display: block; }
+
+/* Job Cards */
+.job-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  cursor: pointer;
+  transition: box-shadow 0.15s;
+}
+.job-card:active { box-shadow: 0 1px 6px rgba(0,0,0,0.15); }
+.job-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+.job-number {
+  font-weight: 700;
+  font-size: 15px;
+  color: #1f2937;
+}
+.customer-name {
+  font-size: 15px;
+  color: #374151;
+  margin-bottom: 6px;
+}
+.job-route {
+  font-size: 13px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+.job-date {
+  font-size: 13px;
+  color: #6b7280;
+}
+.badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.badge-blue { background: #dbeafe; color: #FFA23F; }
+.badge-yellow { background: #fef3c7; color: #b45309; }
+.badge-green { background: #d1fae5; color: #047857; }
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #9ca3af;
+  font-size: 15px;
+}
+
+/* Job Detail */
+.back-btn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-height: 44px;
+}
+.section {
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.section-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+.detail-row:last-child { border-bottom: none; }
+.detail-label {
+  font-size: 14px;
+  color: #6b7280;
+}
+.detail-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  text-align: right;
+  max-width: 60%;
+  word-break: break-word;
+}
+.detail-value a {
+  color: #2563eb;
+  text-decoration: none;
+}
+.customer-name-large {
+  font-size: 20px;
+  font-weight: 700;
+  color: #1f2937;
+  margin-bottom: 12px;
+}
+.status-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.status-buttons .btn { flex: 1; min-width: 140px; }
+
+/* Notes */
+.notes-area {
+  width: 100%;
+  min-height: 100px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 16px;
+  font-family: inherit;
+  resize: vertical;
+  margin-bottom: 10px;
+}
+.notes-area:focus { outline: none; border-color: #2563eb; }
+
+/* Inventory */
+.inv-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.inv-total {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2563eb;
+}
+.inv-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 0;
+  border-bottom: 1px solid #f3f4f6;
+  gap: 8px;
+}
+.inv-item-info {
+  flex: 1;
+  min-width: 0;
+}
+.inv-item-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #1f2937;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.inv-item-meta {
+  font-size: 12px;
+  color: #9ca3af;
+}
+.inv-item-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-shrink: 0;
+}
+.icon-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 6px;
+  background: #f3f4f6;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #6b7280;
+  transition: background 0.15s;
+}
+.icon-btn:active { background: #e5e7eb; }
+.icon-btn.delete { color: #ef4444; }
+
+/* Add item */
+.add-item-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.autocomplete-wrap {
+  position: relative;
+  flex: 1;
+  min-width: 180px;
+}
+.autocomplete-input {
+  width: 100%;
+  min-height: 44px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 16px;
+  font-family: inherit;
+}
+.autocomplete-input:focus { outline: none; border-color: #2563eb; }
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border: 1px solid #d1d5db;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  max-height: 200px;
+  overflow-y: auto;
+  z-index: 50;
+  display: none;
+}
+.autocomplete-list.open { display: block; }
+.autocomplete-option {
+  padding: 10px 12px;
+  font-size: 14px;
+  cursor: pointer;
+}
+.autocomplete-option:active,
+.autocomplete-option.highlighted {
+  background: #eff6ff;
+}
+.qty-input {
+  width: 60px;
+  min-height: 44px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 8px;
+  font-size: 16px;
+  text-align: center;
+  font-family: inherit;
+}
+.qty-input:focus { outline: none; border-color: #2563eb; }
+
+/* Photo thumbnails */
+.photo-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+.photo-thumb {
+  position: relative;
+  width: 64px;
+  height: 64px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+.photo-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-thumb .delete-photo {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.6);
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+/* BOL */
+.bol-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #eff6ff;
+  border-radius: 8px;
+  padding: 12px;
+  margin-top: 8px;
+  word-break: break-all;
+  font-size: 13px;
+  color: #FFA23F;
+}
+.bol-link a { color: #FFA23F; flex: 1; }
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2937;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+}
+.toast.show { opacity: 1; }
+
+/* Loading */
+.spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid #d1d5db;
+  border-top-color: #2563eb;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 40px;
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1 id="headerTitle">HMS Agent</h1>
+  <button class="btn-logout" onclick="logout()">Logout</button>
+</div>
+
+<div class="container">
+  <!-- Jobs List View -->
+  <div id="jobsView" class="view active">
+    <div id="jobsList"></div>
+  </div>
+
+  <!-- Job Detail View -->
+  <div id="detailView" class="view">
+    <button class="back-btn" onclick="showJobsList()">&#8592; Back to Jobs</button>
+
+    <!-- Contact -->
+    <div class="section">
+      <div class="customer-name-large" id="detailName"></div>
+      <div class="detail-row">
+        <span class="detail-label">Phone</span>
+        <span class="detail-value" id="detailPhone"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Email</span>
+        <span class="detail-value" id="detailEmail"></span>
+      </div>
+    </div>
+
+    <!-- Moving Details -->
+    <div class="section">
+      <div class="section-title">Moving Details</div>
+      <div class="detail-row">
+        <span class="detail-label">From</span>
+        <span class="detail-value" id="detailFrom"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">To</span>
+        <span class="detail-value" id="detailTo"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Cubes</span>
+        <span class="detail-value" id="detailCubes"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Distance</span>
+        <span class="detail-value" id="detailDistance"></span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Pickup Date</span>
+        <span class="detail-value" id="detailPickup"></span>
+      </div>
+    </div>
+
+    <!-- Status -->
+    <div class="section">
+      <div class="section-title">Status</div>
+      <div class="detail-row" style="border:none;">
+        <span class="detail-label">Current</span>
+        <span class="detail-value" id="detailStatus"></span>
+      </div>
+      <div class="status-buttons" id="statusButtons"></div>
+    </div>
+
+    <!-- Notes -->
+    <div class="section">
+      <div class="section-title">Notes</div>
+      <textarea class="notes-area" id="notesArea" placeholder="Add notes..."></textarea>
+      <button class="btn btn-primary" style="width:100%;" onclick="saveNotes()">Save Notes</button>
+    </div>
+
+    <!-- Inventory -->
+    <div class="section">
+      <div class="inv-header">
+        <div class="section-title" style="margin:0;">Inventory</div>
+        <span class="inv-total" id="invTotal">0 cu ft</span>
+      </div>
+      <div id="invList"></div>
+
+      <div class="add-item-row">
+        <div class="autocomplete-wrap">
+          <input type="text" class="autocomplete-input" id="itemSearch" placeholder="Search item..." autocomplete="off">
+          <div class="autocomplete-list" id="itemDropdown"></div>
+        </div>
+        <input type="number" class="qty-input" id="itemQty" value="1" min="1">
+        <button class="btn btn-primary btn-sm" onclick="addInventoryItem()">Add</button>
+      </div>
+      <button class="btn btn-green" style="width:100%;margin-top:12px;" onclick="saveInventory()">Save Inventory</button>
+    </div>
+
+    <!-- BOL -->
+    <div class="section">
+      <div class="section-title">Bill of Lading</div>
+      <div id="bolContent">
+        <button class="btn btn-primary" style="width:100%;" onclick="createBOL()">Create BOL</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL = 'process.env.SUPABASE_URL';
+const SUPABASE_KEY = 'process.env.SUPABASE_ANON_KEY';
+const API_BASE = '/api/agent-portal';
+
+let currentUser = null;
+let currentJob = null;
+let inventoryItems = []; // working inventory list
+let jobPhotos = {};      // { itemName: [{ id, url, filename }] }
+
+// ── Auth ──
+(function checkAuth() {
+  try {
+    const raw = localStorage.getItem('dashboardUser');
+    if (!raw) { window.location.href = '/dashboard'; return; }
+    const user = JSON.parse(raw);
+    if (user.role !== 'agent') { window.location.href = '/dashboard'; return; }
+    currentUser = user;
+    document.getElementById('headerTitle').textContent = 'HMS Agent \u2014 ' + (user.name || user.username || 'Agent');
+  } catch (e) {
+    window.location.href = '/dashboard';
+  }
+})();
+
+function logout() {
+  localStorage.removeItem('dashboardUser');
+  window.location.href = '/dashboard';
+}
+
+// ── API helpers ──
+async function apiGet(action, params = {}) {
+  const qs = new URLSearchParams({ action, ...params }).toString();
+  const res = await fetch(API_BASE + '?' + qs);
+  return res.json();
+}
+
+async function apiPost(action, body = {}) {
+  const res = await fetch(API_BASE + '?action=' + encodeURIComponent(action), {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return res.json();
+}
+
+async function supabaseDirectGet(path) {
+  const res = await fetch(SUPABASE_URL + path, {
+    headers: {
+      'apikey': SUPABASE_KEY,
+      'Authorization': 'Bearer ' + SUPABASE_KEY,
+    },
+  });
+  return res.json();
+}
+
+// ── Toast ──
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2500);
+}
+
+// ── Views ──
+function showView(id) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+// ── Jobs List ──
+async function loadJobs() {
+  const container = document.getElementById('jobsList');
+  container.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
+
+  try {
+    const data = await apiGet('my-jobs', { agent_user_id: currentUser.id });
+    const jobs = data.jobs || data.data || data || [];
+
+    if (!Array.isArray(jobs) || jobs.length === 0) {
+      container.innerHTML = '<div class="empty-state">No jobs assigned yet</div>';
+      return;
+    }
+
+    container.innerHTML = jobs.map(job => {
+      const status = (job.status || 'assigned').toLowerCase();
+      let badgeClass = 'badge-blue', badgeText = 'Assigned';
+      if (status === 'in_progress' || status === 'in progress') { badgeClass = 'badge-yellow'; badgeText = 'In Progress'; }
+      else if (status === 'completed') { badgeClass = 'badge-green'; badgeText = 'Completed'; }
+
+      const from = job.moving_from || job.origin || '';
+      const to = job.moving_to || job.destination || '';
+      const pickup = job.pickup_date ? new Date(job.pickup_date).toLocaleDateString() : '';
+
+      return `<div class="job-card" onclick="openJob(${job.id})">
+        <div class="job-card-header">
+          <span class="job-number">Job #${job.job_number || job.id}</span>
+          <span class="badge ${badgeClass}">${badgeText}</span>
+        </div>
+        <div class="customer-name">${job.customer_name || 'N/A'}</div>
+        <div class="job-route">${from} &rarr; ${to}</div>
+        ${pickup ? `<div class="job-date">${pickup}</div>` : ''}
+      </div>`;
+    }).join('');
+  } catch (err) {
+    container.innerHTML = '<div class="empty-state">Failed to load jobs</div>';
+    console.error(err);
+  }
+}
+
+function showJobsList() {
+  showView('jobsView');
+  loadJobs();
+}
+
+// ── Job Detail ──
+async function openJob(jobId) {
+  showView('detailView');
+  // Reset
+  document.getElementById('detailName').textContent = 'Loading...';
+
+  try {
+    const data = await apiGet('job-detail', { job_id: jobId });
+    const job = data.job || data.data || data;
+    if (!job || !job.id) { toast('Job not found'); showJobsList(); return; }
+    currentJob = job;
+    renderJobDetail(job);
+    loadInventory(job.id);
+    loadPhotos(job.job_number || job.id);
+    checkExistingBOL(job);
+  } catch (err) {
+    toast('Error loading job');
+    console.error(err);
+  }
+}
+
+function renderJobDetail(job) {
+  document.getElementById('detailName').textContent = job.customer_name || 'N/A';
+
+  const phone = job.phone || '';
+  document.getElementById('detailPhone').innerHTML = phone
+    ? `<a href="tel:${phone}">${phone}</a>` : 'N/A';
+  document.getElementById('detailEmail').textContent = job.email || 'N/A';
+
+  document.getElementById('detailFrom').textContent = job.moving_from || job.origin || 'N/A';
+  document.getElementById('detailTo').textContent = job.moving_to || job.destination || 'N/A';
+  document.getElementById('detailCubes').textContent = job.cubes || 'N/A';
+  document.getElementById('detailDistance').textContent = job.distance ? job.distance + ' mi' : 'N/A';
+  document.getElementById('detailPickup').textContent = job.pickup_date
+    ? new Date(job.pickup_date).toLocaleDateString() : 'N/A';
+
+  const status = (job.status || 'assigned').toLowerCase();
+  let badgeClass = 'badge-blue', badgeText = 'Assigned';
+  if (status === 'in_progress' || status === 'in progress') { badgeClass = 'badge-yellow'; badgeText = 'In Progress'; }
+  else if (status === 'completed') { badgeClass = 'badge-green'; badgeText = 'Completed'; }
+  document.getElementById('detailStatus').innerHTML = `<span class="badge ${badgeClass}">${badgeText}</span>`;
+
+  // Status buttons
+  const btnsEl = document.getElementById('statusButtons');
+  btnsEl.innerHTML = '';
+  if (status === 'assigned') {
+    btnsEl.innerHTML = '<button class="btn btn-yellow" onclick="updateStatus(\'in_progress\')">Start Job</button>';
+  } else if (status === 'in_progress' || status === 'in progress') {
+    btnsEl.innerHTML = '<button class="btn btn-green" onclick="updateStatus(\'completed\')">Complete Job</button>';
+  }
+
+  // Notes
+  document.getElementById('notesArea').value = job.agent_notes || job.notes || '';
+}
+
+async function updateStatus(newStatus) {
+  try {
+    const res = await apiPost('update-status', {
+      job_id: currentJob.id,
+      status: newStatus,
+    });
+    if (res.success || res.ok) {
+      currentJob.status = newStatus;
+      renderJobDetail(currentJob);
+      toast('Status updated');
+    } else {
+      toast('Failed: ' + (res.error || 'Unknown error'));
+    }
+  } catch (err) {
+    toast('Error updating status');
+    console.error(err);
+  }
+}
+
+async function saveNotes() {
+  try {
+    const notes = document.getElementById('notesArea').value;
+    const res = await apiPost('update-status', {
+      job_id: currentJob.id,
+      agent_notes: notes,
+    });
+    if (res.success || res.ok) {
+      toast('Notes saved');
+    } else {
+      toast('Failed to save notes');
+    }
+  } catch (err) {
+    toast('Error saving notes');
+    console.error(err);
+  }
+}
+
+// ── Inventory ──
+async function loadInventory(jobSubmissionId) {
+  try {
+    const data = await supabaseDirectGet(
+      '/rest/v1/inventory_submissions?select=*&job_submission_id=eq.' + encodeURIComponent(jobSubmissionId) + '&limit=1'
+    );
+    if (Array.isArray(data) && data.length > 0 && data[0].items) {
+      const items = typeof data[0].items === 'string' ? JSON.parse(data[0].items) : data[0].items;
+      inventoryItems = Array.isArray(items) ? items : [];
+    } else {
+      inventoryItems = [];
+    }
+  } catch (e) {
+    inventoryItems = [];
+  }
+  renderInventory();
+}
+
+function renderInventory() {
+  const listEl = document.getElementById('invList');
+  const totalEl = document.getElementById('invTotal');
+  let total = 0;
+
+  if (inventoryItems.length === 0) {
+    listEl.innerHTML = '<div style="color:#9ca3af;font-size:14px;padding:12px 0;">No items yet</div>';
+    totalEl.textContent = '0 cu ft';
+    return;
+  }
+
+  listEl.innerHTML = inventoryItems.map((item, i) => {
+    const qty = item.quantity || 1;
+    const vol = (item.volume || 0) * qty;
+    total += vol;
+    const itemKey = item.name || ('item-' + i);
+    const photos = jobPhotos[itemKey] || [];
+
+    return `<div class="inv-item-wrap">
+      <div class="inv-item">
+        <div class="inv-item-info">
+          <div class="inv-item-name">${item.name}</div>
+          <div class="inv-item-meta">Qty: ${qty} &middot; ${vol} cu ft</div>
+        </div>
+        <div class="inv-item-actions">
+          <button class="icon-btn" onclick="triggerPhotoUpload(${i})" title="Add photo">&#128247;</button>
+          <button class="icon-btn delete" onclick="removeInventoryItem(${i})" title="Remove">&times;</button>
+        </div>
+      </div>
+      <input type="file" accept="image/*" capture="environment" multiple id="photoInput${i}" style="display:none;" onchange="handlePhotoUpload(${i}, this)">
+      <div class="photo-gallery" id="photoGallery${i}">
+        ${photos.map(p => `<div class="photo-thumb">
+          <img src="${p.url}" alt="${p.filename}">
+          <button class="delete-photo" onclick="deletePhoto('${itemKey}','${p.id}')">&times;</button>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+
+  totalEl.textContent = total + ' cu ft';
+}
+
+function removeInventoryItem(index) {
+  inventoryItems.splice(index, 1);
+  renderInventory();
+}
+
+// Autocomplete
+let selectedItem = null;
+const searchInput = document.getElementById('itemSearch');
+const dropdown = document.getElementById('itemDropdown');
+
+if (searchInput) {
+  searchInput.addEventListener('input', function () {
+    const q = this.value.trim().toLowerCase();
+    if (q.length < 1) { dropdown.classList.remove('open'); return; }
+    const matches = INVENTORY_ITEMS.filter(it => it.name.toLowerCase().includes(q)).slice(0, 15);
+    if (matches.length === 0) { dropdown.classList.remove('open'); return; }
+    dropdown.innerHTML = matches.map(it =>
+      `<div class="autocomplete-option" data-name="${it.name}" data-volume="${it.volume}">${it.name} <span style="color:#9ca3af;">(${it.volume} cu ft)</span></div>`
+    ).join('');
+    dropdown.classList.add('open');
+  });
+
+  searchInput.addEventListener('blur', function () {
+    setTimeout(() => dropdown.classList.remove('open'), 200);
+  });
+
+  dropdown.addEventListener('click', function (e) {
+    const opt = e.target.closest('.autocomplete-option');
+    if (!opt) return;
+    selectedItem = { name: opt.dataset.name, volume: parseInt(opt.dataset.volume, 10) };
+    searchInput.value = selectedItem.name;
+    dropdown.classList.remove('open');
+  });
+}
+
+function addInventoryItem() {
+  if (!selectedItem) {
+    toast('Select an item from the list');
+    return;
+  }
+  const qty = parseInt(document.getElementById('itemQty').value, 10) || 1;
+  inventoryItems.push({ name: selectedItem.name, volume: selectedItem.volume, quantity: qty });
+  selectedItem = null;
+  searchInput.value = '';
+  document.getElementById('itemQty').value = '1';
+  renderInventory();
+}
+
+async function saveInventory() {
+  if (!currentJob) return;
+  let totalVolume = 0;
+  inventoryItems.forEach(it => { totalVolume += (it.volume || 0) * (it.quantity || 1); });
+
+  try {
+    const res = await apiPost('save-inventory', {
+      job_submission_id: currentJob.id,
+      items: inventoryItems,
+      total_volume: totalVolume,
+    });
+    if (res.success || res.ok) {
+      toast('Inventory saved');
+    } else {
+      toast('Failed to save inventory');
+    }
+  } catch (err) {
+    toast('Error saving inventory');
+    console.error(err);
+  }
+}
+
+// ── Photos ──
+function triggerPhotoUpload(index) {
+  document.getElementById('photoInput' + index).click();
+}
+
+async function handlePhotoUpload(index, input) {
+  const files = input.files;
+  if (!files || files.length === 0) return;
+  const item = inventoryItems[index];
+  if (!item) return;
+
+  const photos = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const base64 = await readFileAsBase64(file);
+    photos.push({
+      filename: file.name,
+      base64: base64,
+      content_type: file.type,
+    });
+  }
+
+  try {
+    toast('Uploading photos...');
+    const res = await apiPost('upload-photos', {
+      job_number: currentJob.job_number || currentJob.id,
+      item_name: item.name,
+      photos: photos,
+      uploaded_by: currentUser.name || currentUser.username || 'agent',
+    });
+    if (res.success || res.ok) {
+      toast('Photos uploaded');
+      await loadPhotos(currentJob.job_number || currentJob.id);
+      renderInventory();
+    } else {
+      toast('Failed to upload photos');
+    }
+  } catch (err) {
+    toast('Error uploading photos');
+    console.error(err);
+  }
+  input.value = '';
+}
+
+function readFileAsBase64(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result;
+      // Strip data URL prefix
+      const base64 = result.indexOf(',') !== -1 ? result.split(',')[1] : result;
+      resolve(base64);
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function loadPhotos(jobNumber) {
+  try {
+    const data = await apiGet('photos', { job_number: jobNumber });
+    const photos = data.photos || data.data || [];
+    jobPhotos = {};
+    if (Array.isArray(photos)) {
+      photos.forEach(p => {
+        const key = p.item_name || 'unknown';
+        if (!jobPhotos[key]) jobPhotos[key] = [];
+        jobPhotos[key].push({ id: p.id, url: p.url, filename: p.filename });
+      });
+    }
+  } catch (e) {
+    jobPhotos = {};
+  }
+}
+
+async function deletePhoto(itemName, photoId) {
+  try {
+    const res = await apiPost('delete-photo', { photo_id: photoId });
+    if (res.success || res.ok) {
+      // Remove from local state
+      if (jobPhotos[itemName]) {
+        jobPhotos[itemName] = jobPhotos[itemName].filter(p => p.id !== photoId);
+      }
+      renderInventory();
+      toast('Photo deleted');
+    } else {
+      toast('Failed to delete photo');
+    }
+  } catch (err) {
+    toast('Error deleting photo');
+  }
+}
+
+// ── BOL ──
+async function checkExistingBOL(job) {
+  const bolEl = document.getElementById('bolContent');
+  try {
+    const data = await supabaseDirectGet(
+      '/rest/v1/agreements?select=id,token,status&job_submission_id=eq.' + encodeURIComponent(job.id) + '&step_order=eq.1&limit=1'
+    );
+    if (Array.isArray(data) && data.length > 0) {
+      const token = data[0].token;
+      const link = window.location.origin + '/agreement?t=' + token;
+      showBOLLink(link);
+    } else {
+      bolEl.innerHTML = '<button class="btn btn-primary" style="width:100%;" onclick="createBOL()">Create BOL</button>';
+    }
+  } catch (e) {
+    bolEl.innerHTML = '<button class="btn btn-primary" style="width:100%;" onclick="createBOL()">Create BOL</button>';
+  }
+}
+
+async function createBOL() {
+  if (!currentJob) return;
+  const bolEl = document.getElementById('bolContent');
+  bolEl.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
+
+  try {
+    const res = await fetch('/api/create-agreement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        jobSubmissionId: currentJob.id,
+        jobNumber: currentJob.job_number,
+      }),
+    });
+    const data = await res.json();
+    if (data.success && data.link) {
+      showBOLLink(data.link);
+      toast('BOL created');
+    } else {
+      bolEl.innerHTML = '<button class="btn btn-primary" style="width:100%;" onclick="createBOL()">Create BOL</button>';
+      toast('Failed: ' + (data.error || 'Unknown error'));
+    }
+  } catch (err) {
+    bolEl.innerHTML = '<button class="btn btn-primary" style="width:100%;" onclick="createBOL()">Create BOL</button>';
+    toast('Error creating BOL');
+  }
+}
+
+function showBOLLink(link) {
+  const bolEl = document.getElementById('bolContent');
+  bolEl.innerHTML = `<div class="bol-link">
+    <a href="${link}" target="_blank">${link}</a>
+    <button class="btn btn-outline btn-sm" onclick="copyBOLLink('${link}')">Copy</button>
+  </div>`;
+}
+
+function copyBOLLink(link) {
+  navigator.clipboard.writeText(link).then(() => toast('Link copied')).catch(() => toast('Copy failed'));
+}
+
+// ── Init ──
+if (currentUser) {
+  loadJobs();
+}
+</script>
+</body>
+</html>

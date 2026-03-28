@@ -1,0 +1,17 @@
+{
+  "name": "hercules-dashboard",
+  "version": "1.0.0",
+  "description": "Moving Company Dashboard with Payment Processing",
+  "engines": {
+    "node": "22.x"
+  },
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "vercel dev"
+  },
+  "dependencies": {
+    "resend": "^4.0.0",
+    "stripe": "^17.0.0"
+  }
+}
+

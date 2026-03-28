@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Closer Extension Icons</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .icon-container { display: flex; gap: 20px; margin-bottom: 30px; }
+        .icon { 
+            width: 128px; height: 128px; 
+            border-radius: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: bold; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+        .closer-icon { background: linear-gradient(135deg, #fd7e14, #dc3545); }
+        .truck { font-size: 40px; margin-bottom: 5px; }
+        .text { font-size: 14px; text-align: center; line-height: 1.1; }
+        .small-text { font-size: 9px; opacity: 0.9; }
+        .instructions { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .download-btn { 
+            background: #007bff; color: white; border: none; 
+            padding: 10px 20px; border-radius: 5px; cursor: pointer; 
+            margin: 5px; font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎯 Generate Closer Extension Icons</h1>
+    
+    <div class="instructions">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Click the download buttons below to generate each icon size</li>
+            <li>Save the downloaded files as icon16.png, icon48.png, icon128.png</li>
+            <li>Place them in the closer-extension folder</li>
+            <li>Load the extension in Chrome</li>
+        </ol>
+    </div>
+
+    <div class="icon-container">
+        <div class="icon closer-icon" id="closer-icon">
+            <div class="truck">🎯</div>
+            <div class="text">CLOSER</div>
+            <div class="small-text">JOB TRACKER</div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>📥 Download Icons:</h3>
+        <button class="download-btn" onclick="downloadIcon(128)">Download 128px</button>
+        <button class="download-btn" onclick="downloadIcon(48)">Download 48px</button>
+        <button class="download-btn" onclick="downloadIcon(16)">Download 16px</button>
+    </div>
+
+    <script>
+        function createIcon(size) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#fd7e14');
+            gradient.addColorStop(1, '#dc3545');
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add border
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = Math.max(2, size / 40);
+            ctx.strokeRect(0, 0, size, size);
+            
+            // Add text
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size/8}px Arial`;
+            ctx.textAlign = 'center';
+            
+            let text = 'C';
+            if (size >= 48) {
+                text = 'CLOSER';
+            }
+            
+            const y = size/2 + size/16;
+            ctx.fillText(text, size/2, y);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        function downloadIcon(size) {
+            const dataUrl = createIcon(size);
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = dataUrl;
+            link.click();
+        }
+        
+        // Make icon downloadable on right-click
+        document.getElementById('closer-icon').addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            downloadIcon(128);
+        });
+    </script>
+</body>
+</html>
+

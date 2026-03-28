@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chrome Extension Icons Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+        .icon-container { display: flex; gap: 20px; margin-bottom: 30px; }
+        .icon { 
+            width: 128px; height: 128px; 
+            border-radius: 20px; 
+            display: flex; 
+            flex-direction: column; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: bold; 
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+            cursor: pointer;
+        }
+        .fronter-icon { background: linear-gradient(135deg, #007bff, #28a745); }
+        .closer-icon { background: linear-gradient(135deg, #fd7e14, #dc3545); }
+        .truck { font-size: 40px; margin-bottom: 5px; }
+        .text { font-size: 14px; text-align: center; line-height: 1.1; }
+        .small-text { font-size: 9px; opacity: 0.9; }
+        .instructions { background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px; }
+        .download-btn { 
+            background: #007bff; color: white; border: none; 
+            padding: 10px 20px; border-radius: 5px; cursor: pointer; 
+            margin: 5px; font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Chrome Extension Icons Generator</h1>
+    
+    <div class="instructions">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Right-click on each icon below and "Save image as..."</li>
+            <li>For <strong>Fronter Extension</strong>: Save as icon128.png, icon48.png, icon16.png</li>
+            <li>For <strong>Closer Extension</strong>: Save as icon128.png, icon48.png, icon16.png</li>
+            <li>Place the icons in their respective extension folders</li>
+            <li>Or use the download buttons below to get all sizes</li>
+        </ol>
+    </div>
+
+    <div class="icon-container">
+        <div class="icon fronter-icon" id="fronter-icon">
+            <div class="truck">🚛</div>
+            <div class="text">FRONTER</div>
+            <div class="small-text">JOB TRACKER</div>
+        </div>
+        
+        <div class="icon closer-icon" id="closer-icon">
+            <div class="truck">🎯</div>
+            <div class="text">CLOSER</div>
+            <div class="small-text">JOB TRACKER</div>
+        </div>
+    </div>
+
+    <div class="instructions">
+        <h3>📥 Quick Download:</h3>
+        <button class="download-btn" onclick="downloadIcon('fronter', 128)">Fronter 128px</button>
+        <button class="download-btn" onclick="downloadIcon('fronter', 48)">Fronter 48px</button>
+        <button class="download-btn" onclick="downloadIcon('fronter', 16)">Fronter 16px</button>
+        <br>
+        <button class="download-btn" onclick="downloadIcon('closer', 128)">Closer 128px</button>
+        <button class="download-btn" onclick="downloadIcon('closer', 48)">Closer 48px</button>
+        <button class="download-btn" onclick="downloadIcon('closer', 16)">Closer 16px</button>
+    </div>
+
+    <script>
+        function createIcon(size, type) {
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            
+            // Create gradient background
+            let gradient;
+            if (type === 'fronter') {
+                gradient = ctx.createLinearGradient(0, 0, size, size);
+                gradient.addColorStop(0, '#007bff');
+                gradient.addColorStop(1, '#28a745');
+            } else {
+                gradient = ctx.createLinearGradient(0, 0, size, size);
+                gradient.addColorStop(0, '#fd7e14');
+                gradient.addColorStop(1, '#dc3545');
+            }
+            
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add border
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = Math.max(2, size / 40);
+            ctx.strokeRect(0, 0, size, size);
+            
+            // Add text
+            ctx.fillStyle = 'white';
+            ctx.font = `bold ${size/8}px Arial`;
+            ctx.textAlign = 'center';
+            
+            const text = type.toUpperCase();
+            const y = size/2 + size/16;
+            ctx.fillText(text, size/2, y);
+            
+            return canvas.toDataURL('image/png');
+        }
+        
+        function downloadIcon(type, size) {
+            const dataUrl = createIcon(size, type);
+            const link = document.createElement('a');
+            link.download = `icon${size}.png`;
+            link.href = dataUrl;
+            link.click();
+        }
+        
+        // Make icons downloadable on right-click
+        document.getElementById('fronter-icon').addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            downloadIcon('fronter', 128);
+        });
+        
+        document.getElementById('closer-icon').addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            downloadIcon('closer', 128);
+        });
+    </script>
+</body>
+</html>

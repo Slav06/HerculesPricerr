@@ -1,0 +1,35 @@
+{
+  "crons": [
+    { "path": "/api/sync-elavon-transactions", "schedule": "0 6 * * *" },
+    { "path": "/api/schedule-checkin", "schedule": "0 22 * * *" },
+    { "path": "/api/weekly-hours-report", "schedule": "0 14 * * 1" },
+    { "path": "/api/hours-followup", "schedule": "0 14 * * 4" },
+    { "path": "/api/lsa-auto-reply?action=process", "schedule": "0 * * * *" },
+    { "path": "/api/sandy-learn?action=learn", "schedule": "*/30 * * * *" },
+    { "path": "/api/sandy-learn?action=wakeup", "schedule": "0 13 * * 1-6" },
+    { "path": "/api/sandy-learn?action=staffing", "schedule": "0 13 * * *" },
+    { "path": "/api/dispositions?action=sync", "schedule": "0 13 * * *" }
+  ],
+  "rewrites": [
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/test", "destination": "/test.html" },
+    { "source": "/template-builder", "destination": "/template-builder.html" },
+    { "source": "/email-test", "destination": "/email-test.html" },
+    { "source": "/agreement", "destination": "/agreement.html" },
+    { "source": "/email-logs", "destination": "/email-logs.html" },
+    { "source": "/client-portal", "destination": "/client-dashboard.html" },
+    { "source": "/my-documents", "destination": "/client-dashboard.html" },
+    { "source": "/add-card", "destination": "/add-card.html" },
+    { "source": "/transactions", "destination": "/transactions.html" },
+    { "source": "/schedule", "destination": "/schedule.html" },
+    { "source": "/my-schedule", "destination": "/my-schedule.html" },
+    { "source": "/payslips", "destination": "/payslips.html" },
+    { "source": "/lsa-chat", "destination": "/lsa-chat.html" },
+    { "source": "/confirm-commission", "destination": "/confirm-commission.html" },
+    { "source": "/dispositions", "destination": "/dispositions.html" },
+    { "source": "/sales-invoice", "destination": "/sales-invoice.html" },
+    { "source": "/invoices", "destination": "/invoice-summary.html" },
+    { "source": "/dispatch", "destination": "/dispatch.html" },
+    { "source": "/agent", "destination": "/agent.html" }
+  ]
+}

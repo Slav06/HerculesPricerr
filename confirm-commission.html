@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>My Commission — HMS</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFA23F 0%, #e8891f 50%, #d4780a 100%);
+            min-height: 100vh; color: #e2e8f0;
+        }
+        .container { max-width: 700px; margin: 0 auto; padding: 20px; }
+
+        .card {
+            background: rgba(8, 12, 28, 0.85); backdrop-filter: blur(16px);
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45); overflow: hidden; position: relative;
+        }
+        .card::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+        }
+
+        .header { padding: 24px 24px 16px; border-bottom: 1px solid rgba(255,255,255,0.06); }
+        .header-title { font-size: 20px; font-weight: 800; color: #e2e8f0; }
+        .header-sub { font-size: 13px; color: #64748b; margin-top: 4px; }
+
+        /* Login form */
+        .login-section { padding: 40px 24px; text-align: center; }
+        .login-section h2 { font-size: 18px; margin-bottom: 20px; color: #e2e8f0; }
+        .login-input {
+            width: 100%; max-width: 300px; padding: 12px 16px; border-radius: 8px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            color: #e2e8f0; font-size: 14px; font-family: inherit; text-align: center;
+            margin-bottom: 12px; display: block; margin-left: auto; margin-right: auto;
+        }
+        .login-input:focus { outline: none; border-color: #3b82f6; }
+        .login-input::placeholder { color: #475569; }
+        .login-error { color: #f87171; font-size: 12px; margin-top: 8px; display: none; }
+
+        /* Week nav */
+        .week-nav {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .week-label { font-size: 14px; font-weight: 700; color: #e2e8f0; min-width: 180px; text-align: center; }
+        .nav-btn {
+            width: 32px; height: 32px; border-radius: 8px;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8; font-size: 14px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.15); color: #e2e8f0; }
+
+        .confirmed-banner {
+            background: rgba(34,197,94,0.12); border: 1px solid rgba(34,197,94,0.25);
+            border-radius: 8px; padding: 12px 16px; margin: 16px 24px;
+            display: none; align-items: center; gap: 8px;
+            font-size: 13px; color: #4ade80; font-weight: 600;
+        }
+        .confirmed-banner.show { display: flex; }
+
+        .table-wrap { padding: 16px 24px; overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 12px; }
+        th {
+            text-align: left; padding: 8px 10px; color: #64748b; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.05em; font-size: 10px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        td { padding: 10px; border-bottom: 1px solid rgba(255,255,255,0.04); color: #cbd5e1; }
+        tr:hover td { background: rgba(255,255,255,0.02); }
+
+        .role-badge { font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700; }
+        .role-fronter { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .role-closer { background: rgba(139,92,246,0.15); color: #a78bfa; }
+        .comm-amt { color: #4ade80; font-weight: 700; }
+
+        .total-row td { border-top: 2px solid rgba(255,255,255,0.1); font-weight: 700; color: #e2e8f0; }
+        .total-amt { font-size: 18px; color: #4ade80; font-weight: 800; }
+
+        .actions { padding: 20px 24px; border-top: 1px solid rgba(255,255,255,0.06); }
+        .btn-confirm {
+            width: 100%; padding: 14px; border: none; border-radius: 10px;
+            font-size: 15px; font-weight: 700; cursor: pointer;
+            background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
+            transition: all 0.2s;
+        }
+        .btn-confirm:hover { background: linear-gradient(135deg, #4ade80, #22c55e); transform: translateY(-1px); }
+        .btn-confirm:disabled { background: #1e293b; color: #475569; cursor: not-allowed; transform: none; }
+
+        .btn-login {
+            padding: 12px 32px; border: none; border-radius: 8px;
+            font-size: 14px; font-weight: 700; cursor: pointer;
+            background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff;
+        }
+        .btn-login:hover { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+
+        .loading { text-align: center; padding: 60px 20px; color: #64748b; }
+        .spinner {
+            width: 36px; height: 36px; border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite;
+            margin: 0 auto 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .error { text-align: center; padding: 40px 20px; color: #f87171; font-size: 14px; }
+        .empty { text-align: center; padding: 40px 20px; color: #64748b; font-size: 13px; }
+        .success-msg { text-align: center; padding: 16px; color: #4ade80; font-weight: 600; font-size: 14px; display: none; }
+        .success-msg.show { display: block; }
+
+        .logout-link { font-size: 11px; color: #64748b; cursor: pointer; float: right; margin-top: -20px; margin-right: 24px; }
+        .logout-link:hover { color: #94a3b8; }
+
+        @media (max-width: 500px) {
+            .container { padding: 12px; }
+            .header { padding: 16px; }
+            .table-wrap { padding: 12px; }
+            .actions { padding: 16px; }
+            table { font-size: 11px; }
+            td, th { padding: 6px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="card">
+        <div class="header">
+            <div class="header-title" id="pageTitle">My Commission</div>
+            <div class="header-sub" id="pageSub">Log in to view your commission</div>
+        </div>
+
+        <!-- Login Section -->
+        <div id="loginSection" class="login-section">
+            <h2>Enter your secret key to log in</h2>
+            <input type="text" class="login-input" id="nameInput" placeholder="Your name" autocomplete="off">
+            <input type="password" class="login-input" id="keyInput" placeholder="Secret key" autocomplete="off">
+            <br>
+            <button class="btn-login" onclick="doLogin()">Log In</button>
+            <div class="login-error" id="loginError">Invalid name or secret key</div>
+        </div>
+
+        <!-- Commission Content (hidden until login) -->
+        <div id="commissionContent" style="display:none">
+            <div class="week-nav">
+                <button class="nav-btn" onclick="changeWeek(-1)">&#9664;</button>
+                <span class="week-label" id="weekLabel">Loading...</span>
+                <button class="nav-btn" onclick="changeWeek(1)">&#9654;</button>
+            </div>
+            <span class="logout-link" onclick="doLogout()">Logout</span>
+
+            <div class="confirmed-banner" id="confirmedBanner"></div>
+            <div id="content"><div class="loading"><div class="spinner"></div>Loading...</div></div>
+            <div class="success-msg" id="successMsg">&#10003; Commission confirmed! Thank you.</div>
+            <div class="actions" id="actionsSection" style="display:none">
+                <button class="btn-confirm" id="confirmBtn" onclick="confirmCommission()">I Confirm My Commission Is Correct</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    const SUPABASE_URL = 'process.env.SUPABASE_URL';
+    const SUPABASE_KEY = 'process.env.SUPABASE_ANON_KEY';
+
+    let loggedInUser = null; // { dashboardName, employeeName }
+    let currentWeekStart = getLastWeekMonday();
+
+    // Check if already logged in via session
+    const session = sessionStorage.getItem('comm_session');
+    if (session) {
+        try {
+            loggedInUser = JSON.parse(session);
+            showCommissionView();
+        } catch(e) {}
+    }
+
+    // Enter key on inputs
+    document.getElementById('keyInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') doLogin(); });
+    document.getElementById('nameInput').addEventListener('keydown', function(e) { if (e.key === 'Enter') document.getElementById('keyInput').focus(); });
+
+    window.doLogin = async function() {
+        const name = document.getElementById('nameInput').value.trim();
+        const key = document.getElementById('keyInput').value.trim();
+        if (!name || !key) return;
+
+        const errEl = document.getElementById('loginError');
+        errEl.style.display = 'none';
+
+        // Check against dashboard_users
+        const resp = await fetch(`${SUPABASE_URL}/rest/v1/dashboard_users?name=ilike.${encodeURIComponent(name)}&secretkey=eq.${encodeURIComponent(key)}&isactive=eq.true&limit=1`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+        });
+        const users = await resp.json();
+        if (!Array.isArray(users) || !users.length) {
+            errEl.style.display = 'block';
+            return;
+        }
+
+        const dashUser = users[0];
+
+        // Find matching employee name
+        const empResp = await fetch(`${SUPABASE_URL}/rest/v1/employees?dashboard_name=eq.${encodeURIComponent(dashUser.name)}&is_active=eq.true&limit=1`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+        });
+        const emps = await empResp.json();
+        let employeeName = dashUser.name;
+        if (Array.isArray(emps) && emps.length) {
+            employeeName = emps[0].name;
+        }
+
+        loggedInUser = { dashboardName: dashUser.name, employeeName: employeeName };
+        sessionStorage.setItem('comm_session', JSON.stringify(loggedInUser));
+        showCommissionView();
+    };
+
+    window.doLogout = function() {
+        sessionStorage.removeItem('comm_session');
+        loggedInUser = null;
+        document.getElementById('loginSection').style.display = '';
+        document.getElementById('commissionContent').style.display = 'none';
+        document.getElementById('pageTitle').textContent = 'My Commission';
+        document.getElementById('pageSub').textContent = 'Log in to view your commission';
+    };
+
+    function showCommissionView() {
+        document.getElementById('loginSection').style.display = 'none';
+        document.getElementById('commissionContent').style.display = '';
+        document.getElementById('pageTitle').textContent = 'My Commission — ' + loggedInUser.employeeName;
+        document.getElementById('pageSub').textContent = '';
+        loadWeek();
+    }
+
+    window.changeWeek = function(delta) {
+        currentWeekStart.setDate(currentWeekStart.getDate() + (delta * 7));
+        loadWeek();
+    };
+
+    async function loadWeek() {
+        const ws = fmtDate(currentWeekStart);
+        const we = new Date(currentWeekStart); we.setDate(we.getDate() + 6);
+        document.getElementById('weekLabel').textContent = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' + we.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+        const content = document.getElementById('content');
+        const actions = document.getElementById('actionsSection');
+        const banner = document.getElementById('confirmedBanner');
+        const successMsg = document.getElementById('successMsg');
+        actions.style.display = 'none';
+        banner.classList.remove('show');
+        successMsg.classList.remove('show');
+        content.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+
+        // Check for commission token for this employee + week
+        const tokenResp = await fetch(`${SUPABASE_URL}/rest/v1/commission_tokens?employee_name=eq.${encodeURIComponent(loggedInUser.employeeName)}&week_start=eq.${ws}&limit=1`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+        });
+        const tokens = await tokenResp.json();
+
+        if (!Array.isArray(tokens) || !tokens.length) {
+            content.innerHTML = '<div class="empty">No commission has been finalized for this week yet.</div>';
+            return;
+        }
+
+        const tokenData = tokens[0];
+
+        // Fetch snapshots
+        const snapResp = await fetch(`${SUPABASE_URL}/rest/v1/commission_snapshots?employee_name=eq.${encodeURIComponent(loggedInUser.employeeName)}&week_start=eq.${ws}&order=processed_at`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+        });
+        const deals = await snapResp.json();
+
+        if (!Array.isArray(deals) || !deals.length) {
+            content.innerHTML = '<div class="empty">No commission deals for this week.</div>';
+            return;
+        }
+
+        // Show confirmed banner
+        if (tokenData.status === 'confirmed') {
+            const dt = tokenData.confirmed_at ? new Date(tokenData.confirmed_at).toLocaleString() : '';
+            banner.innerHTML = '&#10003; Confirmed on ' + dt;
+            banner.classList.add('show');
+        }
+
+        // Build table
+        let html = '<div class="table-wrap"><table>';
+        html += '<thead><tr><th>Date</th><th>Customer</th><th>Job #</th><th>Role</th><th>Amount</th><th>%</th><th>Commission</th></tr></thead><tbody>';
+
+        let total = 0;
+        deals.forEach(function(d) {
+            const date = d.processed_at ? new Date(d.processed_at).toLocaleDateString('en-US',{month:'short',day:'numeric'}) : '-';
+            const roleClass = (d.role||'').toLowerCase().includes('closer') ? 'role-closer' : 'role-fronter';
+            const amt = parseFloat(d.amount) || 0;
+            const pct = parseFloat(d.commission_pct) || 0;
+            const comm = parseFloat(d.commission_amount) || 0;
+            total += comm;
+
+            html += '<tr><td>' + date + '</td><td>' + esc(d.customer_name) + '</td><td>' + esc(d.job_number||'-') + '</td>';
+            html += '<td><span class="role-badge ' + roleClass + '">' + esc(d.role) + '</span></td>';
+            html += '<td>$' + amt.toFixed(2) + '</td><td>' + pct + '%</td><td class="comm-amt">$' + comm.toFixed(2) + '</td></tr>';
+        });
+
+        html += '<tr class="total-row"><td colspan="6" style="text-align:right">Total Commission:</td><td class="total-amt">$' + total.toFixed(2) + '</td></tr>';
+        html += '</tbody></table></div>';
+        content.innerHTML = html;
+
+        // Show confirm button
+        actions.style.display = '';
+        if (tokenData.status === 'confirmed') {
+            document.getElementById('confirmBtn').disabled = true;
+            document.getElementById('confirmBtn').textContent = 'Already Confirmed';
+        } else {
+            document.getElementById('confirmBtn').disabled = false;
+            document.getElementById('confirmBtn').textContent = 'I Confirm My Commission Is Correct';
+        }
+    }
+
+    window.confirmCommission = async function() {
+        const ws = fmtDate(currentWeekStart);
+        const btn = document.getElementById('confirmBtn');
+        btn.disabled = true;
+        btn.textContent = 'Confirming...';
+
+        // Get the token
+        const tokenResp = await fetch(`${SUPABASE_URL}/rest/v1/commission_tokens?employee_name=eq.${encodeURIComponent(loggedInUser.employeeName)}&week_start=eq.${ws}&limit=1`, {
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+        });
+        const tokens = await tokenResp.json();
+        if (!Array.isArray(tokens) || !tokens.length) { btn.textContent = 'Error'; return; }
+
+        const resp = await fetch('/api/finalize-commission?action=confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ token: tokens[0].token })
+        });
+        const result = await resp.json();
+
+        if (result.success) {
+            btn.textContent = 'Confirmed!';
+            document.getElementById('successMsg').classList.add('show');
+            document.getElementById('confirmedBanner').innerHTML = '&#10003; Confirmed just now';
+            document.getElementById('confirmedBanner').classList.add('show');
+        } else {
+            btn.textContent = 'Error — try again';
+            btn.disabled = false;
+        }
+    };
+
+    function getLastWeekMonday() {
+        const now = new Date();
+        const day = now.getDay();
+        const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+        const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+        monday.setDate(monday.getDate() - 7);
+        return monday;
+    }
+
+    function fmtDate(d) {
+        return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    }
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sales Floor Invoice — HMS</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fb;
+    color: #1e293b;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+  /* ── App Bar ──────────────────────────────────── */
+  .app-bar {
+    background: #ffffff;
+    border-radius: 12px;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+    position: relative;
+  }
+  .app-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+  }
+  .app-bar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .app-bar-left { display: flex; align-items: center; gap: 16px; }
+  .app-bar-title {
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #e2e8f0 30%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .back-link { color: #2563eb; text-decoration: none; font-size: 13px; opacity: 0.8; }
+  .back-link:hover { opacity: 1; }
+
+  /* ── Buttons ──────────────────────────────────── */
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; border: none; }
+  .btn-primary:hover { background: linear-gradient(135deg, #60a5fa, #3b82f6); transform: translateY(-1px); }
+  .btn-ghost { background: #f8fafc; color: #64748b; border: 1px solid #e2e8f0; }
+  .btn-ghost:hover { background: #e2e8f0; color: #1e293b; }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+  /* ── Controls Card ───────────────────────────── */
+  .controls-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .controls-card label {
+    font-size: 12px; color: #64748b; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 0.05em;
+  }
+  input[type="date"] {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; color: #1e293b; padding: 7px 12px; font-size: 13px;
+    font-family: inherit;
+  }
+  input[type="date"]:focus { outline: none; border-color: #3b82f6; }
+  .controls-sep { width: 1px; height: 28px; background: #e2e8f0; }
+
+  /* ── Stats Row ───────────────────────────────── */
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-bottom: 12px; }
+  .stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  }
+  .stat-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: #64748b; margin-bottom: 6px; font-weight: 600;
+  }
+  .stat-value {
+    font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums;
+  }
+  .stat-value.green { color: #16a34a; }
+
+  /* Rep Grid */
+  .rep-slider {
+    margin-bottom: 12px;
+  }
+  .rep-slider-inner {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 10px;
+  }
+  .rep-card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 8px;
+    padding: 10px 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    display: flex; flex-direction: column; gap: 3px;
+  }
+  .rep-card-name { font-size: 11px; font-weight: 700; color: #1e293b; }
+  .rep-card-amount { font-size: 16px; font-weight: 800; color: #16a34a; }
+  .rep-card-deals { font-size: 10px; font-weight: 600; display: flex; gap: 4px; flex-wrap: wrap; }
+  .rep-open { padding: 1px 6px; }
+  .rep-close { padding: 1px 6px; }
+  .rep-open { color: #2563eb; background: rgba(37,99,235,0.08); padding: 2px 8px; border-radius: 6px; }
+  .rep-close { color: #7c3aed; background: rgba(124,58,237,0.08); padding: 2px 8px; border-radius: 6px; }
+  .stat-value.blue {
+    background: linear-gradient(90deg, #3b82f6, #8b5cf6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .stat-value.amber { color: #d97706; }
+  .stat-value.slate { color: #1e293b; }
+
+  /* ── Status / Loading ────────────────────────── */
+  .status-bar { padding: 8px 0; font-size: 12px; color: #64748b; min-height: 30px; display: flex; align-items: center; gap: 8px; }
+  .spinner { width: 14px; height: 14px; border: 2px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error-box { margin-bottom: 16px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); border-radius: 10px; padding: 12px 16px; color: #dc2626; font-size: 13px; }
+  .no-data { text-align: center; padding: 80px 24px; color: #64748b; font-size: 14px; }
+
+  /* ── Invoice Table ───────────────────────────── */
+  .table-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    overflow: hidden;
+  }
+  .invoice-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  .invoice-table thead th {
+    background: #f8fafc;
+    padding: 12px 16px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #64748b;
+    border-bottom: 1px solid #e2e8f0;
+  }
+  .invoice-table tbody td {
+    padding: 12px 16px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+  }
+  .invoice-table tbody tr:last-child td { border-bottom: none; }
+  .invoice-table tbody tr:hover { background: #f8fafc; }
+
+  .amt-sale { color: #16a34a; font-weight: 700; }
+  .amt-refund { color: #dc2626; font-weight: 700; }
+
+  .totals-row td {
+    background: #f8fafc;
+    font-weight: 800;
+    font-size: 14px;
+    border-top: 2px solid #e2e8f0 !important;
+    padding: 14px 16px !important;
+  }
+
+  /* ── Responsive ──────────────────────────────── */
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+    .rep-slider-inner { grid-template-columns: repeat(3, 1fr); }
+  }
+
+  @media (max-width: 768px) {
+    .container { padding: 10px; }
+    .app-bar-content { flex-direction: column; align-items: stretch; gap: 8px; }
+    .app-bar-content > div:first-child { margin-bottom: 4px; }
+    .app-bar-content > div:last-child { justify-content: flex-end; }
+    .controls-card { justify-content: center; padding: 10px; }
+    .controls-sep { display: none; }
+    .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; margin-bottom: 10px; }
+    .stat-card { padding: 10px 14px; }
+    .stat-value { font-size: 22px; }
+    .rep-slider-inner { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .rep-slider { margin-bottom: 10px; }
+    .table-card { overflow-x: auto; }
+    .invoice-table { min-width: 600px; font-size: 11px; }
+    .invoice-table th, .invoice-table td { padding: 6px 8px; }
+  }
+
+  @media (max-width: 480px) {
+    .stats-row { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .stat-value { font-size: 18px; }
+    .stat-label { font-size: 9px; }
+    .rep-slider-inner { grid-template-columns: 1fr 1fr; gap: 6px; }
+    .rep-card-amount { font-size: 14px; }
+    .rep-card-name { font-size: 10px; }
+    .btn { font-size: 11px; padding: 6px 10px; }
+    .back-link { font-size: 11px; }
+  }
+
+  /* ── Print Styles ────────────────────────────── */
+  @media print {
+    body { background: #fff; color: #000; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .container { max-width: 100%; padding: 0; }
+    .app-bar, .controls-card, .btn, .back-link, .status-bar { display: none !important; }
+
+    .print-header {
+      display: block !important;
+      text-align: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #000;
+    }
+    .print-header h1 { font-size: 20px; margin-bottom: 4px; }
+    .print-header p { font-size: 12px; color: #444; }
+
+    .stats-row { gap: 8px; margin-bottom: 12px; grid-template-columns: repeat(2, 1fr); }
+    .rep-slider-inner { grid-template-columns: repeat(2, 1fr); }
+    .stat-card { border: 1px solid #ccc; box-shadow: none; padding: 10px 14px; }
+    .stat-value { font-size: 20px !important; color: #000 !important; background: none !important; -webkit-text-fill-color: #000 !important; }
+    .stat-label { color: #555 !important; }
+
+    .table-card { border: 1px solid #ccc; box-shadow: none; }
+    .invoice-table thead th { background: #eee; color: #000; }
+    .invoice-table tbody td { color: #000; }
+    .amt-sale { color: #000 !important; }
+    .amt-refund { color: #666 !important; font-style: italic; }
+    .totals-row td { background: #eee; }
+  }
+
+  .print-header { display: none; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Print-only header -->
+  <div class="print-header">
+    <h1>Hercules Moving Solutions — Sales Floor Invoice</h1>
+    <p id="printDateRange"></p>
+  </div>
+
+  <!-- App Bar -->
+  <div class="app-bar">
+    <div class="app-bar-content">
+      <div class="app-bar-left">
+        <span class="app-bar-title">HMS Sales Floor Invoice</span>
+        <a href="/dashboard" class="back-link">&#8592; Dashboard</a>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button class="btn btn-primary" onclick="logFloorPayment()">+ Log Payment</button>
+        <button class="btn btn-ghost" onclick="exportToGoogleSheets()" style="background:#34a853;color:#fff;border-color:#34a853">&#x1F4CA; Google Sheets</button>
+        <button class="btn btn-ghost" onclick="window.print()">&#128424; Print</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Week Navigation -->
+  <div class="controls-card" style="justify-content:center">
+    <button class="btn btn-ghost" onclick="changeWeek(-1)" style="font-size:16px;padding:6px 12px">&#9664;</button>
+    <span id="weekLabel" style="font-size:15px;font-weight:700;min-width:220px;text-align:center">Loading...</span>
+    <button class="btn btn-ghost" onclick="changeWeek(1)" style="font-size:16px;padding:6px 12px">&#9654;</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-label">Total Deposits</div>
+      <div class="stat-value green" id="statDeposits">$0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">35% Floor Revenue</div>
+      <div class="stat-value blue" id="statFloor">$0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Paid</div>
+      <div class="stat-value" style="color:#16a34a" id="statPaid">$0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Balance Due</div>
+      <div class="stat-value" style="color:#dc2626" id="statBalance">$0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total Deals</div>
+      <div class="stat-value slate" id="statDeals">0</div>
+    </div>
+  </div>
+
+  <!-- Rep Totals Slider -->
+  <div class="rep-slider" id="repSlider" style="display:none">
+    <div class="rep-slider-inner" id="repSliderInner"></div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="statusBar"></div>
+
+  <!-- Table -->
+  <div class="table-card">
+    <table class="invoice-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Customer</th>
+          <th>Job #</th>
+          <th>Amount</th>
+          <th>Fronter 1</th>
+          <th>Fronter 2</th>
+          <th>Closer 1</th>
+          <th>Closer 2</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        <tr><td colspan="8" class="no-data">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Payment Log -->
+  <div class="table-card" style="margin-top:16px">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 20px;border-bottom:1px solid #e2e8f0">
+      <span style="font-size:13px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:0.06em">Floor Payments</span>
+      <button class="btn btn-primary" onclick="logFloorPayment()" style="font-size:12px;padding:6px 14px">+ Log Payment</button>
+    </div>
+    <table class="invoice-table" style="margin:0">
+      <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Notes</th></tr></thead>
+      <tbody id="paymentsBody"><tr><td colspan="5" class="no-data">No payments logged</td></tr></tbody>
+    </table>
+  </div>
+
+</div>
+
+<script src="config.js"></script>
+<script>
+  // ── Auth guard: admin only ────────────────────────────────────────
+  (function() {
+    try {
+      const raw = localStorage.getItem('dashboardUser');
+      if (!raw) { window.location.replace('/dashboard'); return; }
+      const s = JSON.parse(raw);
+      const hrs = (Date.now() - new Date(s.loginTime)) / 3600000;
+      if (hrs > 24 || s.role !== 'admin') { window.location.replace('/dashboard'); }
+    } catch(e) { window.location.replace('/dashboard'); }
+  })();
+
+  const SUPABASE_URL = CONFIG.SUPABASE.URL;
+  const SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
+
+  // Default to last week (same as payslips)
+  let currentWeekStart = getLastWeekMonday();
+
+  function getLastWeekMonday() {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+    monday.setDate(monday.getDate() - 7);
+    return monday;
+  }
+
+  function getWeekEnd(mon) {
+    const sun = new Date(mon);
+    sun.setDate(sun.getDate() + 6);
+    return sun;
+  }
+
+  function updateWeekLabel() {
+    const end = getWeekEnd(currentWeekStart);
+    const label = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' + end.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    document.getElementById('weekLabel').textContent = label;
+  }
+
+  function changeWeek(delta) {
+    currentWeekStart.setDate(currentWeekStart.getDate() + (delta * 7));
+    updateWeekLabel();
+    loadData();
+  }
+
+  function isoDate(d) {
+    return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  function fmtMoney(v) {
+    const n = parseFloat(v) || 0;
+    return '$' + n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  function fmtDate(str) {
+    if (!str) return '—';
+    const d = new Date(str);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  function setStatus(html) {
+    document.getElementById('statusBar').innerHTML = html;
+  }
+
+  async function supaGet(path) {
+    const res = await fetch(SUPABASE_URL + path, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    if (!res.ok) throw new Error('Supabase error: ' + res.status);
+    return res.json();
+  }
+
+  async function loadData() {
+    const start = isoDate(currentWeekStart);
+    const end = isoDate(getWeekEnd(currentWeekStart));
+
+    // Set print date range
+    document.getElementById('printDateRange').textContent =
+      fmtDate(start) + '  —  ' + fmtDate(end);
+
+    setStatus('<div class="spinner"></div> Loading transactions...');
+
+    try {
+      // End date: include the full day
+      const endPlusOne = new Date(end);
+      endPlusOne.setDate(endPlusOne.getDate() + 1);
+      const endStr = isoDate(endPlusOne);
+
+      // Fetch only confirmed (commission_complete) transactions
+      const txns = await supaGet(
+        '/rest/v1/transactions?processed_at=gte.' + start +
+        '&processed_at=lt.' + endStr +
+        '&commission_complete=eq.true' +
+        '&order=processed_at.desc' +
+        '&select=id,transaction_id,processed_at,first_name,last_name,amount,transaction_type,trans_status,fronter_name,fronter2_name,closer_name,closer2_name,job_number,job_submission_id'
+      );
+
+      // Collect job_submission_ids to fetch deposits
+      const jobIds = [...new Set(txns.filter(t => t.job_submission_id).map(t => t.job_submission_id))];
+      let jobMap = {};
+
+      if (jobIds.length > 0) {
+        // Fetch in batches of 50
+        for (let i = 0; i < jobIds.length; i += 50) {
+          const batch = jobIds.slice(i, i + 50);
+          const idFilter = 'in.(' + batch.join(',') + ')';
+          const jobs = await supaGet(
+            '/rest/v1/job_submissions?id=' + idFilter + '&select=id,job_number,total_deposit'
+          );
+          jobs.forEach(j => { jobMap[j.id] = j; });
+        }
+      }
+
+      // Separate sales vs returns
+      const sales = txns.filter(t => {
+        const tt = (t.transaction_type || '').toUpperCase();
+        return tt === 'SALE' || tt === 'AUTH_CAPTURE' || tt === 'CAPTURE';
+      });
+      const returns = txns.filter(t => {
+        const tt = (t.transaction_type || '').toUpperCase();
+        return tt === 'RETURN' || tt === 'REFUND' || tt === 'VOID';
+      });
+
+      // Calculate totals
+      const totalRevenue = sales.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+      const totalReturns = returns.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+      const floorRevenue = totalRevenue * 0.35;
+
+      // Total deposits = same as total revenue (each transaction amount IS the deposit)
+      const totalDeposits = totalRevenue;
+
+      // Update stats
+      document.getElementById('statFloor').textContent = fmtMoney(floorRevenue);
+      document.getElementById('statDeposits').textContent = fmtMoney(totalDeposits);
+      document.getElementById('statDeals').textContent = sales.length.toLocaleString();
+
+      // Build rep totals slider
+      var repTotals = {};
+      sales.forEach(function(t) {
+        var amt = parseFloat(t.amount) || 0;
+        ['fronter_name', 'fronter2_name'].forEach(function(field) {
+          var name = t[field];
+          if (name) {
+            if (!repTotals[name]) repTotals[name] = { amount: 0, opens: 0, closes: 0 };
+            repTotals[name].amount += amt;
+            repTotals[name].opens += 1;
+          }
+        });
+        ['closer_name', 'closer2_name'].forEach(function(field) {
+          var name = t[field];
+          if (name) {
+            if (!repTotals[name]) repTotals[name] = { amount: 0, opens: 0, closes: 0 };
+            repTotals[name].amount += amt;
+            repTotals[name].closes += 1;
+          }
+        });
+      });
+
+      var repArr = Object.keys(repTotals).map(function(name) {
+        return { name: name, amount: repTotals[name].amount, opens: repTotals[name].opens, closes: repTotals[name].closes };
+      }).sort(function(a, b) { return b.amount - a.amount; });
+
+      var slider = document.getElementById('repSlider');
+      var sliderInner = document.getElementById('repSliderInner');
+      if (repArr.length > 0) {
+        slider.style.display = '';
+        sliderInner.innerHTML = repArr.map(function(r) {
+          var parts = [];
+          if (r.opens > 0) parts.push('<span class="rep-open">' + r.opens + ' OPEN</span>');
+          if (r.closes > 0) parts.push('<span class="rep-close">' + r.closes + ' CLOSE</span>');
+          return '<div class="rep-card">' +
+            '<div class="rep-card-name">' + r.name + '</div>' +
+            '<div class="rep-card-amount">' + fmtMoney(r.amount) + '</div>' +
+            '<div class="rep-card-deals">' + parts.join('') + '</div>' +
+          '</div>';
+        }).join('');
+      } else {
+        slider.style.display = 'none';
+      }
+
+      // Build table rows (sales only)
+      const tbody = document.getElementById('tableBody');
+      if (sales.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="8" class="no-data">No sales found for this date range</td></tr>';
+        setStatus('No data found.');
+        // done loading
+        return;
+      }
+
+      let html = '';
+      let runningAmount = 0;
+      let runningDeposit = 0;
+      const depositShown = new Set();
+
+      sales.forEach(t => {
+        const amt = parseFloat(t.amount) || 0;
+        runningAmount += amt;
+
+        const customer = [(t.first_name || ''), (t.last_name || '')].filter(Boolean).join(' ') || '—';
+        const jobNum = t.job_number || (t.job_submission_id && jobMap[t.job_submission_id] ? jobMap[t.job_submission_id].job_number : '') || '—';
+
+        let deposit = fmtMoney(amt);
+        runningDeposit += amt;
+        if (false) {
+        }
+
+        html += '<tr>' +
+          '<td>' + fmtDate(t.processed_at) + '</td>' +
+          '<td>' + escHtml(customer) + '</td>' +
+          '<td>' + escHtml(jobNum) + '</td>' +
+          '<td class="amt-sale">' + fmtMoney(amt) + '</td>' +
+          '<td>' + escHtml(t.fronter_name || '—') + '</td>' +
+          '<td>' + escHtml(t.fronter2_name || '—') + '</td>' +
+          '<td>' + escHtml(t.closer_name || '—') + '</td>' +
+          '<td>' + escHtml(t.closer2_name || '—') + '</td>' +
+          '</tr>';
+      });
+
+      // Totals row
+      html += '<tr class="totals-row">' +
+        '<td colspan="3" style="text-align:right;">TOTALS</td>' +
+        '<td class="amt-sale">' + fmtMoney(runningAmount) + '</td>' +
+        '<td colspan="4"></td>' +
+        '</tr>';
+
+      tbody.innerHTML = html;
+
+      setStatus(sales.length + ' sale(s) loaded' + (totalReturns > 0 ? ' &nbsp;|&nbsp; Returns/refunds excluded: ' + fmtMoney(totalReturns) : ''));
+
+    } catch(err) {
+      console.error(err);
+      setStatus('<span style="color:#dc2626;">Error: ' + escHtml(err.message) + '</span>');
+    }
+
+    // done loading
+    loadFloorPayments();
+  }
+
+  function escHtml(s) {
+    if (!s) return '';
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  // Init
+  // ── Floor Payments ──
+  var floorPayments = [];
+
+  async function loadFloorPayments() {
+    var ws = isoDate(currentWeekStart);
+    try {
+      floorPayments = await supaGet('/rest/v1/floor_payments?week_start=eq.' + ws + '&order=paid_at.desc');
+      if (!Array.isArray(floorPayments)) floorPayments = [];
+    } catch(e) { floorPayments = []; }
+    renderFloorPayments();
+    updateBalance();
+  }
+
+  function renderFloorPayments() {
+    var tbody = document.getElementById('paymentsBody');
+    if (!floorPayments.length) {
+      tbody.innerHTML = '<tr><td colspan="5" class="no-data">No payments logged</td></tr>';
+      return;
+    }
+    tbody.innerHTML = floorPayments.map(function(p) {
+      return '<tr><td>' + fmtDate(p.paid_at) + '</td><td style="color:#16a34a;font-weight:700">' + fmtMoney(p.amount) + '</td><td>' + (p.payment_method || '-') + '</td><td>' + (p.reference || '-') + '</td><td>' + (p.notes || '-') + '</td></tr>';
+    }).join('');
+  }
+
+  function updateBalance() {
+    var totalPaid = floorPayments.reduce(function(s, p) { return s + (parseFloat(p.amount) || 0); }, 0);
+    var floorText = document.getElementById('statFloor').textContent.replace(/[^0-9.-]/g, '');
+    var floorAmount = parseFloat(floorText) || 0;
+    var balance = floorAmount - totalPaid;
+
+    document.getElementById('statPaid').textContent = fmtMoney(totalPaid);
+    document.getElementById('statBalance').textContent = fmtMoney(Math.max(0, balance));
+    document.getElementById('statBalance').style.color = balance > 0 ? '#dc2626' : '#16a34a';
+  }
+
+  async function logFloorPayment() {
+    var floorText = document.getElementById('statFloor').textContent.replace(/[^0-9.-]/g, '');
+    var floorAmount = parseFloat(floorText) || 0;
+    var totalPaid = floorPayments.reduce(function(s, p) { return s + (parseFloat(p.amount) || 0); }, 0);
+    var remaining = Math.max(0, floorAmount - totalPaid);
+
+    var amount = prompt('Payment amount ($' + remaining.toFixed(2) + ' remaining):', remaining.toFixed(2));
+    if (!amount) return;
+    amount = parseFloat(amount);
+    if (isNaN(amount) || amount <= 0) { alert('Invalid amount'); return; }
+
+    var method = prompt('Payment method (Zelle, Wire, Check, etc):') || '';
+    var reference = prompt('Reference/confirmation # (optional):') || '';
+    var notes = prompt('Notes (optional):') || '';
+
+    var ws = isoDate(currentWeekStart);
+
+    try {
+      await fetch(SUPABASE_URL + '/rest/v1/floor_payments', {
+        method: 'POST',
+        headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+        body: JSON.stringify({ week_start: ws, amount: amount, payment_method: method, reference: reference, notes: notes })
+      });
+      await loadFloorPayments();
+    } catch(e) { alert('Failed: ' + e.message); }
+  }
+
+  // ── Export to Google Sheets ──────────────────────────────────────
+  async function exportToGoogleSheets() {
+    const table = document.querySelector('.invoice-table');
+    if (!table) { alert('No data to export'); return; }
+
+    // Build CSV from the sales table
+    const rows = [];
+    const weekLabel = document.getElementById('weekLabel').textContent;
+
+    // Header row
+    rows.push(['HMS Sales Invoice — ' + weekLabel]);
+    rows.push([]);
+
+    // Stats
+    const deposits = document.getElementById('statDeposits').textContent;
+    const floor = document.getElementById('statFloor').textContent;
+    const deals = document.getElementById('statDeals').textContent;
+    rows.push(['Total Deposits', deposits, '', '35% Floor Revenue', floor, '', 'Total Deals', deals]);
+    rows.push([]);
+
+    // Table headers
+    rows.push(['Date', 'Customer', 'Job #', 'Amount', 'Fronter 1', 'Fronter 2', 'Closer 1', 'Closer 2']);
+
+    // Table data
+    const tbody = document.getElementById('tableBody');
+    if (tbody) {
+      const trs = tbody.querySelectorAll('tr');
+      trs.forEach(function(tr) {
+        const cells = tr.querySelectorAll('td');
+        if (cells.length >= 8) {
+          const row = [];
+          cells.forEach(function(td) {
+            // Get text content, strip any HTML
+            row.push(td.textContent.trim());
+          });
+          rows.push(row);
+        }
+      });
+    }
+
+    // Floor payments
+    rows.push([]);
+    rows.push(['Floor Payments']);
+    rows.push(['Date', 'Amount', 'Method', 'Reference', 'Notes']);
+    const paymentsBody = document.getElementById('paymentsBody');
+    if (paymentsBody) {
+      const ptrs = paymentsBody.querySelectorAll('tr');
+      ptrs.forEach(function(tr) {
+        const cells = tr.querySelectorAll('td');
+        if (cells.length >= 5) {
+          const row = [];
+          cells.forEach(function(td) { row.push(td.textContent.trim()); });
+          rows.push(row);
+        }
+      });
+    }
+
+    // Convert to CSV string
+    const csv = rows.map(function(row) {
+      return row.map(function(cell) {
+        const str = String(cell || '');
+        // Escape quotes and wrap in quotes if contains comma/quote/newline
+        if (str.includes(',') || str.includes('"') || str.includes('\n')) {
+          return '"' + str.replace(/"/g, '""') + '"';
+        }
+        return str;
+      }).join(',');
+    }).join('\n');
+
+    // Copy HTML table to clipboard from this page (works because user clicked)
+    const tempTable = document.createElement('table');
+    rows.forEach(function(row) {
+      const tr = document.createElement('tr');
+      row.forEach(function(cell) {
+        const td = document.createElement('td');
+        td.textContent = String(cell || '');
+        tr.appendChild(td);
+      });
+      tempTable.appendChild(tr);
+    });
+    tempTable.style.position = 'fixed';
+    tempTable.style.left = '-9999px';
+    document.body.appendChild(tempTable);
+
+    try {
+      // Use clipboard API with HTML for best Google Sheets compatibility
+      const htmlStr = tempTable.outerHTML;
+      const blob = new Blob([htmlStr], { type: 'text/html' });
+      const csvBlob = new Blob([csv], { type: 'text/plain' });
+      const item = new ClipboardItem({
+        'text/html': blob,
+        'text/plain': csvBlob,
+      });
+      await navigator.clipboard.write([item]);
+      showSheetsToast(true);
+    } catch (e) {
+      // Fallback: select + copy
+      try {
+        const range = document.createRange();
+        range.selectNode(tempTable);
+        window.getSelection().removeAllRanges();
+        window.getSelection().addRange(range);
+        document.execCommand('copy');
+        window.getSelection().removeAllRanges();
+        showSheetsToast(true);
+      } catch (e2) {
+        // Last resort: download CSV
+        const dlBlob = new Blob([csv], { type: 'text/csv' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(dlBlob);
+        a.download = 'PFM_Invoice_' + isoDate(currentWeekStart) + '.csv';
+        a.click();
+        showSheetsToast(false);
+      }
+    }
+    document.body.removeChild(tempTable);
+  }
+
+  function showSheetsToast(copied) {
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:20px;right:20px;padding:16px 24px;border-radius:10px;color:#fff;font-size:13px;z-index:9999;max-width:420px;box-shadow:0 8px 24px rgba(0,0,0,0.2);background:#1e293b;line-height:1.6;';
+    if (copied) {
+      el.innerHTML = '<div style="font-weight:700;font-size:14px;margin-bottom:8px">✅ Invoice copied to clipboard!</div>' +
+        '<div style="margin-bottom:10px">Open Google Sheets and press <kbd style="background:#334155;padding:2px 6px;border-radius:3px;font-family:monospace">Ctrl+V</kbd> to paste.</div>' +
+        '<a href="https://docs.google.com/spreadsheets/create" target="_blank" style="display:inline-block;background:#34a853;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px">Open Google Sheets →</a>' +
+        '<button onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px">✕</button>';
+    } else {
+      el.innerHTML = '<div style="font-weight:700;font-size:14px;margin-bottom:8px">📄 CSV downloaded</div>' +
+        '<div style="margin-bottom:10px">Open Google Sheets, go to <strong>File → Import</strong>, and upload the CSV.</div>' +
+        '<a href="https://docs.google.com/spreadsheets/create" target="_blank" style="display:inline-block;background:#34a853;color:#fff;padding:8px 16px;border-radius:6px;text-decoration:none;font-weight:600;font-size:13px">Open Google Sheets →</a>' +
+        '<button onclick="this.parentElement.remove()" style="position:absolute;top:8px;right:10px;background:none;border:none;color:#94a3b8;cursor:pointer;font-size:16px">✕</button>';
+    }
+    document.body.appendChild(el);
+    setTimeout(function() { if (el.parentElement) el.remove(); }, 15000);
+  }
+
+  function showToast(msg, type) {
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:20px;right:20px;padding:12px 20px;border-radius:8px;color:#fff;font-size:13px;z-index:9999;max-width:400px;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+    el.style.background = type === 'info' ? '#3b82f6' : type === 'error' ? '#ef4444' : '#22c55e';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(function() { el.remove(); }, 5000);
+  }
+
+  updateWeekLabel();
+  loadData();
+</script>
+</body>
+</html>

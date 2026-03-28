@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Logs & Signatures – Hercules</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.15);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #FFA23F 0%, #e8891f 100%);
+            color: white;
+            padding: 20px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .header h1 { font-size: 22px; }
+        .header-actions { display: flex; gap: 10px; }
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-secondary { background: rgba(255,255,255,0.2); color: white; }
+        .btn-secondary:hover { background: rgba(255,255,255,0.3); }
+        .content { padding: 24px; }
+        .filters {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+        .filter-input {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+        .table-container {
+            overflow-x: auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        th {
+            background: #f8f9fa;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        tr:hover td { background: #f8f9fa; }
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .status-sent { background: #d1fae5; color: #065f46; }
+        .status-failed { background: #fee2e2; color: #991b1b; }
+        .signature-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .signature-link:hover { text-decoration: underline; }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h2 { font-size: 20px; color: #333; }
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: #666;
+        }
+        .signature-preview {
+            margin-top: 16px;
+            padding: 16px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        .signature-preview img {
+            max-width: 100%;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+        }
+        .detail-row {
+            margin-bottom: 12px;
+        }
+        .detail-label {
+            font-weight: 600;
+            color: #495057;
+            font-size: 12px;
+            margin-bottom: 4px;
+        }
+        .detail-value {
+            color: #333;
+            font-size: 14px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #64748b;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <img src="/logo.svg" alt="Hercules Moving Solutions" style="height: 36px; width: auto;">
+                <h1>Email Logs & Signatures</h1>
+            </div>
+            <div class="header-actions">
+                <a href="/dashboard.html" class="btn btn-secondary" style="text-decoration: none;">← Dashboard</a>
+                <button class="btn btn-secondary" onclick="loadLogs()">🔄 Refresh</button>
+            </div>
+        </div>
+        <div class="content">
+            <div class="filters">
+                <input type="text" id="filterEmail" class="filter-input" placeholder="Filter by email..." oninput="filterLogs()">
+                <input type="text" id="filterJob" class="filter-input" placeholder="Filter by job number..." oninput="filterLogs()">
+                <select id="filterStatus" class="filter-input" onchange="filterLogs()">
+                    <option value="">All statuses</option>
+                    <option value="sent">Sent</option>
+                    <option value="failed">Failed</option>
+                </select>
+            </div>
+            <div class="table-container">
+                <div id="loading" class="loading">Loading email logs...</div>
+                <table id="logsTable" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>To</th>
+                            <th>Subject</th>
+                            <th>Status</th>
+                            <th>Job #</th>
+                            <th>Agreement</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="logsBody"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div id="signatureModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Signature Details</h2>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="signatureDetails"></div>
+        </div>
+    </div>
+    
+    <script>
+        const SUPABASE_URL = 'process.env.SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+        
+        let allLogs = [];
+        let allAgreements = {};
+        
+        async function loadLogs() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('logsTable').style.display = 'none';
+            
+            try {
+                const [logsRes, agreementsRes] = await Promise.all([
+                    fetch(`${SUPABASE_URL}/rest/v1/email_logs?select=*&order=created_at.desc&limit=500`, {
+                        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+                    }),
+                    fetch(`${SUPABASE_URL}/rest/v1/agreements?select=*&order=created_at.desc&limit=500`, {
+                        headers: { apikey: SUPABASE_ANON_KEY, Authorization: `Bearer ${SUPABASE_ANON_KEY}` }
+                    })
+                ]);
+                
+                allLogs = await logsRes.json();
+                const agreements = await agreementsRes.json();
+                
+                agreements.forEach(a => {
+                    if (a.id) allAgreements[a.id] = a;
+                    if (a.token) allAgreements[a.token] = a;
+                });
+                
+                renderLogs(allLogs);
+            } catch (err) {
+                console.error('Load error:', err);
+                document.getElementById('loading').textContent = 'Error loading logs: ' + err.message;
+            }
+        }
+        
+        function renderLogs(logs) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('logsTable').style.display = 'table';
+            
+            const tbody = document.getElementById('logsBody');
+            tbody.innerHTML = logs.map(log => {
+                const date = log.created_at ? new Date(log.created_at).toLocaleString() : '-';
+                const agreement = log.agreement_id ? allAgreements[log.agreement_id] : null;
+                const hasSignature = agreement && agreement.status === 'signed';
+                
+                return `<tr>
+                    <td>${date}</td>
+                    <td>${escapeHtml(log.to_email || '-')}</td>
+                    <td>${escapeHtml((log.subject || '-').slice(0, 50))}${(log.subject || '').length > 50 ? '...' : ''}</td>
+                    <td><span class="status-badge status-${log.status || 'sent'}">${(log.status || 'sent').toUpperCase()}</span></td>
+                    <td>${escapeHtml(log.job_submission_id ? 'View' : '-')}</td>
+                    <td>${hasSignature ? '<a href="#" class="signature-link" onclick="showSignature(\'' + agreement.id + '\'); return false;">View Signature</a>' : (agreement ? 'Pending' : '-')}</td>
+                    <td>${log.resend_id ? '<a href="#" onclick="window.open(\'https://resend.com/emails/' + log.resend_id + '\', \'_blank\'); return false;">View in Resend</a>' : '-'}</td>
+                </tr>`;
+            }).join('');
+        }
+        
+        function filterLogs() {
+            const emailFilter = document.getElementById('filterEmail').value.toLowerCase();
+            const jobFilter = document.getElementById('filterJob').value.toLowerCase();
+            const statusFilter = document.getElementById('filterStatus').value;
+            
+            const filtered = allLogs.filter(log => {
+                const matchEmail = !emailFilter || (log.to_email || '').toLowerCase().includes(emailFilter);
+                const matchJob = !jobFilter || (log.job_submission_id || '').toString().includes(jobFilter);
+                const matchStatus = !statusFilter || (log.status || 'sent') === statusFilter;
+                return matchEmail && matchJob && matchStatus;
+            });
+            
+            renderLogs(filtered);
+        }
+        
+        async function showSignature(agreementId) {
+            const agreement = allAgreements[agreementId];
+            if (!agreement) {
+                alert('Agreement not found');
+                return;
+            }
+            
+            const details = document.getElementById('signatureDetails');
+            details.innerHTML = `
+                <div class="detail-row">
+                    <div class="detail-label">Job Number</div>
+                    <div class="detail-value">${escapeHtml(agreement.job_number || '-')}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Customer Name</div>
+                    <div class="detail-value">${escapeHtml(agreement.customer_name || '-')}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Signer Name</div>
+                    <div class="detail-value">${escapeHtml(agreement.signer_name || '-')}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">Signed At</div>
+                    <div class="detail-value">${agreement.signed_at ? new Date(agreement.signed_at).toLocaleString() : '-'}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">IP Address</div>
+                    <div class="detail-value">${escapeHtml(agreement.signer_ip || '-')}</div>
+                </div>
+                <div class="detail-row">
+                    <div class="detail-label">User Agent</div>
+                    <div class="detail-value" style="font-size: 11px; word-break: break-all;">${escapeHtml(agreement.signer_user_agent || '-')}</div>
+                </div>
+                ${agreement.signature_data_url ? `
+                <div class="signature-preview">
+                    <div class="detail-label">Signature</div>
+                    <img src="${escapeHtml(agreement.signature_data_url)}" alt="Signature">
+                </div>
+                ` : '<div class="detail-row"><div class="detail-value">No signature available</div></div>'}
+            `;
+            
+            document.getElementById('signatureModal').classList.add('active');
+        }
+        
+        function closeModal() {
+            document.getElementById('signatureModal').classList.remove('active');
+        }
+        
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadLogs);
+        document.getElementById('signatureModal').addEventListener('click', (e) => {
+            if (e.target.id === 'signatureModal') closeModal();
+        });
+    </script>
+</body>
+</html>

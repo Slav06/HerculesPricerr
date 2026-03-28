@@ -1,0 +1,7 @@
+.vercel
+node_modules
+.env
+.env.*
+lsa-scraper/google-session/
+lsa-scraper/google-session-2/
+.claude/

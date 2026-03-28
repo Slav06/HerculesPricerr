@@ -1,0 +1,30 @@
+ICON INFORMATION FOR CHROME EXTENSIONS
+======================================
+
+You need to create icon files for both extensions:
+
+Required Sizes:
+- icon16.png (16x16 pixels)
+- icon48.png (48x48 pixels) 
+- icon128.png (128x128 pixels)
+
+For Fronter Extension:
+- Use blue/green colors
+- Add "F" or "FRONTER" text
+- Truck/moving theme
+
+For Closer Extension:
+- Use orange/red colors  
+- Add "C" or "CLOSER" text
+- Truck/moving theme
+
+You can:
+1. Create simple colored squares with text
+2. Use online icon generators
+3. Use the existing project icon if you have one
+
+Place the icon files in both:
+- fronter-extension/ folder
+- closer-extension/ folder
+
+The extensions will work without icons, but they'll look more professional with them.

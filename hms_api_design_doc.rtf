@@ -1,0 +1,56 @@
+{\rtf1\ansi\deff0
+{\fonttbl{\f0\fswiss Helvetica;}{\f1\fmodern Courier;}}
+\paperw12240\paperh15840\margl1440\margr1440\margt1440\margb1440
+
+\pard\sb400\sa200\f0\fs36\b Hercules Moving Solutions \endash  Internal Lead Management Tool\b0\fs24\par
+\pard\sb200\sa100\fs28\b Google Ads API Design Document\b0\fs24\par
+
+\pard\sb300\sa100\fs26\b 1. Overview\b0\fs24\par
+\pard\sa100 Hercules Moving Solutions (HMS) is a licensed and insured moving company operating in New Jersey, New York, and surrounding areas. We are building an internal lead management tool to streamline how we handle Local Services Ads (LSA) leads and customer communications.\par
+
+\pard\sb300\sa100\fs26\b 2. Purpose\b0\fs24\par
+\pard\sa100 The tool is an internal-only web dashboard used by HMS staff to:\par
+\pard\li720\sa60 \bullet  View and respond to Local Services Ads message leads in real time\par
+\bullet  Track lead status (new, active, booked, declined)\par
+\bullet  Manage customer conversations from a single interface\par
+\bullet  Improve response times to customer inquiries\par
+
+\pard\sb300\sa100\fs26\b 3. API Usage\b0\fs24\par
+\pard\sa100 We will use the Google Ads API to:\par
+\pard\li720\sa60 \bullet  Read LSA leads via local_services_lead resource\par
+\bullet  Read lead conversations via local_services_lead_conversation resource\par
+\bullet  Reply to leads via LocalServicesLeadService.AppendLeadConversation\par
+\pard\sa100 We will NOT:\par
+\pard\li720\sa60 \bullet  Modify campaigns or bidding\par
+\bullet  Access other advertisers\rquote  data\par
+\bullet  Resell or redistribute any data\par
+
+\pard\sb300\sa100\fs26\b 4. Architecture\b0\fs24\par
+\pard\sa100 \bullet  Frontend: Internal web dashboard (HTML/JS) hosted on Vercel\par
+\bullet  Backend: Node.js serverless functions on Vercel\par
+\bullet  Authentication: OAuth 2.0 with refresh token (server-side only)\par
+\bullet  Data flow: Google Ads API \rarrow  Our API \rarrow  Dashboard UI\par
+
+\pard\sb300\sa100\fs26\b 5. Users\b0\fs24\par
+\pard\sa100 Internal employees only \endash  HMS staff members (approximately 5-7 users). No external or third-party access.\par
+
+\pard\sb300\sa100\fs26\b 6. Data Handling\b0\fs24\par
+\pard\sa100 \bullet  Lead data is displayed in the dashboard but not permanently stored\par
+\bullet  OAuth tokens are stored server-side only\par
+\bullet  No customer data is shared with third parties\par
+\bullet  Access is restricted to authenticated HMS staff\par
+
+\pard\sb300\sa100\fs26\b 7. Rate Limits\b0\fs24\par
+\pard\sa100 Expected API usage:\par
+\pard\li720\sa60 \bullet  ~100-200 search queries per day (lead list refreshes)\par
+\bullet  ~50-100 conversation fetches per day\par
+\bullet  ~10-30 reply appends per day\par
+\pard\sa100 Well within Basic Access limits.\par
+
+\pard\sb300\sa100\fs26\b 8. Company Information\b0\fs24\par
+\pard\sa100 \bullet  Company: Hercules Moving Solutions LLC\par
+\bullet  Website: herculesmovingsolutions.com\par
+\bullet  Contact: andy@herculesmovingsolutions.com\par
+\bullet  Google Ads Customer ID: 240-141-4088\par
+\bullet  Manager Account ID: 232-531-3533\par
+}</rtfeof"

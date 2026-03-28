@@ -1,0 +1,3 @@
+FRONTER ICON 128x128
+Blue background with white "FRONTER"
+Extension: Job Tracker - Fronter Edition

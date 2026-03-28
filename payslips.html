@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>HMS Payslips</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFA23F 0%, #e8891f 50%, #d4780a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .container { max-width: 1500px; margin: 0 auto; padding: 20px; }
+
+        /* App Bar */
+        .app-bar {
+            background: rgba(8, 12, 28, 0.92);
+            backdrop-filter: blur(16px);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            overflow: hidden;
+            position: relative;
+        }
+        .app-bar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+        }
+        .app-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .app-bar-left { display: flex; align-items: center; gap: 16px; }
+        .app-bar-title {
+            font-size: 18px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #e2e8f0 30%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .back-link { color: #60a5fa; text-decoration: none; font-size: 13px; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+
+        /* Week Nav */
+        .week-nav { display: flex; align-items: center; gap: 12px; }
+        .week-label { font-size: 15px; font-weight: 700; color: #e2e8f0; min-width: 200px; text-align: center; }
+        .nav-btn {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8; font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.15); color: #e2e8f0; }
+
+        /* Summary Stats */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+        .stat-card {
+            background: rgba(8, 12, 28, 0.85); backdrop-filter: blur(12px);
+            border-radius: 12px; padding: 14px 18px;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 4px; }
+        .stat-value {
+            font-size: 26px; font-weight: 800;
+            background: linear-gradient(90deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .stat-value.green { background: linear-gradient(90deg, #4ade80, #22c55e); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-value.cyan { background: linear-gradient(90deg, #22d3ee, #06b6d4); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+        .stat-value.yellow { background: linear-gradient(90deg, #fbbf24, #f59e0b); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+
+        /* Main Table Card */
+        .table-card {
+            background: rgba(8, 12, 28, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .payroll-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .payroll-table thead th {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #64748b;
+            padding: 12px 10px;
+            text-align: left;
+            font-weight: 700;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.02);
+            white-space: nowrap;
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        .payroll-table thead th.day-col { text-align: center; min-width: 48px; }
+        .payroll-table thead th.num-col { text-align: right; }
+
+        .payroll-table tbody tr.summary-row {
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .payroll-table tbody tr.summary-row:hover {
+            background: rgba(255,255,255,0.04);
+        }
+        .payroll-table tbody tr.summary-row td {
+            padding: 10px 10px;
+            font-size: 13px;
+            color: #cbd5e1;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            white-space: nowrap;
+        }
+        .payroll-table tbody tr.summary-row:last-of-type td {
+            border-bottom: none;
+        }
+        .payroll-table tbody tr.summary-row td.day-val {
+            text-align: center;
+            color: #64748b;
+            font-variant-numeric: tabular-nums;
+        }
+        .payroll-table tbody tr.summary-row td.day-val.has-hrs {
+            color: #60a5fa;
+            font-weight: 600;
+        }
+        .payroll-table tbody tr.summary-row td.num-col {
+            text-align: right;
+            font-variant-numeric: tabular-nums;
+        }
+        .payroll-table tbody tr.summary-row td.total-pay-cell {
+            font-weight: 800;
+            color: #4ade80;
+        }
+
+        /* Employee cell */
+        .emp-cell { display: flex; align-items: center; gap: 10px; }
+        .emp-avatar {
+            width: 32px; height: 32px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 800; color: #fff; flex-shrink: 0;
+        }
+        .emp-name { font-weight: 600; color: #e2e8f0; }
+
+        /* Status badge */
+        .status-badge {
+            font-size: 10px; padding: 3px 8px; border-radius: 5px;
+            font-weight: 700; display: inline-block; white-space: nowrap;
+        }
+        .status-badge.verified {
+            background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25);
+        }
+        .status-badge.unconfirmed {
+            background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25);
+        }
+        .status-badge.none {
+            background: rgba(100,116,139,0.1); color: #475569; border: 1px solid rgba(100,116,139,0.15);
+        }
+
+        /* Expanded detail row */
+        .detail-row td {
+            padding: 0 !important;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        .detail-inner {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.35s ease, padding 0.35s ease;
+            background: rgba(15, 20, 40, 0.6);
+        }
+        .detail-row.open .detail-inner {
+            max-height: 600px;
+            padding: 16px 20px;
+        }
+        .detail-content {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+        .detail-section { flex: 1; min-width: 280px; }
+        .detail-section-title {
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+            color: #64748b; margin-bottom: 10px; font-weight: 700;
+        }
+
+        /* Commission deals sub-table */
+        .deals-table { width: 100%; border-collapse: collapse; }
+        .deals-table th {
+            font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em;
+            color: #475569; padding: 6px 8px; text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-weight: 700;
+        }
+        .deals-table td {
+            font-size: 12px; color: #cbd5e1; padding: 6px 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+        }
+        .deals-table tr:last-child td { border-bottom: none; }
+        .deal-job { color: #a78bfa; font-weight: 600; }
+        .deal-commission { color: #4ade80; font-weight: 700; }
+        .deal-role {
+            font-size: 9px; padding: 2px 6px; border-radius: 4px; font-weight: 700;
+            display: inline-block;
+        }
+        .deal-role.fronter { background: rgba(59,130,246,0.15); color: #60a5fa; }
+        .deal-role.closer { background: rgba(139,92,246,0.15); color: #a78bfa; }
+
+        .no-deals { font-size: 12px; color: #475569; font-style: italic; padding: 6px 0; }
+
+        /* Daily hours mini grid in detail */
+        .hours-mini-grid {
+            display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 10px;
+        }
+        .hour-cell {
+            background: rgba(255,255,255,0.04);
+            border-radius: 6px; padding: 6px 4px; text-align: center;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .hour-cell.has-hours { background: rgba(59,130,246,0.1); border-color: rgba(59,130,246,0.2); }
+        .hour-day { font-size: 10px; color: #64748b; font-weight: 600; text-transform: uppercase; }
+        .hour-val-detail { font-size: 14px; font-weight: 700; color: #94a3b8; margin-top: 2px; }
+        .hour-cell.has-hours .hour-val-detail { color: #60a5fa; }
+
+        /* Print button in detail */
+        .btn {
+            padding: 7px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
+            font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+            background: rgba(255,255,255,0.06); color: #94a3b8;
+        }
+        .btn:hover { background: rgba(255,255,255,0.12); color: #e2e8f0; }
+
+        .detail-footer {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-top: 14px; padding-top: 12px;
+            border-top: 1px solid rgba(255,255,255,0.06);
+        }
+        .detail-total {
+            font-size: 15px; font-weight: 800;
+            background: linear-gradient(90deg, #4ade80, #22d3ee);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+
+        /* Chevron indicator */
+        .row-chevron {
+            display: inline-block; font-size: 10px; color: #475569;
+            transition: transform 0.2s; margin-right: 4px;
+        }
+        tr.summary-row.expanded .row-chevron { transform: rotate(90deg); }
+
+        /* Loading */
+        .loading-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            padding: 80px 20px; gap: 16px;
+        }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #3b82f6; border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-text { font-size: 14px; color: #64748b; }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 60px 20px; color: #64748b; }
+        .empty-state-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
+        .empty-state-text { font-size: 15px; }
+
+        /* Error */
+        .error-banner {
+            background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 10px; padding: 14px 20px; margin-bottom: 16px;
+            color: #f87171; font-size: 13px; display: none;
+        }
+
+        /* Table scrolling on small screens */
+        .table-scroll { overflow-x: auto; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            .app-bar-content { padding: 12px 14px; }
+            .app-bar-title { font-size: 15px; }
+            .week-label { font-size: 13px; min-width: 160px; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+            .stat-value { font-size: 20px; }
+            .stat-card { padding: 10px 14px; }
+            .payroll-table thead th, .payroll-table tbody tr.summary-row td { font-size: 11px; padding: 8px 6px; }
+        }
+        @media (max-width: 480px) {
+            .app-bar-content { flex-direction: column; align-items: stretch; }
+            .app-bar-left { justify-content: space-between; }
+        }
+
+        /* Print Styles */
+        .print-header { display: none; }
+
+        @media print {
+            body {
+                background: #fff !important;
+                color: #1a1a1a !important;
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
+            }
+            .container { max-width: 100%; padding: 0; }
+            .app-bar, .stats-row, .error-banner, .table-card { display: none !important; }
+
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+                padding-bottom: 12px;
+                border-bottom: 2px solid #333;
+            }
+            .print-header h1 { font-size: 20px; color: #1a1a1a; margin-bottom: 4px; }
+            .print-header p { font-size: 13px; color: #666; }
+
+            /* Print payslip detail card */
+            .print-payslip {
+                display: none;
+                background: #fff !important;
+                border: 1px solid #ddd;
+                border-radius: 8px;
+                padding: 20px;
+                page-break-inside: avoid;
+            }
+            .print-payslip.active { display: block !important; }
+            .print-payslip .print-emp-header {
+                display: flex; align-items: center; gap: 12px;
+                margin-bottom: 16px; padding-bottom: 12px;
+                border-bottom: 2px solid #e5e7eb;
+            }
+            .print-payslip .print-emp-name { font-size: 18px; font-weight: 700; color: #1a1a1a; }
+            .print-payslip .print-emp-sub { font-size: 12px; color: #666; }
+
+            .print-payslip .print-section { margin-bottom: 16px; }
+            .print-payslip .print-section-title {
+                font-size: 12px; text-transform: uppercase; letter-spacing: 0.06em;
+                color: #444; font-weight: 700; margin-bottom: 8px;
+            }
+
+            .print-payslip .print-hours-grid {
+                display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; margin-bottom: 10px;
+            }
+            .print-payslip .print-hour-cell {
+                background: #f3f4f6; border: 1px solid #e5e7eb;
+                border-radius: 6px; padding: 6px 4px; text-align: center;
+            }
+            .print-payslip .print-hour-cell.has-hours {
+                background: #dbeafe; border-color: #93c5fd;
+            }
+            .print-payslip .print-hour-day { font-size: 10px; color: #666; font-weight: 600; }
+            .print-payslip .print-hour-val { font-size: 14px; font-weight: 700; color: #333; }
+            .print-payslip .print-hour-cell.has-hours .print-hour-val { color: #2563eb; }
+
+            .print-payslip .print-summary-row {
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 8px 12px; background: #eff6ff; border: 1px solid #bfdbfe;
+                border-radius: 8px; font-size: 13px; color: #333;
+            }
+            .print-payslip .print-summary-row strong { color: #2563eb; }
+
+            .print-payslip .print-deals-table { width: 100%; border-collapse: collapse; }
+            .print-payslip .print-deals-table th {
+                font-size: 10px; text-transform: uppercase; color: #666;
+                padding: 6px 8px; text-align: left; border-bottom: 1px solid #e5e7eb;
+            }
+            .print-payslip .print-deals-table td {
+                font-size: 12px; color: #333; padding: 6px 8px;
+                border-bottom: 1px solid #f3f4f6;
+            }
+
+            .print-payslip .print-comm-summary {
+                display: flex; justify-content: space-between; align-items: center;
+                padding: 8px 12px; background: #f5f3ff; border: 1px solid #c4b5fd;
+                border-radius: 8px; font-size: 13px; color: #333; margin-top: 8px;
+            }
+            .print-payslip .print-comm-summary strong { color: #7c3aed; }
+
+            .print-payslip .print-total {
+                margin-top: 16px; padding-top: 14px;
+                border-top: 2px solid #e5e7eb;
+                display: flex; justify-content: space-between; align-items: center;
+            }
+            .print-payslip .print-total-label { font-size: 14px; font-weight: 600; color: #444; }
+            .print-payslip .print-total-value { font-size: 24px; font-weight: 800; color: #059669; }
+
+            .btn { display: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Print Header -->
+        <div class="print-header">
+            <h1>Hercules Moving Solutions - Payslip</h1>
+            <p id="printWeekRange"></p>
+        </div>
+
+        <!-- Print-only payslip detail (populated on print) -->
+        <div class="print-payslip" id="printPayslip"></div>
+
+        <!-- App Bar -->
+        <div class="app-bar">
+            <div class="app-bar-content">
+                <div class="app-bar-left">
+                    <div>
+                        <div class="app-bar-title">HMS Payslips</div>
+                        <a href="/schedule" class="back-link">Back to Schedule</a>
+                    </div>
+                </div>
+                <div class="week-nav">
+                    <button class="nav-btn" onclick="changeWeek(-1)" title="Previous week">&#9664;</button>
+                    <div class="week-label" id="weekLabel">Loading...</div>
+                    <button class="nav-btn" onclick="changeWeek(1)" title="Next week">&#9654;</button>
+                </div>
+                <button class="nav-btn" onclick="finalizeCommission()" style="width:auto;padding:6px 14px;font-size:12px;font-weight:600;background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border-color:rgba(139,92,246,0.3)" title="Finalize commission for this week">&#10003; Finalize Commission</button>
+            </div>
+        </div>
+
+        <!-- Error Banner -->
+        <div class="error-banner" id="errorBanner"></div>
+
+        <!-- Summary Stats -->
+        <div class="stats-row" id="statsRow">
+            <div class="stat-card">
+                <div class="stat-label">Total Payroll</div>
+                <div class="stat-value green" id="statPayroll">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Hours</div>
+                <div class="stat-value" id="statHours">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Commission</div>
+                <div class="stat-value cyan" id="statCommission">$0.00</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Deals</div>
+                <div class="stat-value yellow" id="statDeals">0</div>
+            </div>
+        </div>
+
+        <!-- Main Table -->
+        <div id="payslipsContainer">
+            <div class="loading-container" id="loadingState">
+                <div class="spinner"></div>
+                <div class="loading-text">Loading payslips...</div>
+            </div>
+        </div>
+
+        <!-- Payment Ledger -->
+        <div class="table-card" style="margin-top:16px">
+            <div style="padding:14px 20px;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:13px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:0.06em">Payment Ledger</span>
+                <div style="display:flex;gap:6px">
+                    <button class="nav-btn" onclick="createBackup()" style="width:auto;padding:5px 12px;font-size:11px;font-weight:600;background:rgba(34,197,94,0.15);color:#4ade80;border-color:rgba(34,197,94,0.25)">Backup Week</button>
+                    <button class="nav-btn" onclick="downloadCSV()" style="width:auto;padding:5px 12px;font-size:11px;font-weight:600;background:rgba(59,130,246,0.15);color:#60a5fa;border-color:rgba(59,130,246,0.25)">Export CSV</button>
+                    <button class="nav-btn" onclick="showAuditLog()" style="width:auto;padding:5px 12px;font-size:11px;font-weight:600;background:rgba(100,116,139,0.15);color:#94a3b8;border-color:rgba(100,116,139,0.25)">Audit Log</button>
+                </div>
+            </div>
+            <div style="overflow-x:auto">
+                <table class="payroll-table" id="ledgerTable" style="margin:0">
+                    <thead><tr>
+                        <th>Employee</th>
+                        <th>Hourly Pay</th>
+                        <th>Commission</th>
+                        <th>Bonus</th>
+                        <th>Deductions</th>
+                        <th>Total Paid</th>
+                        <th>Method</th>
+                        <th>Reference</th>
+                        <th>Notes</th>
+                        <th>Paid</th>
+                        <th></th>
+                    </tr></thead>
+                    <tbody id="ledgerBody">
+                        <tr><td colspan="11" style="text-align:center;color:#475569;padding:20px">Loading ledger...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Audit Log Modal -->
+        <div id="auditModal" style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.6);display:none;align-items:center;justify-content:center;z-index:1000">
+            <div style="background:rgba(15,20,40,0.98);border-radius:16px;border:1px solid rgba(255,255,255,0.1);padding:24px;max-width:700px;width:90%;max-height:80vh;overflow-y:auto">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                    <span style="font-size:16px;font-weight:700;color:#e2e8f0">Audit Log</span>
+                    <button onclick="document.getElementById('auditModal').style.display='none'" style="background:none;border:none;color:#94a3b8;font-size:20px;cursor:pointer">&times;</button>
+                </div>
+                <div id="auditContent" style="font-size:12px;color:#94a3b8"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script>
+        // Admin-only access check
+        try {
+            var raw = localStorage.getItem('dashboardUser');
+            if (!raw) { window.location.replace('/dashboard'); throw 'no auth'; }
+            var s = JSON.parse(raw);
+            var hrs = (Date.now() - new Date(s.loginTime)) / 3600000;
+            if (hrs > 24 || s.role !== 'admin') { window.location.replace('/dashboard'); throw 'no access'; }
+        } catch(e) { if (e === 'no auth' || e === 'no access') throw e; window.location.replace('/dashboard'); }
+
+        // --- State ---
+        let currentWeekStart = getLastWeekMonday();
+        let payslipData = [];
+
+        const AVATAR_COLORS = [
+            '#3b82f6', '#8b5cf6', '#06b6d4', '#f59e0b', '#ef4444',
+            '#22c55e', '#ec4899', '#14b8a6', '#f97316', '#6366f1',
+            '#84cc16', '#e879f9', '#0ea5e9', '#fb923c', '#a855f7'
+        ];
+        const DAY_LABELS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+
+        function getColorForName(name) {
+            let hash = 0;
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+        }
+
+        function getInitials(name) {
+            const parts = name.trim().split(/\s+/);
+            if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+            return name.substring(0, 2).toUpperCase();
+        }
+
+        // --- Date Helpers ---
+        function getLastWeekMonday() {
+            const now = new Date();
+            const day = now.getDay();
+            const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+            const monday = new Date(now.getFullYear(), now.getMonth(), diff);
+            monday.setDate(monday.getDate() - 7);
+            return monday;
+        }
+
+        function formatDate(d) {
+            return d.getFullYear() + '-' +
+                String(d.getMonth() + 1).padStart(2, '0') + '-' +
+                String(d.getDate()).padStart(2, '0');
+        }
+
+        function formatWeekLabel(monday) {
+            const sunday = new Date(monday);
+            sunday.setDate(sunday.getDate() + 6);
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            const m1 = months[monday.getMonth()];
+            const m2 = months[sunday.getMonth()];
+            const y1 = monday.getFullYear();
+            const y2 = sunday.getFullYear();
+            if (y1 !== y2) return m1 + ' ' + monday.getDate() + ', ' + y1 + ' - ' + m2 + ' ' + sunday.getDate() + ', ' + y2;
+            if (m1 === m2) return m1 + ' ' + monday.getDate() + ' - ' + sunday.getDate() + ', ' + y1;
+            return m1 + ' ' + monday.getDate() + ' - ' + m2 + ' ' + sunday.getDate() + ', ' + y1;
+        }
+
+        function getDayDates(monday) {
+            const dates = [];
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(monday);
+                d.setDate(d.getDate() + i);
+                dates.push(formatDate(d));
+            }
+            return dates;
+        }
+
+        function changeWeek(delta) {
+            currentWeekStart.setDate(currentWeekStart.getDate() + (delta * 7));
+            loadPayslips();
+        }
+
+        // --- Formatting ---
+        function formatCurrency(val) {
+            return '$' + Number(val || 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function formatHours(val) {
+            const h = Number(val || 0);
+            return h % 1 === 0 ? h.toFixed(0) : h.toFixed(1);
+        }
+
+        function escHtml(str) {
+            const d = document.createElement('div');
+            d.textContent = str || '';
+            return d.innerHTML;
+        }
+
+        function escAttr(str) {
+            return (str || '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+        }
+
+        // --- API ---
+        async function fetchPayslips(weekStart) {
+            const apiUrl = '/api/payslip?week_start=' + formatDate(weekStart);
+            const resp = await fetch(apiUrl);
+            if (!resp.ok) {
+                const text = await resp.text();
+                throw new Error('API error ' + resp.status + ': ' + text);
+            }
+            return resp.json();
+        }
+
+        async function fetchConfirmations(weekStart) {
+            const ws = formatDate(weekStart);
+            const headers = { 'apikey': CONFIG.SUPABASE.ANON_KEY, 'Authorization': 'Bearer ' + CONFIG.SUPABASE.ANON_KEY };
+            const [hoursResp, commResp] = await Promise.all([
+                fetch(CONFIG.SUPABASE.URL + '/rest/v1/payroll_confirmations?week_start=eq.' + ws + '&select=employee_name,status,confirmed_at', { headers }),
+                fetch(CONFIG.SUPABASE.URL + '/rest/v1/commission_tokens?week_start=eq.' + ws + '&select=employee_name,status,confirmed_at', { headers })
+            ]);
+            const hoursData = hoursResp.ok ? await hoursResp.json() : [];
+            const commData = commResp.ok ? await commResp.json() : [];
+
+            // Merge: return array with both statuses
+            const map = {};
+            (Array.isArray(hoursData) ? hoursData : []).forEach(h => {
+                map[h.employee_name] = { ...map[h.employee_name], employee_name: h.employee_name, hours_status: h.status, hours_confirmed_at: h.confirmed_at };
+            });
+            (Array.isArray(commData) ? commData : []).forEach(c => {
+                map[c.employee_name] = { ...map[c.employee_name], employee_name: c.employee_name, comm_status: c.status, comm_confirmed_at: c.confirmed_at };
+            });
+            return Object.values(map);
+        }
+
+        // --- Render Main Table ---
+        function renderTable(payslips, weekStart) {
+            const dayDates = getDayDates(weekStart);
+            let html = '<div class="table-card"><div class="table-scroll"><table class="payroll-table">';
+
+            // Header
+            html += '<thead><tr>';
+            html += '<th style="min-width:160px">Employee</th>';
+            html += '<th style="min-width:90px">Status</th>';
+            for (let i = 0; i < 7; i++) {
+                html += '<th class="day-col">' + DAY_LABELS[i] + '</th>';
+            }
+            html += '<th class="num-col">Total Hrs</th>';
+            html += '<th class="num-col">Rate</th>';
+            html += '<th class="num-col">Hourly Pay</th>';
+            html += '<th class="num-col">Commission</th>';
+            html += '<th class="num-col" style="min-width:90px">Total Pay</th>';
+            html += '</tr></thead>';
+
+            // Body
+            html += '<tbody>';
+            payslips.forEach(function(ps, idx) {
+                const color = getColorForName(ps.name);
+                const initials = getInitials(ps.name);
+                const rowId = 'row-' + idx;
+                const detailId = 'detail-' + idx;
+
+                // Status badges (hours + commission)
+                let hBadge = '';
+                if (ps.hours_status === 'confirmed') hBadge = '<span class="status-badge verified">Hrs ✓</span>';
+                else if (ps.hours_status === 'pending') hBadge = '<span class="status-badge unconfirmed">Hrs ⏳</span>';
+
+                let cBadge = '';
+                if (ps.comm_status === 'confirmed') cBadge = '<span class="status-badge verified">Comm ✓</span>';
+                else if (ps.comm_status === 'pending') cBadge = '<span class="status-badge unconfirmed">Comm ⏳</span>';
+
+                const statusHtml = (hBadge || cBadge) ? hBadge + ' ' + cBadge : '<span class="status-badge none">&mdash;</span>';
+
+                // Summary row
+                html += '<tr class="summary-row" id="' + rowId + '" onclick="toggleDetail(' + idx + ')">';
+                html += '<td><div class="emp-cell"><span class="row-chevron">&#9654;</span><div class="emp-avatar" style="background:' + color + '">' + initials + '</div><span class="emp-name">' + escHtml(ps.name) + '</span></div></td>';
+                html += '<td>' + statusHtml + '</td>';
+
+                // Day columns (logged + manual)
+                for (let i = 0; i < 7; i++) {
+                    const logged = (ps.daily_hours && ps.daily_hours[dayDates[i]]) || 0;
+                    const manual = (ps.daily_manual_hours && ps.daily_manual_hours[dayDates[i]]) || 0;
+                    const total = logged + manual;
+                    if (total > 0) {
+                        let cellContent = formatHours(logged);
+                        if (manual > 0) {
+                            cellContent += '<span style="color:#f59e0b;font-size:10px;display:block">+' + formatHours(manual) + ' manual</span>';
+                        }
+                        html += '<td class="day-val has-hrs">' + cellContent + '</td>';
+                    } else {
+                        html += '<td class="day-val">&mdash;</td>';
+                    }
+                }
+
+                var totalHrs = (ps.total_hours != null) ? ps.total_hours : ps.hours;
+                var totalHrPay = (ps.total_hourly_pay != null) ? ps.total_hourly_pay : ps.hourly_pay;
+                html += '<td class="num-col" style="font-weight:700;color:#60a5fa">' + formatHours(totalHrs) + '</td>';
+                html += '<td class="num-col">' + formatCurrency(ps.hourly_rate) + '/hr</td>';
+                html += '<td class="num-col">' + formatCurrency(totalHrPay) + '</td>';
+                html += '<td class="num-col" style="color:#a78bfa">' + formatCurrency(ps.commission_total) + '</td>';
+                html += '<td class="num-col total-pay-cell">' + formatCurrency(ps.total_pay) + '</td>';
+                html += '</tr>';
+
+                // Detail row (expandable)
+                html += '<tr class="detail-row" id="' + detailId + '"><td colspan="14"><div class="detail-inner">';
+                html += buildDetailContent(ps, dayDates, idx);
+                html += '</div></td></tr>';
+            });
+
+            html += '</tbody></table></div></div>';
+            return html;
+        }
+
+        function buildDetailContent(ps, dayDates, idx) {
+            let html = '<div class="detail-content">';
+
+            // Left: Commission deals
+            html += '<div class="detail-section">';
+            html += '<div class="detail-section-title">Commission Deals</div>';
+            if (ps.deals && ps.deals.length > 0) {
+                html += '<table class="deals-table"><thead><tr>';
+                html += '<th>Role</th><th>Job #</th><th>Customer</th><th>Amount</th><th>%</th><th>Commission</th>';
+                html += '</tr></thead><tbody>';
+                ps.deals.forEach(function(d) {
+                    const roleClass = (d.role || '').toLowerCase() === 'fronter' ? 'fronter' : 'closer';
+                    html += '<tr>';
+                    html += '<td><span class="deal-role ' + roleClass + '">' + escHtml(d.role || '-') + '</span></td>';
+                    html += '<td class="deal-job">' + escHtml(d.job_number || '-') + '</td>';
+                    html += '<td>' + escHtml(d.customer || '-') + '</td>';
+                    html += '<td>' + formatCurrency(d.amount || 0) + '</td>';
+                    html += '<td>' + (d.commission_pct != null ? d.commission_pct + '%' : '-') + '</td>';
+                    html += '<td class="deal-commission">' + formatCurrency(d.commission) + '</td>';
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+            } else {
+                html += '<div class="no-deals">No deals this week</div>';
+            }
+            html += '</div>';
+
+            // Right: Daily hours breakdown
+            html += '<div class="detail-section">';
+            html += '<div class="detail-section-title">Daily Hours</div>';
+            html += '<div class="hours-mini-grid">';
+            for (let i = 0; i < 7; i++) {
+                const logged = (ps.daily_hours && ps.daily_hours[dayDates[i]]) || 0;
+                const manual = (ps.daily_manual_hours && ps.daily_manual_hours[dayDates[i]]) || 0;
+                const hasClass = (logged + manual) > 0 ? ' has-hours' : '';
+                html += '<div class="hour-cell' + hasClass + '">';
+                html += '<div class="hour-day">' + DAY_LABELS[i] + '</div>';
+                if (logged > 0) {
+                    html += '<div class="hour-val-detail">' + formatHours(logged) + '</div>';
+                }
+                if (manual > 0) {
+                    html += '<div class="hour-val-detail" style="color:#f59e0b;font-size:11px">+' + formatHours(manual) + '</div>';
+                }
+                if (logged === 0 && manual === 0) {
+                    html += '<div class="hour-val-detail">-</div>';
+                }
+                html += '</div>';
+            }
+            html += '</div>';
+            html += '<div style="display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:#94a3b8">';
+            html += '<span>Logged: <strong style="color:#60a5fa">' + formatHours(ps.hours) + ' hrs</strong></span>';
+            if (ps.manual_hours > 0) {
+                html += '<span>Manual: <strong style="color:#f59e0b">' + formatHours(ps.manual_hours) + ' hrs</strong></span>';
+                html += '<span>Total: <strong style="color:#60a5fa">' + formatHours(ps.total_hours || ps.hours) + ' hrs</strong></span>';
+            }
+            html += '<span>Rate: <strong style="color:#60a5fa">' + formatCurrency(ps.hourly_rate) + '/hr</strong></span>';
+            html += '<span>Hourly Pay: <strong style="color:#60a5fa">' + formatCurrency(ps.total_hourly_pay || ps.hourly_pay) + '</strong></span>';
+            html += '</div>';
+
+            // Manual hours detail entries
+            if (ps.manual_entries && ps.manual_entries.length > 0) {
+                html += '<div style="margin-top:8px;padding:8px;background:rgba(245,158,11,0.1);border-radius:6px;border:1px solid rgba(245,158,11,0.2)">';
+                html += '<div style="font-size:11px;font-weight:600;color:#f59e0b;margin-bottom:4px">Manual Hours</div>';
+                ps.manual_entries.forEach(function(e) {
+                    html += '<div style="font-size:11px;color:#94a3b8">' + e.date + ' - ' + formatHours(e.hours) + ' hrs';
+                    if (e.reason) html += ' <span style="color:#64748b">(' + escHtml(e.reason).substring(0, 60) + ')</span>';
+                    if (e.approved_by) html += ' <span style="color:#22c55e">approved by ' + escHtml(e.approved_by) + '</span>';
+                    html += '</div>';
+                });
+                html += '</div>';
+            }
+            html += '</div>';
+
+            html += '</div>'; // end detail-content
+
+            // Footer with total + print
+            html += '<div class="detail-footer">';
+            html += '<div><span style="font-size:13px;color:#94a3b8">Total Pay: </span><span class="detail-total">' + formatCurrency(ps.total_pay) + '</span></div>';
+            html += '<button class="btn" onclick="event.stopPropagation(); printPayslip(' + idx + ')">Print Payslip</button>';
+            html += '</div>';
+
+            return html;
+        }
+
+        // --- Toggle Expand ---
+        function toggleDetail(idx) {
+            const summaryRow = document.getElementById('row-' + idx);
+            const detailRow = document.getElementById('detail-' + idx);
+            if (!summaryRow || !detailRow) return;
+
+            const isOpen = detailRow.classList.contains('open');
+            // Close all first
+            document.querySelectorAll('.detail-row.open').forEach(function(r) { r.classList.remove('open'); });
+            document.querySelectorAll('.summary-row.expanded').forEach(function(r) { r.classList.remove('expanded'); });
+
+            if (!isOpen) {
+                detailRow.classList.add('open');
+                summaryRow.classList.add('expanded');
+            }
+        }
+
+        // --- Stats ---
+        function renderStats(payslips) {
+            let totalPayroll = 0, totalHours = 0, totalCommission = 0, totalDeals = 0;
+            payslips.forEach(function(ps) {
+                totalPayroll += Number(ps.total_pay || 0);
+                totalHours += Number(ps.hours || 0);
+                totalCommission += Number(ps.commission_total || 0);
+                totalDeals += (ps.deals ? ps.deals.length : 0);
+            });
+            document.getElementById('statPayroll').textContent = formatCurrency(totalPayroll);
+            document.getElementById('statHours').textContent = formatHours(totalHours);
+            document.getElementById('statCommission').textContent = formatCurrency(totalCommission);
+            document.getElementById('statDeals').textContent = totalDeals;
+        }
+
+        // --- Print ---
+        function printPayslip(idx) {
+            var ps = payslipData[idx];
+            if (!ps) return;
+
+            var dayDates = getDayDates(currentWeekStart);
+            var printEl = document.getElementById('printPayslip');
+
+            var html = '';
+            html += '<div class="print-emp-header">';
+            html += '<div>';
+            html += '<div class="print-emp-name">' + escHtml(ps.name) + '</div>';
+            html += '<div class="print-emp-sub">Week of ' + formatWeekLabel(currentWeekStart) + '</div>';
+            html += '</div>';
+            html += '</div>';
+
+            // Hours section
+            html += '<div class="print-section">';
+            html += '<div class="print-section-title">Hours</div>';
+            html += '<div class="print-hours-grid">';
+            for (var i = 0; i < 7; i++) {
+                var hrs = (ps.daily_hours && ps.daily_hours[dayDates[i]]) || 0;
+                var cls = hrs > 0 ? ' has-hours' : '';
+                html += '<div class="print-hour-cell' + cls + '">';
+                html += '<div class="print-hour-day">' + DAY_LABELS[i] + '</div>';
+                html += '<div class="print-hour-val">' + (hrs > 0 ? formatHours(hrs) : '-') + '</div>';
+                html += '</div>';
+            }
+            html += '</div>';
+            html += '<div class="print-summary-row">';
+            html += '<span>Total: <strong>' + formatHours(ps.hours) + ' hrs</strong></span>';
+            html += '<span>Rate: <strong>' + formatCurrency(ps.hourly_rate) + '/hr</strong></span>';
+            html += '<span>Hourly Pay: <strong>' + formatCurrency(ps.hourly_pay) + '</strong></span>';
+            html += '</div>';
+            html += '</div>';
+
+            // Commission section
+            html += '<div class="print-section">';
+            html += '<div class="print-section-title">Commission</div>';
+            if (ps.deals && ps.deals.length > 0) {
+                html += '<table class="print-deals-table"><thead><tr>';
+                html += '<th>Role</th><th>Job #</th><th>Customer</th><th>Amount</th><th>%</th><th>Commission</th>';
+                html += '</tr></thead><tbody>';
+                ps.deals.forEach(function(d) {
+                    html += '<tr>';
+                    html += '<td>' + escHtml(d.role || '-') + '</td>';
+                    html += '<td>' + escHtml(d.job_number || '-') + '</td>';
+                    html += '<td>' + escHtml(d.customer || '-') + '</td>';
+                    html += '<td>' + formatCurrency(d.amount || 0) + '</td>';
+                    html += '<td>' + (d.commission_pct != null ? d.commission_pct + '%' : '-') + '</td>';
+                    html += '<td>' + formatCurrency(d.commission) + '</td>';
+                    html += '</tr>';
+                });
+                html += '</tbody></table>';
+            } else {
+                html += '<div style="font-size:12px;color:#999;font-style:italic">No deals this week</div>';
+            }
+            html += '<div class="print-comm-summary">';
+            html += '<span>Deals: <strong>' + (ps.deals ? ps.deals.length : 0) + '</strong></span>';
+            html += '<span>Commission Total: <strong>' + formatCurrency(ps.commission_total) + '</strong></span>';
+            html += '</div>';
+            html += '</div>';
+
+            // Total
+            html += '<div class="print-total">';
+            html += '<div class="print-total-label">Total Pay</div>';
+            html += '<div class="print-total-value">' + formatCurrency(ps.total_pay) + '</div>';
+            html += '</div>';
+
+            printEl.innerHTML = html;
+            printEl.classList.add('active');
+
+            window.print();
+
+            setTimeout(function() {
+                printEl.classList.remove('active');
+            }, 1000);
+        }
+
+        // --- Load ---
+        async function loadPayslips() {
+            var container = document.getElementById('payslipsContainer');
+            var weekLabel = document.getElementById('weekLabel');
+            var errorBanner = document.getElementById('errorBanner');
+
+            var label = formatWeekLabel(currentWeekStart);
+            weekLabel.textContent = label;
+            document.getElementById('printWeekRange').textContent = label;
+
+            container.innerHTML = '<div class="loading-container"><div class="spinner"></div><div class="loading-text">Loading payslips...</div></div>';
+            errorBanner.style.display = 'none';
+
+            try {
+                var results = await Promise.all([
+                    fetchPayslips(currentWeekStart),
+                    fetchConfirmations(currentWeekStart)
+                ]);
+
+                var data = results[0];
+                var confirmations = results[1];
+
+                // Build confirmation lookup
+                var confMap = {};
+                confirmations.forEach(function(c) { confMap[c.employee_name] = c; });
+
+                // Attach status to each payslip
+                var payslips = data.payslips || [];
+                payslips.forEach(function(ps) {
+                    var conf = confMap[ps.name];
+                    ps.hours_status = conf ? (conf.hours_status || conf.status) : 'no_record';
+                    ps.hours_confirmed_at = conf ? (conf.hours_confirmed_at || conf.confirmed_at) : null;
+                    ps.comm_status = conf ? conf.comm_status : null;
+                    ps.comm_confirmed_at = conf ? conf.comm_confirmed_at : null;
+                });
+
+                payslipData = payslips;
+                renderStats(payslips);
+
+                if (payslips.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#128203;</div><div class="empty-state-text">No payslips for this week</div></div>';
+                    return;
+                }
+
+                container.innerHTML = renderTable(payslips, currentWeekStart);
+                loadLedger();
+
+            } catch (err) {
+                console.error('Failed to load payslips:', err);
+                errorBanner.textContent = 'Failed to load payslips: ' + err.message;
+                errorBanner.style.display = 'block';
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">&#9888;</div><div class="empty-state-text">Could not load payslip data</div></div>';
+                payslipData = [];
+                document.getElementById('statPayroll').textContent = '$0.00';
+                document.getElementById('statHours').textContent = '0';
+                document.getElementById('statCommission').textContent = '$0.00';
+                document.getElementById('statDeals').textContent = '0';
+            }
+        }
+
+        // --- Finalize Commission ---
+        async function finalizeCommission() {
+            const ws = formatDate(currentWeekStart);
+            const we = new Date(currentWeekStart);
+            we.setDate(we.getDate() + 6);
+            const weekLabel = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' + we.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+
+            if (!confirm('Finalize commission for ' + weekLabel + '?\n\nThis will:\n- Snapshot all commission assignments for this week\n- Send each employee a confirmation link via Sandy\n- Commission won\'t be paid until they confirm')) return;
+
+            var container = document.getElementById('payslipContainer');
+            container.innerHTML = '<div class="loading-container"><div class="spinner"></div><div class="loading-text">Finalizing commission...</div></div>';
+
+            try {
+                var resp = await fetch('/api/finalize-commission?action=finalize', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ week_start: ws })
+                });
+                var result = await resp.json();
+
+                if (result.success) {
+                    var names = Object.keys(result.employeeTotals || {});
+                    alert('Commission finalized for ' + weekLabel + '!\n\nConfirmation links sent to: ' + names.join(', '));
+                    loadPayslips();
+                } else {
+                    alert('Failed: ' + (result.error || 'Unknown'));
+                    loadPayslips();
+                }
+            } catch(e) {
+                alert('Failed: ' + e.message);
+                loadPayslips();
+            }
+        }
+
+        // --- Payment Ledger ---
+        async function loadLedger() {
+            const ws = formatDate(currentWeekStart);
+            try {
+                const resp = await fetch('/api/payroll-admin?action=ledger&week_start=' + ws);
+                const entries = await resp.json();
+                renderLedger(Array.isArray(entries) ? entries : []);
+            } catch(e) { console.error('Ledger load failed:', e); }
+        }
+
+        function renderLedger(entries) {
+            const body = document.getElementById('ledgerBody');
+            if (!entries.length) {
+                // Show empty row with "Record Payment" for each employee
+                if (!payslipData.length) {
+                    body.innerHTML = '<tr><td colspan="11" style="text-align:center;color:#475569;padding:20px">No payslip data yet</td></tr>';
+                    return;
+                }
+                body.innerHTML = payslipData.filter(p => p.hours > 0 || p.commission_total > 0).map(p =>
+                    `<tr>
+                        <td style="font-weight:600">${escHtml(p.name)}</td>
+                        <td>$${(p.hourly_pay||0).toFixed(2)}</td>
+                        <td>$${(p.commission_total||0).toFixed(2)}</td>
+                        <td>—</td><td>—</td>
+                        <td style="font-weight:700;color:#fbbf24">$${(p.total_pay||0).toFixed(2)}</td>
+                        <td>—</td><td>—</td><td>—</td><td>—</td>
+                        <td><button onclick="recordPayment('${escAttr(p.name)}',${p.hourly_pay||0},${p.commission_total||0},${p.total_pay||0})" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer">Pay</button></td>
+                    </tr>`
+                ).join('');
+                return;
+            }
+
+            const paidNames = entries.map(e => e.employee_name);
+            let html = entries.map(e =>
+                `<tr style="background:rgba(34,197,94,0.04)">
+                    <td style="font-weight:600">${escHtml(e.employee_name)}</td>
+                    <td>$${parseFloat(e.hourly_pay||0).toFixed(2)}</td>
+                    <td>$${parseFloat(e.commission_pay||0).toFixed(2)}</td>
+                    <td>$${parseFloat(e.bonus||0).toFixed(2)}</td>
+                    <td style="color:#f87171">$${parseFloat(e.deductions||0).toFixed(2)}</td>
+                    <td style="font-weight:700;color:#4ade80">$${parseFloat(e.total_paid||0).toFixed(2)}</td>
+                    <td>${escHtml(e.payment_method||'—')}</td>
+                    <td style="font-size:10px">${escHtml(e.payment_reference||'—')}</td>
+                    <td style="font-size:10px">${escHtml(e.notes||'—')}</td>
+                    <td style="font-size:10px;color:#4ade80">${e.paid_at ? new Date(e.paid_at).toLocaleDateString() : '—'}</td>
+                    <td><span style="color:#4ade80;font-size:10px;font-weight:700">PAID</span></td>
+                </tr>`
+            ).join('');
+
+            // Add unpaid employees
+            if (payslipData.length) {
+                payslipData.filter(p => !paidNames.includes(p.name) && (p.hours > 0 || p.commission_total > 0)).forEach(p => {
+                    html += `<tr>
+                        <td style="font-weight:600">${escHtml(p.name)}</td>
+                        <td>$${(p.hourly_pay||0).toFixed(2)}</td>
+                        <td>$${(p.commission_total||0).toFixed(2)}</td>
+                        <td>—</td><td>—</td>
+                        <td style="font-weight:700;color:#fbbf24">$${(p.total_pay||0).toFixed(2)}</td>
+                        <td>—</td><td>—</td><td>—</td><td>—</td>
+                        <td><button onclick="recordPayment('${escAttr(p.name)}',${p.hourly_pay||0},${p.commission_total||0},${p.total_pay||0})" style="background:linear-gradient(135deg,#22c55e,#16a34a);color:#fff;border:none;border-radius:6px;padding:4px 10px;font-size:10px;font-weight:600;cursor:pointer">Pay</button></td>
+                    </tr>`;
+                });
+            }
+
+            body.innerHTML = html || '<tr><td colspan="11" style="text-align:center;color:#475569;padding:20px">No entries</td></tr>';
+        }
+
+        function escAttr(s) { return String(s||'').replace(/'/g, "\\'").replace(/"/g, '&quot;'); }
+
+        async function recordPayment(name, hourlyPay, commPay, totalPay) {
+            var method = prompt('Payment method for ' + name + '?\n(e.g. Zelle, CashApp, Wire, Check)');
+            if (!method) return;
+            var ref = prompt('Reference/confirmation # (optional):') || '';
+            var bonus = parseFloat(prompt('Bonus amount (0 if none):') || '0') || 0;
+            var deductions = parseFloat(prompt('Deductions (0 if none):') || '0') || 0;
+            var finalTotal = totalPay + bonus - deductions;
+            var notes = prompt('Notes (optional):') || '';
+
+            if (!confirm('Record payment for ' + name + ':\n\nHourly: $' + hourlyPay.toFixed(2) + '\nCommission: $' + commPay.toFixed(2) + '\nBonus: $' + bonus.toFixed(2) + '\nDeductions: -$' + deductions.toFixed(2) + '\n─────────\nTotal: $' + finalTotal.toFixed(2) + '\nMethod: ' + method + '\n\nConfirm?')) return;
+
+            try {
+                var resp = await fetch('/api/payroll-admin?action=record-payment', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        employee_name: name,
+                        week_start: formatDate(currentWeekStart),
+                        hourly_pay: hourlyPay,
+                        commission_pay: commPay,
+                        bonus: bonus,
+                        deductions: deductions,
+                        total_paid: finalTotal,
+                        payment_method: method,
+                        payment_reference: ref,
+                        notes: notes
+                    })
+                });
+                var result = await resp.json();
+                if (result.success) {
+                    alert('Payment recorded for ' + name + ': $' + finalTotal.toFixed(2));
+                    loadLedger();
+                } else {
+                    alert('Failed: ' + (result.error || 'Unknown'));
+                }
+            } catch(e) { alert('Failed: ' + e.message); }
+        }
+
+        async function createBackup() {
+            var ws = formatDate(currentWeekStart);
+            if (!confirm('Create a backup of all payroll data for this week?')) return;
+            try {
+                var resp = await fetch('/api/payroll-admin?action=backup', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ week_start: ws })
+                });
+                var result = await resp.json();
+                if (result.success) alert('Backup created successfully!');
+                else alert('Failed: ' + (result.error || 'Unknown'));
+            } catch(e) { alert('Failed: ' + e.message); }
+        }
+
+        function downloadCSV() {
+            var ws = formatDate(currentWeekStart);
+            window.open('/api/payroll-admin?action=export-csv&week_start=' + ws, '_blank');
+        }
+
+        async function showAuditLog() {
+            var ws = formatDate(currentWeekStart);
+            var modal = document.getElementById('auditModal');
+            var content = document.getElementById('auditContent');
+            modal.style.display = 'flex';
+            content.innerHTML = 'Loading...';
+
+            try {
+                var resp = await fetch('/api/payroll-admin?action=audit-log&week_start=' + ws);
+                var logs = await resp.json();
+                if (!Array.isArray(logs) || !logs.length) {
+                    content.innerHTML = '<div style="text-align:center;color:#475569;padding:20px">No audit entries for this week</div>';
+                    return;
+                }
+                content.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:11px"><thead><tr>' +
+                    '<th style="text-align:left;padding:6px;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.08)">Time</th>' +
+                    '<th style="text-align:left;padding:6px;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.08)">Action</th>' +
+                    '<th style="text-align:left;padding:6px;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.08)">Employee</th>' +
+                    '<th style="text-align:left;padding:6px;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.08)">Details</th>' +
+                    '</tr></thead><tbody>' +
+                    logs.map(function(l) {
+                        return '<tr><td style="padding:6px;color:#475569">' + new Date(l.created_at).toLocaleString() + '</td>' +
+                            '<td style="padding:6px;color:#60a5fa;font-weight:600">' + escHtml(l.action) + '</td>' +
+                            '<td style="padding:6px">' + escHtml(l.employee_name || '—') + '</td>' +
+                            '<td style="padding:6px;color:#94a3b8">' + escHtml(l.new_value || l.field_changed || '—') + '</td></tr>';
+                    }).join('') +
+                    '</tbody></table>';
+            } catch(e) { content.innerHTML = 'Error: ' + e.message; }
+
+            modal.onclick = function(e) { if (e.target === modal) modal.style.display = 'none'; };
+        }
+
+        // --- Init ---
+        loadPayslips();
+    </script>
+</body>
+</html>

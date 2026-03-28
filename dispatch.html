@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HMS Dispatch</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+            color: #1e293b;
+        }
+
+        /* ── Header ── */
+        .header {
+            background: #fff;
+            border-bottom: 1px solid #e2e8f0;
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .header-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #2563eb;
+            letter-spacing: -0.01em;
+        }
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+        .user-badge {
+            background: #eff6ff;
+            color: #2563eb;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .header-link {
+            color: #64748b;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: color 0.15s;
+        }
+        .header-link:hover { color: #2563eb; }
+        .btn-logout {
+            background: none;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            padding: 5px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.15s;
+        }
+        .btn-logout:hover { border-color: #ef4444; color: #ef4444; }
+
+        /* ── Container ── */
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        /* ── Stats Row ── */
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+            margin-bottom: 28px;
+        }
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            transition: box-shadow 0.2s;
+        }
+        .stat-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .stat-count {
+            font-size: 32px;
+            font-weight: 700;
+            color: #1e293b;
+            line-height: 1;
+        }
+        .stat-label {
+            font-size: 12px;
+            font-weight: 600;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 6px;
+        }
+        .stat-card:nth-child(1) .stat-count { color: #2563eb; }
+        .stat-card:nth-child(2) .stat-count { color: #0891b2; }
+        .stat-card:nth-child(3) .stat-count { color: #94a3b8; }
+        .stat-card:nth-child(4) .stat-count { color: #f59e0b; }
+        .stat-card:nth-child(5) .stat-count { color: #22c55e; }
+
+        /* ── Section Heading ── */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #1e293b;
+        }
+        .btn-primary {
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-primary:hover { background: #FFA23F; }
+
+        /* ── Agent Cards ── */
+        .agents-scroll {
+            display: flex;
+            gap: 14px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+            margin-bottom: 28px;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+        .agents-scroll::-webkit-scrollbar { height: 6px; }
+        .agents-scroll::-webkit-scrollbar-track { background: transparent; }
+        .agents-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+        .agent-card {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 16px 22px;
+            min-width: 180px;
+            flex-shrink: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .agent-card-top {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .agent-status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            flex-shrink: 0;
+        }
+        .agent-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1e293b;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .agent-jobs {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        /* ── Filter Tabs + Search ── */
+        .table-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .filter-tabs {
+            display: flex;
+            gap: 4px;
+            background: #f1f5f9;
+            border-radius: 8px;
+            padding: 3px;
+        }
+        .filter-tab {
+            padding: 6px 16px;
+            border-radius: 6px;
+            border: none;
+            background: transparent;
+            font-size: 13px;
+            font-weight: 500;
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .filter-tab.active {
+            background: #fff;
+            color: #1e293b;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .search-box {
+            padding: 7px 14px;
+            border: 1px solid #e2e8f0;
+            border-radius: 7px;
+            font-size: 13px;
+            width: 260px;
+            outline: none;
+            transition: border-color 0.15s;
+            font-family: inherit;
+        }
+        .search-box:focus { border-color: #2563eb; }
+
+        /* ── Table ── */
+        .table-wrap {
+            background: #fff;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            overflow-x: auto;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+        th {
+            text-align: left;
+            padding: 12px 14px;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #94a3b8;
+            border-bottom: 1px solid #e2e8f0;
+            background: #fafbfc;
+            white-space: nowrap;
+        }
+        td {
+            padding: 12px 14px;
+            font-size: 13px;
+            border-bottom: 1px solid #f1f5f9;
+            color: #334155;
+            white-space: nowrap;
+        }
+        tr:last-child td { border-bottom: none; }
+        tr:hover td { background: #f8fafc; }
+
+        .agent-select {
+            padding: 5px 8px;
+            border: 1px solid #e2e8f0;
+            border-radius: 5px;
+            font-size: 12px;
+            font-family: inherit;
+            color: #334155;
+            background: #fff;
+            cursor: pointer;
+            outline: none;
+            min-width: 130px;
+        }
+        .agent-select:focus { border-color: #2563eb; }
+
+        /* ── Status Badges ── */
+        .badge {
+            display: inline-block;
+            padding: 3px 10px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: capitalize;
+        }
+        .badge-grey { background: #f1f5f9; color: #94a3b8; }
+        .badge-blue { background: #eff6ff; color: #2563eb; }
+        .badge-yellow { background: #fffbeb; color: #d97706; }
+        .badge-green { background: #f0fdf4; color: #16a34a; }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            z-index: 200;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px;
+            width: 380px;
+            max-width: 90vw;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+        .modal-card h3 {
+            font-size: 16px;
+            font-weight: 700;
+            margin-bottom: 20px;
+            color: #1e293b;
+        }
+        .modal-field {
+            margin-bottom: 14px;
+        }
+        .modal-field label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: #64748b;
+            margin-bottom: 5px;
+        }
+        .modal-field input {
+            width: 100%;
+            padding: 9px 12px;
+            border: 1px solid #e2e8f0;
+            border-radius: 7px;
+            font-size: 13px;
+            outline: none;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        .modal-field input:focus { border-color: #2563eb; }
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .btn-cancel {
+            background: none;
+            border: 1px solid #e2e8f0;
+            color: #64748b;
+            padding: 8px 18px;
+            border-radius: 7px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .btn-cancel:hover { border-color: #94a3b8; }
+
+        /* ── Toast ── */
+        .toast-container {
+            position: fixed;
+            top: 16px;
+            right: 16px;
+            z-index: 300;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        .toast {
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #fff;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+            animation: toastIn 0.25s ease-out;
+            max-width: 340px;
+        }
+        .toast.success { background: #22c55e; }
+        .toast.error { background: #ef4444; }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Empty State ── */
+        .empty-state {
+            text-align: center;
+            padding: 48px 20px;
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .stats-row .stat-card:last-child { grid-column: span 2; }
+            .header { padding: 0 14px; }
+            .container { padding: 16px; }
+            .search-box { width: 100%; }
+            .table-controls { flex-direction: column; align-items: stretch; }
+        }
+        @media (max-width: 480px) {
+            .stats-row { grid-template-columns: 1fr 1fr; }
+            .header-right { gap: 10px; }
+            .user-badge { display: none; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    <div class="header-title">HMS Dispatch</div>
+    <div class="header-right">
+        <span class="user-badge" id="userBadge"></span>
+        <a href="/dashboard" class="header-link">Back to Dashboard</a>
+        <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card">
+            <div class="stat-count" id="statTotal">-</div>
+            <div class="stat-label">Total Booked</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-count" id="statAssigned">-</div>
+            <div class="stat-label">Assigned</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-count" id="statUnassigned">-</div>
+            <div class="stat-label">Unassigned</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-count" id="statInProgress">-</div>
+            <div class="stat-label">In Progress</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-count" id="statCompleted">-</div>
+            <div class="stat-label">Completed</div>
+        </div>
+    </div>
+
+    <!-- Agents -->
+    <div class="section-header">
+        <div class="section-title">Agents</div>
+        <button class="btn-primary" onclick="openCreateModal()">Create Agent</button>
+    </div>
+    <div class="agents-scroll" id="agentsRow">
+        <div class="empty-state" style="width:100%">Loading agents...</div>
+    </div>
+
+    <!-- Booked Jobs -->
+    <div class="section-header">
+        <div class="section-title">Booked Jobs</div>
+    </div>
+    <div class="table-controls">
+        <div class="filter-tabs">
+            <button class="filter-tab active" data-filter="all" onclick="setFilter('all',this)">All</button>
+            <button class="filter-tab" data-filter="unassigned" onclick="setFilter('unassigned',this)">Unassigned</button>
+            <button class="filter-tab" data-filter="assigned" onclick="setFilter('assigned',this)">Assigned</button>
+        </div>
+        <input type="text" class="search-box" placeholder="Search job # or customer..." id="searchBox" oninput="renderTable()">
+    </div>
+    <div class="table-wrap">
+        <table>
+            <thead>
+                <tr>
+                    <th>Job #</th>
+                    <th>Customer</th>
+                    <th>Phone</th>
+                    <th>From &rarr; To</th>
+                    <th>Pickup Date</th>
+                    <th>Cubes</th>
+                    <th>Agent</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="jobsBody">
+                <tr><td colspan="8" class="empty-state">Loading jobs...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Agent Modal -->
+<div class="modal-overlay" id="createModal">
+    <div class="modal-card">
+        <h3>Create Agent</h3>
+        <div class="modal-field">
+            <label>Agent Name</label>
+            <input type="text" id="agentNameInput" placeholder="e.g. John Smith">
+        </div>
+        <div class="modal-field">
+            <label>Secret Key</label>
+            <input type="text" id="agentKeyInput" placeholder="Enter secret key">
+        </div>
+        <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeCreateModal()">Cancel</button>
+            <button class="btn-primary" onclick="createAgent()">Create Agent</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+    const SUPABASE_URL = 'process.env.SUPABASE_URL';
+    const SUPABASE_KEY = 'process.env.SUPABASE_ANON_KEY';
+    const API_BASE = '/api/agent-portal';
+
+    let currentUser = null;
+    let agents = [];
+    let jobs = [];
+    let assignments = [];
+    let currentFilter = 'all';
+
+    // ── Auth ──
+    (function checkAuth() {
+        try {
+            const raw = localStorage.getItem('dashboardUser');
+            if (!raw) { window.location.href = '/dashboard'; return; }
+            const user = JSON.parse(raw);
+            if (user.role !== 'dispatch' && user.role !== 'admin') {
+                window.location.href = '/dashboard';
+                return;
+            }
+            currentUser = user;
+            document.getElementById('userBadge').textContent = user.name || user.username || 'User';
+        } catch (e) {
+            window.location.href = '/dashboard';
+        }
+    })();
+
+    function logout() {
+        localStorage.removeItem('dashboardUser');
+        window.location.href = '/dashboard';
+    }
+
+    // ── API Helper ──
+    async function api(action, method = 'GET', body = null) {
+        const opts = {
+            method,
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (body) opts.body = JSON.stringify(body);
+        const res = await fetch(`${API_BASE}?action=${action}`, opts);
+        if (!res.ok) {
+            const err = await res.json().catch(() => ({ error: 'Request failed' }));
+            throw new Error(err.error || 'Request failed');
+        }
+        return res.json();
+    }
+
+    // ── Toast ──
+    function toast(message, type = 'success') {
+        const container = document.getElementById('toastContainer');
+        const el = document.createElement('div');
+        el.className = `toast ${type}`;
+        el.textContent = message;
+        container.appendChild(el);
+        setTimeout(() => {
+            el.style.opacity = '0';
+            el.style.transition = 'opacity 0.3s';
+            setTimeout(() => el.remove(), 300);
+        }, 3000);
+    }
+
+    // ── Data Loading ──
+    async function loadAll() {
+        try {
+            const [agentsRes, jobsRes, assignmentsRes] = await Promise.all([
+                api('agents'),
+                api('booked-jobs'),
+                api('assignments')
+            ]);
+            agents = agentsRes.agents || agentsRes || [];
+            jobs = jobsRes.jobs || jobsRes || [];
+            assignments = assignmentsRes.assignments || assignmentsRes || [];
+            mergeData();
+            renderStats();
+            renderAgents();
+            renderTable();
+        } catch (e) {
+            console.error('Load error:', e);
+            toast('Failed to load data: ' + e.message, 'error');
+        }
+    }
+
+    function mergeData() {
+        const assignMap = {};
+        assignments.forEach(a => {
+            assignMap[a.job_submission_id || a.job_id] = a;
+        });
+        jobs.forEach(job => {
+            const a = assignMap[job.id];
+            if (a) {
+                job._agent_id = a.agent_id;
+                job._agent_name = (agents.find(ag => ag.id === a.agent_id) || {}).name || 'Unknown';
+                job._assignment_status = a.status || 'assigned';
+                job._assignment_id = a.id;
+            } else {
+                job._agent_id = null;
+                job._agent_name = null;
+                job._assignment_status = 'unassigned';
+                job._assignment_id = null;
+            }
+        });
+    }
+
+    // ── Stats ──
+    function renderStats() {
+        const total = jobs.length;
+        const assigned = jobs.filter(j => j._agent_id).length;
+        const unassigned = total - assigned;
+        const inProgress = jobs.filter(j => j._assignment_status === 'in_progress' || j._assignment_status === 'in-progress').length;
+        const completed = jobs.filter(j => j._assignment_status === 'completed').length;
+
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statAssigned').textContent = assigned;
+        document.getElementById('statUnassigned').textContent = unassigned;
+        document.getElementById('statInProgress').textContent = inProgress;
+        document.getElementById('statCompleted').textContent = completed;
+    }
+
+    // ── Agents ──
+    function renderAgents() {
+        const row = document.getElementById('agentsRow');
+        if (!agents.length) {
+            row.innerHTML = '<div class="empty-state" style="width:100%">No agents yet. Click "Create Agent" to add one.</div>';
+            return;
+        }
+        row.innerHTML = agents.map(a => {
+            const count = jobs.filter(j => j._agent_id === a.id).length;
+            return `<div class="agent-card">
+                <div class="agent-card-top">
+                    <div class="agent-status-dot"></div>
+                    <div class="agent-name">${esc(a.name)}</div>
+                </div>
+                <div class="agent-jobs">${count} job${count !== 1 ? 's' : ''} assigned</div>
+            </div>`;
+        }).join('');
+    }
+
+    // ── Table ──
+    function setFilter(filter, btn) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+        btn.classList.add('active');
+        renderTable();
+    }
+
+    function renderTable() {
+        const tbody = document.getElementById('jobsBody');
+        const query = (document.getElementById('searchBox').value || '').toLowerCase().trim();
+
+        let filtered = jobs;
+
+        // Filter by tab
+        if (currentFilter === 'unassigned') {
+            filtered = filtered.filter(j => !j._agent_id);
+        } else if (currentFilter === 'assigned') {
+            filtered = filtered.filter(j => !!j._agent_id);
+        }
+
+        // Search
+        if (query) {
+            filtered = filtered.filter(j =>
+                (j.job_number || '').toLowerCase().includes(query) ||
+                (j.customer_name || '').toLowerCase().includes(query)
+            );
+        }
+
+        if (!filtered.length) {
+            tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No jobs found.</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = filtered.map(j => {
+            const statusClass = !j._agent_id ? 'badge-grey'
+                : j._assignment_status === 'completed' ? 'badge-green'
+                : (j._assignment_status === 'in_progress' || j._assignment_status === 'in-progress') ? 'badge-yellow'
+                : 'badge-blue';
+            const statusLabel = !j._agent_id ? 'Unassigned'
+                : j._assignment_status === 'completed' ? 'Completed'
+                : (j._assignment_status === 'in_progress' || j._assignment_status === 'in-progress') ? 'In Progress'
+                : 'Assigned';
+
+            const agentOptions = agents.map(a =>
+                `<option value="${a.id}" ${j._agent_id === a.id ? 'selected' : ''}>${esc(a.name)}</option>`
+            ).join('');
+
+            const from = j.moving_from || j.origin_city || '-';
+            const to = j.moving_to || j.destination_city || '-';
+            const pickupDate = j.pickup_date ? formatDate(j.pickup_date) : '-';
+
+            return `<tr>
+                <td style="font-weight:600">${esc(j.job_number || j.id)}</td>
+                <td>${esc(j.customer_name || '-')}</td>
+                <td>${esc(j.phone || '-')}</td>
+                <td>${esc(from)} &rarr; ${esc(to)}</td>
+                <td>${pickupDate}</td>
+                <td>${j.cubes || '-'}</td>
+                <td>
+                    <select class="agent-select" onchange="assignJob('${j.id}', this.value)">
+                        <option value="">Unassigned</option>
+                        ${agentOptions}
+                    </select>
+                </td>
+                <td><span class="badge ${statusClass}">${statusLabel}</span></td>
+            </tr>`;
+        }).join('');
+    }
+
+    function formatDate(d) {
+        try {
+            const dt = new Date(d);
+            return dt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        } catch { return d; }
+    }
+
+    // ── Assign / Unassign ──
+    async function assignJob(jobId, agentId) {
+        try {
+            if (!agentId) {
+                await api('unassign-job', 'POST', { job_id: jobId });
+                toast('Job unassigned');
+            } else {
+                await api('assign-job', 'POST', { job_id: jobId, agent_id: agentId });
+                toast('Job assigned');
+            }
+            await loadAll();
+        } catch (e) {
+            toast('Failed: ' + e.message, 'error');
+            await loadAll();
+        }
+    }
+
+    // ── Create Agent Modal ──
+    function openCreateModal() {
+        document.getElementById('agentNameInput').value = '';
+        document.getElementById('agentKeyInput').value = '';
+        document.getElementById('createModal').classList.add('open');
+        document.getElementById('agentNameInput').focus();
+    }
+    function closeCreateModal() {
+        document.getElementById('createModal').classList.remove('open');
+    }
+
+    async function createAgent() {
+        const name = document.getElementById('agentNameInput').value.trim();
+        const key = document.getElementById('agentKeyInput').value.trim();
+        if (!name || !key) {
+            toast('Both fields are required', 'error');
+            return;
+        }
+        try {
+            await api('create-agent', 'POST', { name, secret_key: key });
+            toast('Agent created');
+            closeCreateModal();
+            await loadAll();
+        } catch (e) {
+            toast('Failed: ' + e.message, 'error');
+        }
+    }
+
+    // Close modal on overlay click
+    document.getElementById('createModal').addEventListener('click', function(e) {
+        if (e.target === this) closeCreateModal();
+    });
+
+    // Close modal on Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') closeCreateModal();
+    });
+
+    // ── Util ──
+    function esc(s) {
+        if (s == null) return '';
+        const d = document.createElement('div');
+        d.textContent = String(s);
+        return d.innerHTML;
+    }
+
+    // ── Init ──
+    loadAll();
+</script>
+
+</body>
+</html>

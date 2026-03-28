@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Disposition Settings — HMS Admin</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fb;
+    color: #1e293b;
+    min-height: 100vh;
+  }
+  .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+  /* App Bar */
+  .app-bar {
+    background: #ffffff; border-bottom: 1px solid #e2e8f0;
+    border-radius: 12px; margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden; position: relative;
+  }
+  .app-bar::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+  }
+  .app-bar-content {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 20px; flex-wrap: wrap; gap: 12px;
+  }
+  .app-bar-left { display: flex; align-items: center; gap: 16px; }
+  .app-bar-title {
+    font-size: 18px; font-weight: 800; color: #1e293b;
+  }
+  .back-link { color: #2563eb; text-decoration: none; font-size: 13px; opacity: 0.8; }
+  .back-link:hover { opacity: 1; }
+
+  /* Buttons */
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .btn-primary { background: #2563eb; color: #fff; border-color: #2563eb; }
+  .btn-primary:hover { background: #FFA23F; }
+  .btn-secondary { background: #fff; color: #475569; }
+  .btn-secondary:hover { background: #f1f5f9; }
+  .btn-danger { background: #fff; color: #dc2626; border-color: #fca5a5; }
+  .btn-danger:hover { background: #fef2f2; }
+  .btn-sm { padding: 5px 10px; font-size: 12px; }
+  .btn-sync { background: #8b5cf6; color: #fff; border-color: #8b5cf6; }
+  .btn-sync:hover { background: #7c3aed; }
+
+  /* Card */
+  .card {
+    background: #fff; border: 1px solid #e2e8f0; border-radius: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06); margin-bottom: 16px;
+  }
+  .card-header {
+    padding: 16px 20px; border-bottom: 1px solid #f1f5f9;
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  }
+  .card-header h2 { font-size: 15px; font-weight: 700; color: #1e293b; }
+  .card-body { padding: 0; }
+
+  /* Table */
+  table { width: 100%; border-collapse: collapse; }
+  th { background: #f8fafc; font-size: 11px; font-weight: 700; text-transform: uppercase;
+       letter-spacing: 0.05em; color: #64748b; padding: 10px 16px; text-align: left;
+       border-bottom: 1px solid #e2e8f0; }
+  td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; font-size: 13px; vertical-align: middle; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover { background: #f8fafc; }
+
+  /* Category badges */
+  .cat-positive { background: #dcfce7; color: #15803d; border: 1px solid #86efac; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .cat-negative { background: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .cat-system   { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+
+  /* Synced badge */
+  .synced-badge { background: #dbeafe; color: #FFA23F; border: 1px solid #93c5fd; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+  .not-synced-badge { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+
+  /* Expandable row */
+  .expand-row { display: none; }
+  .expand-row.open { display: table-row; }
+  .expand-cell { padding: 16px 20px; background: #fafbfc; }
+
+  /* Wait time chips */
+  .wait-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .wait-chip {
+    padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: 600;
+    border: 1.5px solid #e2e8f0; background: #fff; color: #475569; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .wait-chip:hover { border-color: #93c5fd; background: #eff6ff; }
+  .wait-chip.active { border-color: #2563eb; background: #dbeafe; color: #FFA23F; }
+  .wait-chip.removable::after { content: ' ×'; }
+
+  /* Color dot */
+  .color-dot { width: 14px; height: 14px; border-radius: 50%; display: inline-block; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1); }
+
+  /* Final badge */
+  .final-badge { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; padding: 2px 8px; border-radius: 12px; font-size: 10px; font-weight: 600; }
+
+  /* Modal overlay */
+  .modal-overlay {
+    display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.4); z-index: 1000;
+    justify-content: center; align-items: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #fff; border-radius: 16px; padding: 24px; width: 480px; max-width: 95vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  }
+  .modal h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; }
+  .modal label { display: block; font-size: 12px; font-weight: 600; color: #64748b; margin-bottom: 4px; margin-top: 12px; }
+  .modal input, .modal select {
+    width: 100%; padding: 8px 12px; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 13px; color: #1e293b;
+  }
+  .modal input:focus, .modal select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.1); }
+  .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+  /* Toast */
+  .toast {
+    position: fixed; bottom: 20px; right: 20px; padding: 12px 20px;
+    border-radius: 10px; font-size: 13px; font-weight: 600; color: #fff;
+    z-index: 2000; opacity: 0; transition: opacity 0.3s; pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+  .toast-success { background: #16a34a; }
+  .toast-error { background: #dc2626; }
+
+  /* Loading */
+  .loading { text-align: center; padding: 40px; color: #94a3b8; font-size: 14px; }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <!-- App Bar -->
+  <div class="app-bar">
+    <div class="app-bar-content">
+      <div class="app-bar-left">
+        <a href="/dashboard" class="back-link">← Dashboard</a>
+        <span class="app-bar-title">Disposition Settings</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="btn btn-sync" onclick="syncFromDialerr()">Sync from Dialerr</button>
+        <button class="btn btn-primary" onclick="openAddModal()">+ Add Disposition</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dispositions Table -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Dispositions</h2>
+      <span id="countLabel" style="font-size:12px;color:#94a3b8;"></span>
+    </div>
+    <div class="card-body">
+      <div id="loadingEl" class="loading">Loading dispositions...</div>
+      <table id="dispositionsTable" style="display:none;">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Name</th>
+            <th>Category</th>
+            <th>Color</th>
+            <th>Final</th>
+            <th>Dialerr</th>
+            <th style="width:120px">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="dispositionsBody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit Modal -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3 id="modalTitle">Add Disposition</h3>
+    <input type="hidden" id="editId" value="">
+
+    <label>Name</label>
+    <input type="text" id="fieldName" placeholder="e.g. No Answer">
+
+    <label>Category</label>
+    <select id="fieldCategory">
+      <option value="system">System</option>
+      <option value="positive">Positive</option>
+      <option value="negative">Negative</option>
+    </select>
+
+    <label>Color</label>
+    <input type="color" id="fieldColor" value="#94a3b8" style="height:36px;padding:2px;">
+
+    <label style="margin-top:12px;">
+      <input type="checkbox" id="fieldFinal" style="width:auto;margin-right:6px;">
+      Final Disposition (no more callbacks)
+    </label>
+
+    <label>Wait Times</label>
+    <div class="wait-chips" id="waitTimeChips">
+      <span class="wait-chip" data-min="1" onclick="toggleWaitChip(this)">1 min</span>
+      <span class="wait-chip" data-min="5" onclick="toggleWaitChip(this)">5 min</span>
+      <span class="wait-chip" data-min="15" onclick="toggleWaitChip(this)">15 min</span>
+      <span class="wait-chip" data-min="30" onclick="toggleWaitChip(this)">30 min</span>
+      <span class="wait-chip" data-min="60" onclick="toggleWaitChip(this)">1 hour</span>
+      <span class="wait-chip" data-min="720" onclick="toggleWaitChip(this)">12 hours</span>
+      <span class="wait-chip" data-min="1440" onclick="toggleWaitChip(this)">1 day</span>
+      <span class="wait-chip" data-min="2880" onclick="toggleWaitChip(this)">2 days</span>
+      <span class="wait-chip" data-min="4320" onclick="toggleWaitChip(this)">3 days</span>
+    </div>
+    <div style="margin-top:8px;display:flex;gap:6px;align-items:center;">
+      <input type="number" id="customWaitInput" placeholder="Custom minutes" style="width:140px;">
+      <button class="btn btn-sm btn-secondary" onclick="addCustomWait()">Add</button>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary" id="modalSaveBtn" onclick="saveDisposition()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = '/api/dispositions';
+let dispositions = [];
+
+// ── Load dispositions ──
+async function loadDispositions() {
+    const loadingEl = document.getElementById('loadingEl');
+    const table = document.getElementById('dispositionsTable');
+    try {
+        const res = await fetch(API_BASE + '?action=list');
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to load');
+        dispositions = data.dispositions || [];
+        renderTable();
+        loadingEl.style.display = 'none';
+        table.style.display = 'table';
+        document.getElementById('countLabel').textContent = dispositions.length + ' disposition' + (dispositions.length !== 1 ? 's' : '');
+    } catch (e) {
+        loadingEl.textContent = 'Error: ' + e.message;
+    }
+}
+
+// ── Render table ──
+function renderTable() {
+    const tbody = document.getElementById('dispositionsBody');
+    if (dispositions.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:32px;">No dispositions yet. Click "Add Disposition" or "Sync from Dialerr" to get started.</td></tr>';
+        return;
+    }
+    let html = '';
+    dispositions.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    dispositions.forEach((d, i) => {
+        const catClass = d.category === 'positive' ? 'cat-positive' : d.category === 'negative' ? 'cat-negative' : 'cat-system';
+        const catLabel = d.category ? d.category.charAt(0).toUpperCase() + d.category.slice(1) : 'System';
+        const syncBadge = d.synced ? '<span class="synced-badge">Synced</span>' : '<span class="not-synced-badge">Local only</span>';
+        const finalBadge = d.is_final ? '<span class="final-badge">Final</span>' : '-';
+
+        html += `<tr class="disp-row" data-id="${d.id}">
+            <td>${i + 1}</td>
+            <td style="font-weight:600;">${escapeHtml(d.name)}</td>
+            <td><span class="${catClass}">${catLabel}</span></td>
+            <td><span class="color-dot" style="background:${d.color || '#94a3b8'}"></span></td>
+            <td>${finalBadge}</td>
+            <td>${syncBadge}${d.dialerr_id ? ' <span style="font-size:10px;color:#94a3b8;">ID:' + d.dialerr_id + '</span>' : ''}</td>
+            <td>
+                <button class="btn btn-sm btn-secondary" onclick="toggleExpand('${d.id}')" title="Configure">&#9881;</button>
+                <button class="btn btn-sm btn-secondary" onclick="openEditModal('${d.id}')" title="Edit">&#9998;</button>
+                <button class="btn btn-sm btn-danger" onclick="deleteDisposition('${d.id}')" title="Delete">&#128465;</button>
+            </td>
+        </tr>`;
+
+        // Expandable row for wait times
+        const waitTimes = d.wait_times || [];
+        const waitChipsHtml = waitTimes.length > 0
+            ? waitTimes.map(wt => '<span class="wait-chip active">' + formatMinutes(wt.wait_minutes) + '</span>').join('')
+            : '<span style="color:#94a3b8;font-size:12px;">No wait times configured</span>';
+
+        html += `<tr class="expand-row" id="expand-${d.id}">
+            <td colspan="7" class="expand-cell">
+                <div style="display:flex;align-items:flex-start;gap:24px;flex-wrap:wrap;">
+                    <div>
+                        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Wait Times (callback intervals)</div>
+                        <div class="wait-chips">${waitChipsHtml}</div>
+                    </div>
+                    <div>
+                        <div style="font-size:11px;font-weight:700;text-transform:uppercase;color:#64748b;margin-bottom:6px;">Config</div>
+                        <div style="font-size:12px;color:#475569;">
+                            ${d.is_final ? '&#10004; Final disposition — no callbacks scheduled' : 'Callbacks will be scheduled based on wait times'}
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>`;
+    });
+    tbody.innerHTML = html;
+}
+
+// ── Toggle expand ──
+function toggleExpand(id) {
+    const row = document.getElementById('expand-' + id);
+    if (row) row.classList.toggle('open');
+}
+
+// ── Format minutes ──
+function formatMinutes(min) {
+    if (min < 60) return min + ' min';
+    if (min < 1440) return (min / 60) + (min % 60 === 0 ? '' : '.') + ' hour' + (min >= 120 ? 's' : '');
+    const days = Math.floor(min / 1440);
+    return days + ' day' + (days > 1 ? 's' : '');
+}
+
+// ── Modal: Add ──
+function openAddModal() {
+    document.getElementById('modalTitle').textContent = 'Add Disposition';
+    document.getElementById('editId').value = '';
+    document.getElementById('fieldName').value = '';
+    document.getElementById('fieldCategory').value = 'system';
+    document.getElementById('fieldColor').value = '#94a3b8';
+    document.getElementById('fieldFinal').checked = false;
+    clearWaitChips();
+    document.getElementById('modalOverlay').classList.add('open');
+}
+
+// ── Modal: Edit ──
+function openEditModal(id) {
+    const d = dispositions.find(x => x.id === id);
+    if (!d) return;
+    document.getElementById('modalTitle').textContent = 'Edit Disposition';
+    document.getElementById('editId').value = d.id;
+    document.getElementById('fieldName').value = d.name;
+    document.getElementById('fieldCategory').value = d.category || 'system';
+    document.getElementById('fieldColor').value = d.color || '#94a3b8';
+    document.getElementById('fieldFinal').checked = !!d.is_final;
+
+    // Set wait time chips
+    clearWaitChips();
+    const activeMins = (d.wait_times || []).map(wt => wt.wait_minutes);
+    document.querySelectorAll('#waitTimeChips .wait-chip').forEach(chip => {
+        if (activeMins.includes(parseInt(chip.dataset.min))) {
+            chip.classList.add('active');
+        }
+    });
+    // Add any custom ones not in the preset list
+    const presetMins = [1, 5, 15, 30, 60, 720, 1440, 2880, 4320];
+    activeMins.filter(m => !presetMins.includes(m)).forEach(m => {
+        addCustomChip(m);
+    });
+
+    document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+
+// ── Wait time chips ──
+function toggleWaitChip(el) {
+    el.classList.toggle('active');
+}
+
+function clearWaitChips() {
+    document.querySelectorAll('#waitTimeChips .wait-chip').forEach(c => c.classList.remove('active'));
+    document.querySelectorAll('#waitTimeChips .wait-chip.custom').forEach(c => c.remove());
+}
+
+function addCustomWait() {
+    const input = document.getElementById('customWaitInput');
+    const val = parseInt(input.value);
+    if (!val || val <= 0) return;
+    addCustomChip(val);
+    input.value = '';
+}
+
+function addCustomChip(minutes) {
+    const container = document.getElementById('waitTimeChips');
+    // Don't add duplicate
+    if (container.querySelector('[data-min="' + minutes + '"]')) {
+        container.querySelector('[data-min="' + minutes + '"]').classList.add('active');
+        return;
+    }
+    const chip = document.createElement('span');
+    chip.className = 'wait-chip active custom removable';
+    chip.dataset.min = minutes;
+    chip.textContent = formatMinutes(minutes);
+    chip.onclick = function() { chip.remove(); };
+    container.appendChild(chip);
+}
+
+function getSelectedWaitTimes() {
+    const chips = document.querySelectorAll('#waitTimeChips .wait-chip.active');
+    return Array.from(chips).map(c => parseInt(c.dataset.min)).filter(Boolean);
+}
+
+// ── Save (create or update) ──
+async function saveDisposition() {
+    const id = document.getElementById('editId').value;
+    const name = document.getElementById('fieldName').value.trim();
+    if (!name) { showToast('Name is required', 'error'); return; }
+
+    const payload = {
+        name,
+        category: document.getElementById('fieldCategory').value,
+        color: document.getElementById('fieldColor').value,
+        is_final: document.getElementById('fieldFinal').checked,
+        wait_times: getSelectedWaitTimes()
+    };
+
+    const action = id ? 'update' : 'create';
+    if (id) payload.id = id;
+
+    const btn = document.getElementById('modalSaveBtn');
+    btn.disabled = true;
+    btn.textContent = 'Saving...';
+
+    try {
+        const res = await fetch(API_BASE + '?action=' + action, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to save');
+        showToast(id ? 'Disposition updated' : 'Disposition created', 'success');
+        closeModal();
+        await loadDispositions();
+    } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+    }
+}
+
+// ── Delete ──
+async function deleteDisposition(id) {
+    const d = dispositions.find(x => x.id === id);
+    if (!confirm('Delete "' + (d ? d.name : 'this disposition') + '"? This cannot be undone.')) return;
+    try {
+        const res = await fetch(API_BASE + '?action=delete', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to delete');
+        showToast('Disposition deleted', 'success');
+        await loadDispositions();
+    } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+    }
+}
+
+// ── Sync from Dialerr ──
+async function syncFromDialerr() {
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Syncing...';
+    try {
+        const res = await fetch(API_BASE + '?action=sync', { method: 'POST' });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Sync failed');
+        showToast('Synced ' + (data.synced_count || 0) + ' dispositions from Dialerr', 'success');
+        await loadDispositions();
+    } catch (e) {
+        showToast('Sync error: ' + e.message, 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sync from Dialerr';
+    }
+}
+
+// ── Helpers ──
+function escapeHtml(str) {
+    const div = document.createElement('div');
+    div.textContent = str || '';
+    return div.innerHTML;
+}
+
+function showToast(msg, type) {
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.className = 'toast toast-' + (type || 'success') + ' show';
+    setTimeout(() => { el.classList.remove('show'); }, 3000);
+}
+
+// Close modal on overlay click
+document.getElementById('modalOverlay').addEventListener('click', function(e) {
+    if (e.target === this) closeModal();
+});
+
+// Init
+loadDispositions();
+</script>
+</body>
+</html>

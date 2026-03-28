@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Generate Extension Icons</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .icon-preview { display: inline-block; margin: 10px; }
+        .instructions { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🎨 Generate Chrome Extension Icons</h1>
+    
+    <div class="instructions">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Right-click on each icon below</li>
+            <li>Select "Save image as..."</li>
+            <li>Save to the appropriate extension folder with the correct filename</li>
+            <li>Update the manifest.json files to reference the icons</li>
+        </ol>
+    </div>
+
+    <h2>🚛 Fronter Extension Icons (Blue)</h2>
+    <div class="icon-preview">
+        <canvas id="fronter16" width="16" height="16"></canvas>
+        <br><small>icon16.png</small>
+    </div>
+    <div class="icon-preview">
+        <canvas id="fronter48" width="48" height="48"></canvas>
+        <br><small>icon48.png</small>
+    </div>
+    <div class="icon-preview">
+        <canvas id="fronter128" width="128" height="128"></canvas>
+        <br><small>icon128.png</small>
+    </div>
+
+    <h2>🎯 Closer Extension Icons (Orange)</h2>
+    <div class="icon-preview">
+        <canvas id="closer16" width="16" height="16"></canvas>
+        <br><small>icon16.png</small>
+    </div>
+    <div class="icon-preview">
+        <canvas id="closer48" width="48" height="48"></canvas>
+        <br><small>icon48.png</small>
+    </div>
+    <div class="icon-preview">
+        <canvas id="closer128" width="128" height="128"></canvas>
+        <br><small>icon128.png</small>
+    </div>
+
+    <script>
+        function createIcon(canvasId, size, text, bgColor) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Fill background
+            ctx.fillStyle = bgColor;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = Math.max(1, size / 32);
+            ctx.strokeRect(0, 0, size, size);
+            
+            // Add text
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${Math.max(8, size / 8)}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText(text, size / 2, size / 2);
+        }
+
+        // Create fronter icons (blue)
+        createIcon('fronter16', 16, 'F', '#007bff');
+        createIcon('fronter48', 48, 'F', '#007bff');
+        createIcon('fronter128', 128, 'FRONTER', '#007bff');
+
+        // Create closer icons (orange)
+        createIcon('closer16', 16, 'C', '#fd7e14');
+        createIcon('closer48', 48, 'C', '#fd7e14');
+        createIcon('closer128', 128, 'CLOSER', '#fd7e14');
+
+        // Make canvases downloadable
+        document.querySelectorAll('canvas').forEach(canvas => {
+            canvas.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                const link = document.createElement('a');
+                link.download = canvas.id.replace(/(\d+)/, 'icon$1.png');
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+
+        console.log('✅ Icons generated! Right-click to download.');
+    </script>
+</body>
+</html>

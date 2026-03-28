@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Icon Generator</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .icon-container { display: flex; gap: 20px; margin: 20px 0; }
+        canvas { border: 1px solid #ccc; cursor: pointer; }
+        .instructions { background: #f0f0f0; padding: 15px; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <h1>🎨 Extension Icon Generator</h1>
+    
+    <div class="instructions">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Right-click on each icon below</li>
+            <li>Select "Save image as..."</li>
+            <li>Save to the correct extension folder with the correct filename</li>
+        </ol>
+    </div>
+
+    <h2>🚛 Fronter Extension (Blue F)</h2>
+    <div class="icon-container">
+        <canvas id="f16" width="16" height="16" title="Right-click to save as icon16.png"></canvas>
+        <canvas id="f48" width="48" height="48" title="Right-click to save as icon48.png"></canvas>
+        <canvas id="f128" width="128" height="128" title="Right-click to save as icon128.png"></canvas>
+    </div>
+
+    <h2>🎯 Closer Extension (Orange C)</h2>
+    <div class="icon-container">
+        <canvas id="c16" width="16" height="16" title="Right-click to save as icon16.png"></canvas>
+        <canvas id="c48" width="48" height="48" title="Right-click to save as icon48.png"></canvas>
+        <canvas id="c128" width="128" height="128" title="Right-click to save as icon128.png"></canvas>
+    </div>
+
+    <script>
+        function createIcon(canvasId, letter, color, size) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Fill background
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, size, size);
+            
+            // Add border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = Math.max(1, size / 32);
+            ctx.strokeRect(0, 0, size, size);
+            
+            // Add letter
+            ctx.fillStyle = '#ffffff';
+            ctx.font = `bold ${size/2}px Arial`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText(letter, size / 2, size / 2);
+        }
+
+        // Create all icons
+        createIcon('f16', 'F', '#007bff', 16);
+        createIcon('f48', 'F', '#007bff', 48);
+        createIcon('f128', 'F', '#007bff', 128);
+        
+        createIcon('c16', 'C', '#fd7e14', 16);
+        createIcon('c48', 'C', '#fd7e14', 48);
+        createIcon('c128', 'C', '#fd7e14', 128);
+
+        // Make downloadable
+        document.querySelectorAll('canvas').forEach(canvas => {
+            canvas.addEventListener('contextmenu', function(e) {
+                e.preventDefault();
+                const link = document.createElement('a');
+                link.download = `icon${canvas.width}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        });
+
+        console.log('✅ Icons ready! Right-click to download.');
+    </script>
+</body>
+</html>

@@ -1,0 +1,1457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, maximum-scale=1.0">
+    <title>HMS Schedule</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFA23F 0%, #e8891f 50%, #d4780a 100%);
+            min-height: 100vh;
+            color: #e2e8f0;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+        /* App Bar */
+        .app-bar {
+            background: rgba(8, 12, 28, 0.92);
+            backdrop-filter: blur(16px);
+            border-radius: 12px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            overflow: hidden;
+            position: relative;
+        }
+        .app-bar::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+        }
+        .app-bar-content {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+        .app-bar-left { display: flex; align-items: center; gap: 16px; }
+        .app-bar-title {
+            font-size: 18px;
+            font-weight: 800;
+            background: linear-gradient(90deg, #e2e8f0 30%, #94a3b8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .back-link { color: #60a5fa; text-decoration: none; font-size: 13px; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+
+        .app-bar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+            display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+        }
+        .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+        .btn-primary:hover { background: linear-gradient(135deg, #60a5fa, #3b82f6); transform: translateY(-1px); }
+        .btn-success { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+        .btn-success:hover { background: linear-gradient(135deg, #4ade80, #22c55e); transform: translateY(-1px); }
+        .btn-danger { background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff; }
+        .btn-danger:hover { background: linear-gradient(135deg, #f87171, #ef4444); transform: translateY(-1px); }
+        .btn-ghost { background: rgba(255,255,255,0.06); color: #94a3b8; }
+        .btn-ghost:hover { background: rgba(255,255,255,0.12); color: #e2e8f0; }
+        .btn-orange { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+        .btn-orange:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); transform: translateY(-1px); }
+        .btn-sm { padding: 5px 10px; font-size: 11px; border-radius: 6px; }
+
+        /* Week Nav */
+        .week-nav { display: flex; align-items: center; gap: 12px; }
+        .week-label { font-size: 15px; font-weight: 700; color: #e2e8f0; min-width: 200px; text-align: center; }
+        .nav-btn {
+            width: 34px; height: 34px; border-radius: 8px;
+            background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8; font-size: 16px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .nav-btn:hover { background: rgba(255,255,255,0.15); color: #e2e8f0; }
+
+        /* Stats */
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
+        .stat-card {
+            background: rgba(8, 12, 28, 0.85); backdrop-filter: blur(12px);
+            border-radius: 12px; padding: 16px 20px;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #64748b; margin-bottom: 4px; }
+        .stat-value { font-size: 28px; font-weight: 800; background: linear-gradient(90deg, #60a5fa, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .stat-value.green { background: linear-gradient(90deg, #4ade80, #22c55e); -webkit-background-clip: text; background-clip: text; }
+        .stat-value.red { background: linear-gradient(90deg, #f87171, #ef4444); -webkit-background-clip: text; background-clip: text; }
+        .stat-value.yellow { background: linear-gradient(90deg, #fbbf24, #f59e0b); -webkit-background-clip: text; background-clip: text; }
+
+        /* Main Layout */
+        .main-layout { display: grid; grid-template-columns: 1fr 320px; gap: 16px; }
+
+        /* Schedule Grid */
+        .schedule-card {
+            background: rgba(8, 12, 28, 0.85); backdrop-filter: blur(12px);
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 4px 16px rgba(0,0,0,0.3); overflow: hidden;
+        }
+        .schedule-card-header {
+            padding: 14px 20px; border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 14px; font-weight: 700; color: #94a3b8;
+            text-transform: uppercase; letter-spacing: 0.06em;
+        }
+        .schedule-grid { display: grid; grid-template-columns: 120px repeat(7, 1fr); overflow-x: auto; }
+
+        .grid-header {
+            background: rgba(255,255,255,0.04); padding: 10px 8px; text-align: center;
+            font-size: 12px; font-weight: 700; color: #94a3b8; text-transform: uppercase;
+            border-bottom: 1px solid rgba(255,255,255,0.06); border-right: 1px solid rgba(255,255,255,0.04);
+        }
+        .grid-header.today { color: #60a5fa; background: rgba(59,130,246,0.08); }
+        .grid-header-date { display: block; font-size: 10px; color: #475569; margin-top: 2px; font-weight: 600; }
+        .grid-header.today .grid-header-date { color: #3b82f6; }
+
+        .employee-label {
+            background: rgba(255,255,255,0.03); padding: 12px;
+            display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid rgba(255,255,255,0.04);
+            border-right: 1px solid rgba(255,255,255,0.06);
+        }
+        .employee-avatar {
+            width: 30px; height: 30px; border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 800; color: #fff; flex-shrink: 0;
+        }
+        .employee-name { font-size: 13px; font-weight: 600; color: #e2e8f0; }
+
+        .schedule-cell {
+            padding: 8px; border-bottom: 1px solid rgba(255,255,255,0.04);
+            border-right: 1px solid rgba(255,255,255,0.04);
+            min-height: 70px; display: flex; flex-direction: column;
+            justify-content: center; align-items: center; gap: 4px;
+            transition: all 0.2s; cursor: pointer; position: relative;
+        }
+        .schedule-cell:hover { background: rgba(255,255,255,0.06); }
+        .schedule-cell.today { background: rgba(59,130,246,0.05); }
+        .schedule-cell.has-shift { background: rgba(34,197,94,0.05); }
+        .schedule-cell.has-shift:hover { background: rgba(34,197,94,0.1); }
+        .schedule-cell.is-callout { background: rgba(239,68,68,0.08); }
+        .schedule-cell.is-callout:hover { background: rgba(239,68,68,0.12); }
+
+        .shift-time { font-size: 11px; font-weight: 600; color: #cbd5e1; }
+        .shift-badge {
+            padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .badge-scheduled { background: rgba(251,191,36,0.15); color: #fbbf24; border: 1px solid rgba(251,191,36,0.25); }
+        .badge-confirmed { background: rgba(34,197,94,0.15); color: #4ade80; border: 1px solid rgba(34,197,94,0.25); }
+        .badge-callout { background: rgba(239,68,68,0.15); color: #f87171; border: 1px solid rgba(239,68,68,0.25); }
+        .badge-swapped { background: rgba(59,130,246,0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.25); }
+        .badge-off { background: rgba(100,116,139,0.1); color: #475569; border: 1px solid rgba(100,116,139,0.15); }
+
+        .cell-add { font-size: 20px; color: #475569; transition: color 0.2s; }
+        .schedule-cell:hover .cell-add { color: #60a5fa; }
+
+        /* Sidebar */
+        .sidebar { display: flex; flex-direction: column; gap: 16px; }
+        .sidebar-card {
+            background: rgba(8, 12, 28, 0.85); backdrop-filter: blur(12px);
+            border-radius: 12px; border: 1px solid rgba(255,255,255,0.07);
+            overflow: hidden;
+        }
+        .sidebar-card-header {
+            padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-size: 13px; font-weight: 700; color: #94a3b8; text-transform: uppercase;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .sidebar-card-body { padding: 12px 16px; }
+
+        .swap-item { padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .swap-item:last-child { border-bottom: none; }
+        .swap-names { font-size: 13px; font-weight: 600; color: #e2e8f0; margin-bottom: 4px; }
+        .swap-detail { font-size: 11px; color: #64748b; margin-bottom: 8px; }
+        .swap-actions { display: flex; gap: 6px; }
+
+        .callout-item { padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .callout-item:last-child { border-bottom: none; }
+        .callout-name { font-size: 13px; font-weight: 600; color: #f87171; }
+        .callout-date { font-size: 11px; color: #64748b; margin-top: 2px; }
+        .callout-reason { font-size: 12px; color: #94a3b8; margin-top: 4px; font-style: italic; }
+
+        .empty-state { padding: 20px 0; text-align: center; color: #475569; font-size: 12px; }
+        .badge-count { background: rgba(239,68,68,0.2); color: #f87171; padding: 2px 7px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+        .badge-count.neutral { background: rgba(100,116,139,0.2); color: #94a3b8; }
+
+        /* Edit Modal */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6); display: none; align-items: center;
+            justify-content: center; z-index: 1000;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: rgba(15, 20, 40, 0.98); border-radius: 16px;
+            border: 1px solid rgba(255,255,255,0.1); padding: 24px;
+            min-width: 340px; max-width: 400px; width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+        }
+        .modal-title { font-size: 16px; font-weight: 700; color: #e2e8f0; margin-bottom: 4px; }
+        .modal-subtitle { font-size: 12px; color: #64748b; margin-bottom: 20px; }
+
+        .form-group { margin-bottom: 16px; }
+        .form-label { font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 6px; display: block; }
+        .form-row { display: flex; gap: 12px; }
+        .form-row .form-group { flex: 1; }
+
+        .form-select, .form-input {
+            width: 100%; padding: 10px 12px; border-radius: 8px;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            color: #e2e8f0; font-size: 14px; font-family: inherit;
+            transition: border-color 0.2s;
+        }
+        .form-select:focus, .form-input:focus {
+            outline: none; border-color: #3b82f6;
+        }
+        .form-select option { background: #1e293b; color: #e2e8f0; }
+
+        .modal-actions { display: flex; gap: 10px; margin-top: 20px; }
+        .modal-actions .btn { flex: 1; justify-content: center; padding: 10px; }
+
+        .quick-shifts { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+        .quick-shift {
+            padding: 6px 12px; border-radius: 8px; font-size: 12px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
+            color: #94a3b8;
+        }
+        .quick-shift:hover { background: rgba(59,130,246,0.15); color: #60a5fa; border-color: rgba(59,130,246,0.3); }
+        .quick-shift.active { background: rgba(59,130,246,0.2); color: #60a5fa; border-color: #3b82f6; }
+
+        .bulk-section { margin-top: 16px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); }
+        .bulk-label { font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 8px; display: block; }
+        .bulk-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+        .bulk-btn {
+            padding: 6px 12px; border-radius: 8px; font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: all 0.2s;
+            background: rgba(139,92,246,0.1); border: 1px solid rgba(139,92,246,0.25);
+            color: #a78bfa;
+        }
+        .bulk-btn:hover { background: rgba(139,92,246,0.2); color: #c4b5fd; border-color: rgba(139,92,246,0.4); }
+        .bulk-btn.green { background: rgba(34,197,94,0.1); border-color: rgba(34,197,94,0.25); color: #4ade80; }
+        .bulk-btn.green:hover { background: rgba(34,197,94,0.2); color: #86efac; }
+
+        /* Unsaved indicator */
+        .unsaved-bar {
+            background: rgba(245,158,11,0.15); border: 1px solid rgba(245,158,11,0.3);
+            border-radius: 10px; padding: 10px 20px; margin-bottom: 12px;
+            display: none; align-items: center; justify-content: space-between;
+            gap: 12px;
+        }
+        .unsaved-bar.active { display: flex; }
+        .unsaved-text { font-size: 13px; color: #fbbf24; font-weight: 600; }
+        .unsaved-actions { display: flex; gap: 8px; }
+
+        /* Conversations */
+        .convo-tabs {
+            display: flex; gap: 0; border-bottom: 1px solid rgba(255,255,255,0.06);
+            overflow-x: auto;
+        }
+        .convo-tab {
+            padding: 10px 18px; font-size: 13px; font-weight: 600; color: #64748b;
+            cursor: pointer; transition: all 0.2s; border-bottom: 2px solid transparent;
+            white-space: nowrap; display: flex; align-items: center; gap: 6px;
+        }
+        .convo-tab:hover { color: #94a3b8; background: rgba(255,255,255,0.03); }
+        .convo-tab.active { color: #60a5fa; border-bottom-color: #3b82f6; background: rgba(59,130,246,0.05); }
+        .convo-tab .tab-dot {
+            width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+        }
+        .convo-chat {
+            max-height: 400px; overflow-y: auto; padding: 16px;
+        }
+        .chat-msg {
+            margin-bottom: 12px; display: flex; flex-direction: column;
+        }
+        .chat-msg.bot { align-items: flex-start; }
+        .chat-msg.user { align-items: flex-end; }
+        .chat-bubble {
+            max-width: 80%; padding: 10px 14px; border-radius: 12px;
+            font-size: 13px; line-height: 1.5; word-wrap: break-word;
+        }
+        .chat-msg.bot .chat-bubble {
+            background: rgba(59,130,246,0.12); color: #93c5fd;
+            border-bottom-left-radius: 4px;
+        }
+        .chat-msg.user .chat-bubble {
+            background: rgba(139,92,246,0.12); color: #c4b5fd;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-meta {
+            font-size: 10px; color: #475569; margin-top: 3px; padding: 0 4px;
+        }
+        .chat-msg.user .chat-meta { text-align: right; }
+
+        /* Loading / Toast */
+        .loading-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); display: none;
+            align-items: center; justify-content: center; z-index: 1000;
+        }
+        .loading-overlay.active { display: flex; }
+        .spinner {
+            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .toast {
+            position: fixed; bottom: 24px; right: 24px; padding: 12px 20px;
+            border-radius: 10px; font-size: 13px; font-weight: 600; color: #fff;
+            z-index: 2000; transform: translateY(80px); opacity: 0;
+            transition: all 0.3s ease; max-width: 360px;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { background: linear-gradient(135deg, #22c55e, #16a34a); }
+        .toast.error { background: linear-gradient(135deg, #ef4444, #dc2626); }
+        .toast.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .sidebar { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        }
+        @media (max-width: 768px) {
+            .container { padding: 12px; }
+            .app-bar-content { flex-direction: column; align-items: flex-start; gap: 10px; }
+            .week-nav { width: 100%; justify-content: center; }
+            .stats-row { grid-template-columns: repeat(2, 1fr); }
+            .schedule-grid { grid-template-columns: 90px repeat(7, minmax(80px, 1fr)); }
+            .sidebar { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 480px) {
+            .stats-row { grid-template-columns: 1fr 1fr; gap: 8px; }
+            .stat-card { padding: 12px 14px; }
+            .stat-value { font-size: 22px; }
+            .schedule-grid { grid-template-columns: 70px repeat(7, minmax(60px, 1fr)); }
+            .grid-header { padding: 6px 4px; font-size: 10px; }
+            .schedule-cell { padding: 4px; min-height: 55px; }
+            .shift-time { font-size: 9px; }
+            .shift-badge { font-size: 8px; padding: 2px 5px; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="app-bar">
+        <div class="app-bar-content">
+            <div class="app-bar-left">
+                <span class="app-bar-title">HMS Schedule</span>
+                <a href="/dashboard" class="back-link">&#8592; Dashboard</a>
+            </div>
+            <div class="week-nav">
+                <button class="nav-btn" id="prevWeek">&#9664;</button>
+                <span class="week-label" id="weekLabel">Loading...</span>
+                <button class="nav-btn" id="nextWeek">&#9654;</button>
+            </div>
+            <div class="app-bar-actions">
+                <button class="btn btn-ghost" onclick="openAddEmployee()">+ Add Employee</button>
+                <a href="/payslips" class="btn btn-orange" style="text-decoration:none">Payslips</a>
+                <button class="btn btn-success" onclick="sendToTeam()">Send to Team via Sandy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Unsaved changes bar -->
+    <div class="unsaved-bar" id="unsavedBar">
+        <span class="unsaved-text">You have unsaved changes</span>
+        <div class="unsaved-actions">
+            <button class="btn btn-ghost btn-sm" onclick="discardChanges()">Discard</button>
+            <button class="btn btn-success btn-sm" onclick="saveAllChanges()">Save Changes</button>
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Total Shifts</div><div class="stat-value" id="statTotal">--</div></div>
+        <div class="stat-card"><div class="stat-label">Confirmed</div><div class="stat-value green" id="statConfirmed">--</div></div>
+        <div class="stat-card"><div class="stat-label">Callouts</div><div class="stat-value red" id="statCallouts">--</div></div>
+        <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value yellow" id="statPending">--</div></div>
+    </div>
+
+    <div class="main-layout">
+        <div class="schedule-card">
+            <div class="schedule-card-header">Weekly Schedule — Click any cell to set hours</div>
+            <div class="schedule-grid" id="scheduleGrid"></div>
+        </div>
+
+        <div class="sidebar">
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">Pending Swaps <span class="badge-count neutral" id="swapCount">0</span></div>
+                <div class="sidebar-card-body" id="swapList"><div class="empty-state">No pending swaps</div></div>
+            </div>
+            <div class="sidebar-card">
+                <div class="sidebar-card-header">Recent Callouts <span class="badge-count" id="calloutCount">0</span></div>
+                <div class="sidebar-card-body" id="calloutList"><div class="empty-state">No recent callouts</div></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sandy's Conversations -->
+    <div class="conversations-section" style="margin-top:16px">
+        <div class="schedule-card">
+            <div class="schedule-card-header" style="display:flex;justify-content:space-between;align-items:center">
+                Sandy's Conversations
+                <div style="display:flex;gap:6px;align-items:center">
+                    <button class="btn btn-primary btn-sm" onclick="triggerCheckIn()">Check In All</button>
+                    <button class="btn btn-sm" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none" onclick="weekendCheckIn()">Weekend Check-In</button>
+                    <button class="btn btn-orange btn-sm" id="checkInOneBtn" onclick="checkInSelected()" style="display:none">Check In</button>
+                    <button class="btn btn-sm" id="confirmHoursBtn" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed);color:#fff;border-color:rgba(139,92,246,0.3);display:none" onclick="triggerHoursReport()">Confirm Hours</button>
+                    <span class="auto-refresh-label" style="font-size:10px;color:#475569;font-weight:400">Auto-refresh <input type="checkbox" id="autoRefreshToggle" onchange="toggleAutoRefresh()" checked></span>
+                </div>
+            </div>
+            <div class="convo-tabs" id="convoTabs"></div>
+            <div class="convo-chat" id="convoChat">
+                <div class="empty-state" style="padding:40px">Select an employee above to view Sandy's conversation</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Shift Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-title" id="modalTitle">Edit Shift</div>
+        <div class="modal-subtitle" id="modalSubtitle">Andrew — Mon, Mar 16</div>
+
+        <label class="form-label">Quick Pick</label>
+        <div class="quick-shifts">
+            <div class="quick-shift" onclick="quickPick('08:00','16:00')">8 AM - 4 PM</div>
+            <div class="quick-shift" onclick="quickPick('09:00','17:00')">9 AM - 5 PM</div>
+            <div class="quick-shift" onclick="quickPick('15:00','00:00')">3 PM - 12 AM</div>
+            <div class="quick-shift" onclick="quickPick('10:00','18:00')">10 AM - 6 PM</div>
+            <div class="quick-shift" onclick="quickPick('12:00','20:00')">12 PM - 8 PM</div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Start Time</label>
+                <input type="time" class="form-input" id="shiftStart" value="08:00">
+            </div>
+            <div class="form-group">
+                <label class="form-label">End Time</label>
+                <input type="time" class="form-input" id="shiftEnd" value="16:00">
+            </div>
+        </div>
+
+        <div class="bulk-section">
+            <span class="bulk-label">Bulk Apply</span>
+            <div class="bulk-btns">
+                <div class="bulk-btn" onclick="bulkRestOfWeek()">Rest of Week</div>
+                <div class="bulk-btn" onclick="bulkWeekdays()">Mon - Fri</div>
+                <div class="bulk-btn" onclick="bulkWeekend()">Sat + Sun</div>
+                <div class="bulk-btn" onclick="bulkFullWeek()">Full Week</div>
+                <div class="bulk-btn green" onclick="bulkCopyLastWeek()">Copy Last Week</div>
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-danger" onclick="markOff()">Day Off</button>
+            <button class="btn btn-ghost" onclick="closeModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveShift()">Set This Day</button>
+        </div>
+    </div>
+</div>
+
+<!-- Add Employee Modal -->
+<div class="modal-overlay" id="addEmpModal">
+    <div class="modal">
+        <div class="modal-title">Add Employee</div>
+        <div class="modal-subtitle">Add a new team member to the schedule</div>
+
+        <div class="form-group">
+            <label class="form-label">Name</label>
+            <input type="text" class="form-input" id="empName" placeholder="e.g. John">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">Role</label>
+            <select class="form-select" id="empRole">
+                <option value="staff">Staff</option>
+                <option value="fronter">Fronter</option>
+                <option value="closer">Closer</option>
+                <option value="admin">Admin</option>
+            </select>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Slack Member ID</label>
+                <input type="text" class="form-input" id="empSlackId" placeholder="e.g. U0ABC123XYZ">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Hourly Rate ($)</label>
+                <input type="number" class="form-input" id="empHourlyRate" placeholder="0.00" step="0.50" min="0">
+            </div>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label">Default Shift Start</label>
+                <input type="time" class="form-input" id="empShiftStart" value="08:00">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Default Shift End</label>
+                <input type="time" class="form-input" id="empShiftEnd" value="16:00">
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn btn-ghost" onclick="closeAddEmployee()">Cancel</button>
+            <button class="btn btn-primary" onclick="saveNewEmployee()">Add Employee</button>
+        </div>
+    </div>
+</div>
+
+<div class="loading-overlay" id="loadingOverlay"><div class="spinner"></div></div>
+<div class="toast" id="toast"></div>
+
+<script src="config.js"></script>
+<script>
+(function() {
+    'use strict';
+
+    // Admin-only access check
+    try {
+        const raw = localStorage.getItem('dashboardUser');
+        if (!raw) { window.location.replace('/dashboard'); return; }
+        const s = JSON.parse(raw);
+        const hrs = (Date.now() - new Date(s.loginTime)) / 3600000;
+        if (hrs > 24 || s.role !== 'admin') { window.location.replace('/dashboard'); return; }
+    } catch(e) { window.location.replace('/dashboard'); return; }
+
+    const SUPABASE_URL = CONFIG.SUPABASE.URL;
+    const SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
+    const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
+    const SLACK_CHANNEL = 'C08L6LYPQUT';
+
+    const EMP_COLORS = ['#3b82f6','#8b5cf6','#06b6d4','#f59e0b','#ec4899','#10b981','#f97316','#6366f1','#14b8a6','#e11d48'];
+    let EMPLOYEES = [];
+    const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    let currentWeekStart = getMonday(new Date());
+    let scheduleData = [];
+    let swapData = [];
+    let pendingChanges = {}; // key: "name|date" => {shift_start, shift_end} or null (off)
+    let editingCell = null; // {name, date}
+
+    // Helpers
+    function getMonday(d) {
+        const date = new Date(d);
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+        date.setDate(diff);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+    function fmtDate(d) {
+        return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+    function shortDate(d) { return `${d.getMonth()+1}/${d.getDate()}`; }
+    function getSunday(mon) { const s = new Date(mon); s.setDate(s.getDate()+6); return s; }
+    function isToday(d) {
+        const t = new Date();
+        return d.getFullYear()===t.getFullYear() && d.getMonth()===t.getMonth() && d.getDate()===t.getDate();
+    }
+    function fmtTime(t) {
+        if (!t) return '';
+        const [h,m] = t.split(':').map(Number);
+        const ap = h >= 12 ? 'PM' : 'AM';
+        const h12 = h===0?12:h>12?h-12:h;
+        return m===0 ? `${h12} ${ap}` : `${h12}:${String(m).padStart(2,'0')} ${ap}`;
+    }
+    function dayName(dateStr) {
+        const d = new Date(dateStr+'T12:00:00');
+        return d.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+    }
+
+    function showLoading() { document.getElementById('loadingOverlay').classList.add('active'); }
+    function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
+    function showToast(msg, type) {
+        const t = document.getElementById('toast');
+        t.textContent = msg; t.className = 'toast ' + type;
+        setTimeout(() => t.classList.add('show'), 10);
+        setTimeout(() => t.classList.remove('show'), 3500);
+    }
+
+    // Supabase REST helpers
+    async function sbGet(path) {
+        const r = await fetch(SUPABASE_URL + path, {
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+        });
+        return r.json();
+    }
+    async function sbPost(path, body) {
+        const r = await fetch(SUPABASE_URL + path, {
+            method: 'POST',
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+            body: JSON.stringify(body)
+        });
+        return r.json();
+    }
+    async function sbPatch(path, body) {
+        const r = await fetch(SUPABASE_URL + path, {
+            method: 'PATCH',
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', Prefer: 'return=representation' },
+            body: JSON.stringify(body)
+        });
+        return r.json();
+    }
+    async function sbDelete(path) {
+        await fetch(SUPABASE_URL + path, {
+            method: 'DELETE',
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+        });
+    }
+
+    // Load employees from DB
+    async function loadEmployees() {
+        try {
+            const emps = await sbGet('/rest/v1/employees?is_active=eq.true&order=name');
+            const list = Array.isArray(emps) ? emps : [];
+            EMPLOYEES = list.map((e, i) => ({ name: e.name, color: EMP_COLORS[i % EMP_COLORS.length], slack_user_id: e.slack_user_id, role: e.role, hourly_rate: e.hourly_rate, worksnap_id: e.worksnap_id }));
+        } catch(e) {
+            console.error('Load employees failed:', e);
+        }
+    }
+
+    // Load week data
+    async function loadWeek() {
+        const start = fmtDate(currentWeekStart);
+        const end = fmtDate(getSunday(currentWeekStart));
+        updateWeekLabel();
+
+        try {
+            if (!EMPLOYEES.length) await loadEmployees();
+            const [entries, swaps] = await Promise.all([
+                sbGet(`/rest/v1/schedule_entries?schedule_date=gte.${start}&schedule_date=lte.${end}&order=schedule_date,shift_start`),
+                sbGet('/rest/v1/schedule_swaps?status=eq.pending&order=created_at.desc')
+            ]);
+            scheduleData = Array.isArray(entries) ? entries : [];
+            swapData = Array.isArray(swaps) ? swaps : [];
+        } catch(e) {
+            console.error('Load failed:', e);
+            scheduleData = [];
+            swapData = [];
+        }
+
+        pendingChanges = {};
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        renderSwaps();
+        renderCallouts();
+    }
+
+    function updateWeekLabel() {
+        const sun = getSunday(currentWeekStart);
+        document.getElementById('weekLabel').textContent = `${shortDate(currentWeekStart)} - ${shortDate(sun)}, ${currentWeekStart.getFullYear()}`;
+    }
+
+    // Normalize date to YYYY-MM-DD (Supabase may return with time component)
+    function normalizeDate(d) {
+        if (!d) return '';
+        return d.substring(0, 10);
+    }
+
+    // Get effective entry (with pending changes applied)
+    function getEffective(name, dateStr) {
+        const key = `${name}|${dateStr}`;
+        if (key in pendingChanges) return pendingChanges[key];
+        const entry = scheduleData.find(e => e.employee_name === name && normalizeDate(e.schedule_date) === dateStr);
+        if (entry) return { shift_start: entry.shift_start, shift_end: entry.shift_end, status: entry.status, id: entry.id };
+        return null;
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('scheduleGrid');
+        let html = '<div class="grid-header"></div>';
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(currentWeekStart); d.setDate(d.getDate()+i);
+            const cls = isToday(d) ? ' today' : '';
+            html += `<div class="grid-header${cls}">${DAY_NAMES[i]}<span class="grid-header-date">${shortDate(d)}</span></div>`;
+        }
+
+        EMPLOYEES.forEach(emp => {
+            const initials = emp.name.substring(0,2).toUpperCase();
+            const rateLabel = emp.hourly_rate ? `<span style="font-size:10px;color:#4ade80;margin-left:auto">$${parseFloat(emp.hourly_rate).toFixed(2)}/hr</span>` : '<span style="font-size:10px;color:#475569;margin-left:auto;cursor:pointer" onclick="event.stopPropagation();editRate(\''+emp.name+'\')">set rate</span>';
+            html += `<div class="employee-label" style="cursor:pointer" onclick="editRate('${emp.name}')"><div class="employee-avatar" style="background:${emp.color}">${initials}</div><span class="employee-name">${emp.name}</span>${rateLabel}</div>`;
+
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(currentWeekStart); d.setDate(d.getDate()+i);
+                const dateStr = fmtDate(d);
+                const todayCls = isToday(d) ? ' today' : '';
+                const eff = getEffective(emp.name, dateStr);
+                const key = `${emp.name}|${dateStr}`;
+                const isPending = key in pendingChanges;
+                let cellContent, shiftCls = '';
+
+                if (eff && eff.shift_start) {
+                    shiftCls = eff.status === 'callout' ? ' is-callout' : ' has-shift';
+                    const statusBadge = eff.status ? `<span class="shift-badge badge-${eff.status}">${eff.status}</span>` : '';
+                    cellContent = `<span class="shift-time">${fmtTime(eff.shift_start)} - ${fmtTime(eff.shift_end)}</span>${statusBadge}`;
+                    if (isPending) cellContent += '<span style="font-size:9px;color:#fbbf24;margin-top:2px">unsaved</span>';
+                } else {
+                    cellContent = '<span class="cell-add">+</span><span style="font-size:10px;color:#475569">Set hours</span>';
+                    if (isPending) cellContent = '<span class="shift-badge badge-off">OFF</span><span style="font-size:9px;color:#fbbf24">unsaved</span>';
+                }
+
+                html += `<div class="schedule-cell${todayCls}${shiftCls}" onclick="openEdit('${emp.name}','${dateStr}')">${cellContent}</div>`;
+            }
+        });
+
+        grid.innerHTML = html;
+    }
+
+    function renderStats() {
+        let total=0, confirmed=0, callouts=0, pending=0;
+        for (let i=0; i<7; i++) {
+            const d = new Date(currentWeekStart); d.setDate(d.getDate()+i);
+            const dateStr = fmtDate(d);
+            EMPLOYEES.forEach(emp => {
+                const eff = getEffective(emp.name, dateStr);
+                if (eff && eff.shift_start) {
+                    total++;
+                    if (eff.status === 'confirmed') confirmed++;
+                    else if (eff.status === 'callout') callouts++;
+                    else pending++;
+                }
+            });
+        }
+        document.getElementById('statTotal').textContent = total;
+        document.getElementById('statConfirmed').textContent = confirmed;
+        document.getElementById('statCallouts').textContent = callouts;
+        document.getElementById('statPending').textContent = pending;
+    }
+
+    function renderSwaps() {
+        const container = document.getElementById('swapList');
+        const countEl = document.getElementById('swapCount');
+        const pending = swapData.filter(s => s.status === 'pending');
+        countEl.textContent = pending.length;
+        countEl.className = pending.length > 0 ? 'badge-count' : 'badge-count neutral';
+
+        if (!pending.length) { container.innerHTML = '<div class="empty-state">No pending swaps</div>'; return; }
+
+        container.innerHTML = pending.map(s => `
+            <div class="swap-item">
+                <div class="swap-names">${s.requester_name} &#8594; ${s.target_name}</div>
+                <div class="swap-detail">${s.swap_date} ${s.requester_message ? '— '+s.requester_message : ''}</div>
+                <div class="swap-actions">
+                    <button class="btn btn-success btn-sm" onclick="respondSwap('${s.id}',true)">Approve</button>
+                    <button class="btn btn-danger btn-sm" onclick="respondSwap('${s.id}',false)">Decline</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function renderCallouts() {
+        const container = document.getElementById('calloutList');
+        const countEl = document.getElementById('calloutCount');
+        const callouts = scheduleData.filter(e => e.status === 'callout');
+        countEl.textContent = callouts.length;
+
+        if (!callouts.length) { container.innerHTML = '<div class="empty-state">No recent callouts</div>'; return; }
+
+        container.innerHTML = callouts.map(c => `
+            <div class="callout-item">
+                <div class="callout-name">${c.employee_name}</div>
+                <div class="callout-date">${normalizeDate(c.schedule_date)}</div>
+                ${c.callout_reason ? `<div class="callout-reason">"${c.callout_reason}"</div>` : ''}
+            </div>
+        `).join('');
+    }
+
+    function updateUnsavedBar() {
+        const bar = document.getElementById('unsavedBar');
+        const count = Object.keys(pendingChanges).length;
+        bar.classList.toggle('active', count > 0);
+    }
+
+    // Modal
+    window.openEdit = function(name, dateStr) {
+        editingCell = { name, dateStr };
+        document.getElementById('modalTitle').textContent = 'Set Shift';
+        document.getElementById('modalSubtitle').textContent = `${name} — ${dayName(dateStr)}`;
+
+        const eff = getEffective(name, dateStr);
+        document.getElementById('shiftStart').value = eff && eff.shift_start ? eff.shift_start.substring(0,5) : '08:00';
+        document.getElementById('shiftEnd').value = eff && eff.shift_end ? eff.shift_end.substring(0,5) : '16:00';
+
+        // Clear quick-shift active state
+        document.querySelectorAll('.quick-shift').forEach(el => el.classList.remove('active'));
+
+        document.getElementById('editModal').classList.add('active');
+    };
+
+    window.closeModal = function() {
+        document.getElementById('editModal').classList.remove('active');
+        editingCell = null;
+    };
+
+    window.quickPick = function(start, end) {
+        document.getElementById('shiftStart').value = start;
+        document.getElementById('shiftEnd').value = end;
+        document.querySelectorAll('.quick-shift').forEach(el => el.classList.remove('active'));
+        event.target.classList.add('active');
+    };
+
+    window.saveShift = function() {
+        if (!editingCell) return;
+        const start = document.getElementById('shiftStart').value;
+        const end = document.getElementById('shiftEnd').value;
+        if (!start || !end) { showToast('Please set both start and end time', 'error'); return; }
+
+        const key = `${editingCell.name}|${editingCell.dateStr}`;
+        pendingChanges[key] = { shift_start: start, shift_end: end, employee_name: editingCell.name, schedule_date: editingCell.dateStr };
+
+        closeModal();
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        showToast(`Shift set for ${editingCell.name}`, 'info');
+    };
+
+    window.markOff = function() {
+        if (!editingCell) return;
+        const key = `${editingCell.name}|${editingCell.dateStr}`;
+        pendingChanges[key] = null;
+        closeModal();
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        showToast(`${editingCell.name} marked off`, 'info');
+    };
+
+    // --- Bulk actions ---
+    function getEditTimes() {
+        return {
+            start: document.getElementById('shiftStart').value,
+            end: document.getElementById('shiftEnd').value
+        };
+    }
+
+    function getDayIndex(dateStr) {
+        const d = new Date(dateStr + 'T12:00:00');
+        const dow = d.getDay(); // 0=Sun
+        return dow === 0 ? 6 : dow - 1; // Convert to 0=Mon ... 6=Sun
+    }
+
+    window.bulkRestOfWeek = function() {
+        if (!editingCell) return;
+        const { start, end } = getEditTimes();
+        if (!start || !end) { showToast('Set times first', 'error'); return; }
+        const fromIdx = getDayIndex(editingCell.dateStr);
+
+        for (let i = fromIdx; i < 7; i++) {
+            const d = new Date(currentWeekStart); d.setDate(d.getDate() + i);
+            const dateStr = fmtDate(d);
+            const key = `${editingCell.name}|${dateStr}`;
+            pendingChanges[key] = { shift_start: start, shift_end: end, employee_name: editingCell.name, schedule_date: dateStr };
+        }
+
+        closeModal();
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        showToast(`${editingCell.name}: ${7 - fromIdx} days set`, 'info');
+    };
+
+    window.bulkWeekdays = function() {
+        if (!editingCell) return;
+        const { start, end } = getEditTimes();
+        if (!start || !end) { showToast('Set times first', 'error'); return; }
+
+        for (let i = 0; i < 5; i++) { // Mon-Fri
+            const d = new Date(currentWeekStart); d.setDate(d.getDate() + i);
+            const dateStr = fmtDate(d);
+            const key = `${editingCell.name}|${dateStr}`;
+            pendingChanges[key] = { shift_start: start, shift_end: end, employee_name: editingCell.name, schedule_date: dateStr };
+        }
+
+        closeModal();
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        showToast(`${editingCell.name}: Mon-Fri set`, 'info');
+    };
+
+    window.bulkWeekend = function() {
+        if (!editingCell) return;
+        const { start, end } = getEditTimes();
+        if (!start || !end) { showToast('Set times first', 'error'); return; }
+
+        for (let i = 5; i < 7; i++) { // Sat-Sun
+            const d = new Date(currentWeekStart); d.setDate(d.getDate() + i);
+            const dateStr = fmtDate(d);
+            const key = `${editingCell.name}|${dateStr}`;
+            pendingChanges[key] = { shift_start: start, shift_end: end, employee_name: editingCell.name, schedule_date: dateStr };
+        }
+
+        closeModal();
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        showToast(`${editingCell.name}: Sat+Sun set`, 'info');
+    };
+
+    window.bulkFullWeek = function() {
+        if (!editingCell) return;
+        const { start, end } = getEditTimes();
+        if (!start || !end) { showToast('Set times first', 'error'); return; }
+
+        for (let i = 0; i < 7; i++) {
+            const d = new Date(currentWeekStart); d.setDate(d.getDate() + i);
+            const dateStr = fmtDate(d);
+            const key = `${editingCell.name}|${dateStr}`;
+            pendingChanges[key] = { shift_start: start, shift_end: end, employee_name: editingCell.name, schedule_date: dateStr };
+        }
+
+        closeModal();
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        showToast(`${editingCell.name}: Full week set`, 'info');
+    };
+
+    window.bulkCopyLastWeek = async function() {
+        if (!editingCell) return;
+        const name = editingCell.name;
+
+        // Get last week's data
+        const lastMonday = new Date(currentWeekStart);
+        lastMonday.setDate(lastMonday.getDate() - 7);
+        const lastSunday = new Date(lastMonday);
+        lastSunday.setDate(lastSunday.getDate() + 6);
+
+        showLoading();
+        const lastWeek = await sbGet(`/rest/v1/schedule_entries?employee_name=eq.${encodeURIComponent(name)}&schedule_date=gte.${fmtDate(lastMonday)}&schedule_date=lte.${fmtDate(lastSunday)}&order=schedule_date`);
+        hideLoading();
+
+        const entries = Array.isArray(lastWeek) ? lastWeek : [];
+        if (!entries.length) {
+            showToast(`No shifts found for ${name} last week`, 'error');
+            return;
+        }
+
+        // Map last week's entries to this week
+        entries.forEach(e => {
+            const lastDate = new Date(normalizeDate(e.schedule_date) + 'T12:00:00');
+            const dayIdx = lastDate.getDay() === 0 ? 6 : lastDate.getDay() - 1;
+            const thisDate = new Date(currentWeekStart);
+            thisDate.setDate(thisDate.getDate() + dayIdx);
+            const dateStr = fmtDate(thisDate);
+            const key = `${name}|${dateStr}`;
+            pendingChanges[key] = { shift_start: e.shift_start, shift_end: e.shift_end, employee_name: name, schedule_date: dateStr };
+        });
+
+        closeModal();
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        showToast(`${name}: Copied ${entries.length} shifts from last week`, 'success');
+    };
+
+    // Save all pending changes to database
+    window.saveAllChanges = async function() {
+        const keys = Object.keys(pendingChanges);
+        if (!keys.length) return;
+
+        showLoading();
+        let saved = 0, errors = 0;
+
+        for (const key of keys) {
+            const [name, dateStr] = key.split('|');
+            const change = pendingChanges[key];
+            const existing = scheduleData.find(e => e.employee_name === name && normalizeDate(e.schedule_date) === dateStr);
+
+            try {
+                if (change === null) {
+                    // Mark as off — delete entry if exists
+                    if (existing) {
+                        await sbDelete(`/rest/v1/schedule_entries?id=eq.${existing.id}`);
+                    }
+                    saved++;
+                } else if (existing) {
+                    // Update existing
+                    await sbPatch(`/rest/v1/schedule_entries?id=eq.${existing.id}`, {
+                        shift_start: change.shift_start,
+                        shift_end: change.shift_end,
+                        status: 'scheduled',
+                        updated_at: new Date().toISOString()
+                    });
+                    saved++;
+                } else {
+                    // Insert new
+                    await sbPost('/rest/v1/schedule_entries', {
+                        employee_name: name,
+                        schedule_date: dateStr,
+                        shift_start: change.shift_start,
+                        shift_end: change.shift_end,
+                        status: 'scheduled'
+                    });
+                    saved++;
+                }
+            } catch(e) {
+                console.error('Save failed for', key, e);
+                errors++;
+            }
+        }
+
+        hideLoading();
+
+        if (errors === 0) {
+            showToast(`${saved} shift(s) saved`, 'success');
+        } else {
+            showToast(`${saved} saved, ${errors} failed`, 'error');
+        }
+
+        await loadWeek();
+    };
+
+    window.discardChanges = function() {
+        pendingChanges = {};
+        updateUnsavedBar();
+        renderGrid();
+        renderStats();
+        showToast('Changes discarded', 'info');
+    };
+
+    // Send schedule to team via Sandy
+    window.sendToTeam = async function() {
+        // Save any pending changes first
+        if (Object.keys(pendingChanges).length > 0) {
+            await saveAllChanges();
+        }
+
+        const weekStart = shortDate(currentWeekStart);
+        const weekEnd = shortDate(getSunday(currentWeekStart));
+
+        let msg = `*Schedule for ${weekStart} - ${weekEnd}:*\n\n`;
+
+        EMPLOYEES.forEach(emp => {
+            msg += `*${emp.name}:*\n`;
+            let hasShifts = false;
+
+            for (let i = 0; i < 7; i++) {
+                const d = new Date(currentWeekStart); d.setDate(d.getDate()+i);
+                const dateStr = fmtDate(d);
+                const entry = scheduleData.find(e => e.employee_name === emp.name && normalizeDate(e.schedule_date) === dateStr);
+
+                if (entry && entry.shift_start) {
+                    const dayLabel = d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric'});
+                    msg += `  ${dayLabel}: ${fmtTime(entry.shift_start)} - ${fmtTime(entry.shift_end)}\n`;
+                    hasShifts = true;
+                }
+            }
+
+            if (!hasShifts) msg += '  No shifts this week\n';
+            msg += '\n';
+        });
+
+        msg += `View your schedule: app.herculesmovingsolutions.com/my-schedule\n`;
+        msg += `_Please confirm your shifts or let me know if you need to swap._`;
+
+        if (!confirm('Send this week\'s schedule to the team channel via Sandy?')) return;
+
+        showLoading();
+        try {
+            const resp = await fetch('/api/send-slack', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ channel: SLACK_CHANNEL, text: msg })
+            });
+            const result = await resp.json();
+            hideLoading();
+
+            if (result.ok) {
+                showToast('Sandy sent the schedule to the team', 'success');
+            } else {
+                showToast('Failed: ' + (result.error || 'Unknown error'), 'error');
+            }
+        } catch(e) {
+            hideLoading();
+            showToast('Failed to send: ' + e.message, 'error');
+        }
+    };
+
+    // Swap response
+    window.respondSwap = async function(id, accepted) {
+        if (!confirm(`${accepted ? 'Approve' : 'Decline'} this swap?`)) return;
+        showLoading();
+        try {
+            const result = await fetch('/api/schedule?action=swap-respond', {
+                method: 'POST',
+                headers: {'Content-Type':'application/json'},
+                body: JSON.stringify({id, accepted})
+            });
+            hideLoading();
+            showToast(`Swap ${accepted?'approved':'declined'}`, 'success');
+            await loadWeek();
+        } catch(e) {
+            hideLoading();
+            showToast('Failed: '+e.message, 'error');
+        }
+    };
+
+    // ── Trigger Hours Confirmation for selected employee ──
+    window.triggerHoursReport = async function() {
+        if (!activeConvo) { showToast('Select an employee first', 'error'); return; }
+        if (!confirm(`Send last week's hours to ${activeConvo} for confirmation?\n\nThey'll be DM'd their total hours and asked to confirm.`)) return;
+        showLoading();
+        try {
+            const resp = await fetch(`/api/schedule-checkin?name=${encodeURIComponent(activeConvo)}&type=hours`, { method: 'POST' });
+            // Also trigger the weekly report for just this person
+            const reportResp = await fetch('/api/weekly-hours-report?name=' + encodeURIComponent(activeConvo), { method: 'POST' });
+            const result = await reportResp.json();
+            hideLoading();
+            if (result.success) {
+                showToast(`Hours confirmation sent to ${activeConvo}`, 'success');
+                setTimeout(() => loadConversations(), 2000);
+            } else {
+                showToast('Failed: ' + (result.error || 'Unknown'), 'error');
+            }
+        } catch(e) {
+            hideLoading();
+            showToast('Failed: ' + e.message, 'error');
+        }
+    };
+
+    // ── Edit Hourly Rate ──
+    window.editRate = async function(name) {
+        const emp = EMPLOYEES.find(e => e.name === name);
+        const current = emp ? emp.hourly_rate : 0;
+        const newRate = prompt(`Set hourly rate for ${name}:`, current || '');
+        if (newRate === null) return;
+        const rate = parseFloat(newRate);
+        if (isNaN(rate) || rate < 0) { showToast('Invalid rate', 'error'); return; }
+
+        await sbPatch(`/rest/v1/employees?name=eq.${encodeURIComponent(name)}`, { hourly_rate: rate });
+        showToast(`${name}'s rate set to $${rate.toFixed(2)}/hr`, 'success');
+        await loadEmployees();
+        renderGrid();
+    };
+
+    // ── Add Employee ──
+    window.openAddEmployee = function() {
+        document.getElementById('empName').value = '';
+        document.getElementById('empSlackId').value = '';
+        document.getElementById('empRole').value = 'staff';
+        document.getElementById('empShiftStart').value = '08:00';
+        document.getElementById('empShiftEnd').value = '16:00';
+        document.getElementById('addEmpModal').classList.add('active');
+    };
+
+    window.closeAddEmployee = function() {
+        document.getElementById('addEmpModal').classList.remove('active');
+    };
+
+    document.getElementById('addEmpModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeAddEmployee(); });
+
+    window.saveNewEmployee = async function() {
+        const name = document.getElementById('empName').value.trim();
+        if (!name) { showToast('Name is required', 'error'); return; }
+
+        const data = {
+            name: name,
+            role: document.getElementById('empRole').value,
+            slack_user_id: document.getElementById('empSlackId').value.trim() || null,
+            hourly_rate: parseFloat(document.getElementById('empHourlyRate').value) || 0,
+            default_shift_start: document.getElementById('empShiftStart').value,
+            default_shift_end: document.getElementById('empShiftEnd').value,
+            is_active: true
+        };
+
+        showLoading();
+        try {
+            const result = await sbPost('/rest/v1/employees', data);
+            hideLoading();
+
+            if (result && !result.code) {
+                showToast(`${name} added to the team!`, 'success');
+                closeAddEmployee();
+                await loadEmployees();
+                renderGrid();
+                renderStats();
+                loadConversations();
+            } else {
+                showToast('Failed: ' + (result.message || 'Unknown error'), 'error');
+            }
+        } catch(e) {
+            hideLoading();
+            showToast('Failed: ' + e.message, 'error');
+        }
+    };
+
+    // ── Sandy's Conversations ──
+    let convosData = [];
+    let activeConvo = null;
+    let autoRefreshInterval = null;
+
+    window.loadConversations = async function() {
+        try {
+            const resp = await fetch('/api/slack-conversations');
+            convosData = await resp.json();
+            renderConvoTabs();
+            // If a convo is selected, refresh it
+            if (activeConvo) showConvo(activeConvo);
+        } catch(e) {
+            console.error('Load convos failed:', e);
+        }
+    };
+
+    function renderConvoTabs() {
+        const tabs = document.getElementById('convoTabs');
+
+        tabs.innerHTML = convosData.map(c => {
+            const isActive = activeConvo === c.name ? ' active' : '';
+            const emp = EMPLOYEES.find(e => e.name === c.name);
+            const color = emp ? emp.color : '#94a3b8';
+            const msgCount = c.messages ? c.messages.length : 0;
+            return `<div class="convo-tab${isActive}" onclick="showConvo('${c.name}')">
+                <span class="tab-dot" style="background:${color}"></span>
+                ${c.name} ${msgCount > 0 ? '<span style="font-size:10px;color:#475569">('+msgCount+')</span>' : ''}
+            </div>`;
+        }).join('');
+
+        // Show/hide single buttons when employee selected
+        const btn = document.getElementById('checkInOneBtn');
+        const hrsBtn = document.getElementById('confirmHoursBtn');
+        if (activeConvo) {
+            btn.style.display = '';
+            btn.textContent = `Check In ${activeConvo}`;
+            hrsBtn.style.display = '';
+            hrsBtn.textContent = `Confirm Hours: ${activeConvo}`;
+        } else {
+            btn.style.display = 'none';
+            hrsBtn.style.display = 'none';
+        }
+    }
+
+    window.showConvo = function(name) {
+        activeConvo = name;
+        renderConvoTabs();
+
+        const convo = convosData.find(c => c.name === name);
+        const chat = document.getElementById('convoChat');
+
+        if (!convo || convo.error) {
+            chat.innerHTML = `<div class="empty-state">${convo ? convo.error : 'Not found'}</div>`;
+            return;
+        }
+
+        if (!convo.messages.length) {
+            chat.innerHTML = '<div class="empty-state">No messages yet. Click "Check In ' + name + '" to start a conversation.</div>';
+            return;
+        }
+
+        chat.innerHTML = convo.messages.map(m => {
+            const cls = m.isBot ? 'bot' : 'user';
+            return `<div class="chat-msg ${cls}">
+                <div class="chat-bubble">${escapeHtml(m.text)}</div>
+                <div class="chat-meta">${m.user} · ${m.time}</div>
+            </div>`;
+        }).join('');
+
+        chat.scrollTop = chat.scrollHeight;
+    };
+
+    function escapeHtml(t) {
+        if (!t) return '';
+        return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+            .replace(/\*(.*?)\*/g, '<strong>$1</strong>')
+            .replace(/\n/g, '<br>');
+    }
+
+    // Check in everyone
+    window.triggerCheckIn = async function() {
+        if (!confirm("Send check-in messages to everyone scheduled for tomorrow?")) return;
+        showLoading();
+        try {
+            const resp = await fetch('/api/schedule-checkin', { method: 'POST' });
+            const result = await resp.json();
+            hideLoading();
+            if (result.success) {
+                showToast(`Check-in sent to ${result.checked} employee(s)`, 'success');
+                setTimeout(() => loadConversations(), 2000);
+            } else {
+                showToast('Check-in failed: ' + (result.error || 'Unknown'), 'error');
+            }
+        } catch(e) {
+            hideLoading();
+            showToast('Failed: ' + e.message, 'error');
+        }
+    };
+
+    // Weekend check-in — DM everyone working Sat/Sun to confirm
+    window.weekendCheckIn = async function() {
+        // Find this week's Saturday and Sunday
+        const sat = new Date(currentWeekStart);
+        sat.setDate(sat.getDate() + (6 - sat.getDay())); // Saturday
+        const sun = new Date(sat);
+        sun.setDate(sun.getDate() + 1); // Sunday
+        const satStr = fmtDate(sat);
+        const sunStr = fmtDate(sun);
+
+        // Find employees working weekend shifts
+        const weekendShifts = scheduleData.filter(e =>
+            (normalizeDate(e.schedule_date) === satStr || normalizeDate(e.schedule_date) === sunStr) &&
+            e.shift_start && e.status !== 'callout'
+        );
+
+        if (weekendShifts.length === 0) {
+            showToast('No weekend shifts scheduled', 'info');
+            return;
+        }
+
+        // Group by employee
+        const byEmployee = {};
+        weekendShifts.forEach(s => {
+            if (!byEmployee[s.employee_name]) byEmployee[s.employee_name] = [];
+            byEmployee[s.employee_name].push(s);
+        });
+
+        const names = Object.keys(byEmployee);
+        const unconfirmed = weekendShifts.filter(s => s.status !== 'confirmed');
+
+        if (!confirm(`Send weekend check-in to ${names.length} employee(s):\n${names.join(', ')}\n\n${unconfirmed.length} unconfirmed shift(s). Include $100 dock warning?`)) return;
+
+        showLoading();
+        try {
+            // Use the slack-bot's DM system via send-slack API to DM each employee
+            let sent = 0;
+            let failed = [];
+
+            for (const [name, shifts] of Object.entries(byEmployee)) {
+                const emp = EMPLOYEES.find(e => e.name === name);
+                if (!emp || !emp.slack_user_id) {
+                    failed.push(name);
+                    continue;
+                }
+
+                const shiftLines = shifts.map(s => {
+                    const d = new Date(s.schedule_date + 'T12:00:00');
+                    const dayLabel = d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                    const confirmed = s.status === 'confirmed' ? ' ✅' : ' ❓';
+                    return `• *${dayLabel}:* ${fmtTime(s.shift_start)} - ${fmtTime(s.shift_end)}${confirmed}`;
+                }).join('\n');
+
+                const isConfirmed = shifts.every(s => s.status === 'confirmed');
+                const msg = isConfirmed
+                    ? `Hey ${name}, just a heads up — your weekend shifts are confirmed:\n\n${shiftLines}\n\nSee you there.`
+                    : `Hey ${name}, your weekend shifts are coming up and need confirmation:\n\n${shiftLines}\n\n:warning: *Unconfirmed hours may result in a $100 dock in pay.* Please reply *confirm* to lock in your shifts.`;
+
+                try {
+                    // Open DM via Slack API
+                    const dmResp = await fetch('/api/send-slack', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ user: emp.slack_user_id, text: msg })
+                    });
+                    const result = await dmResp.json();
+                    if (result.ok) {
+                        sent++;
+                    } else {
+                        failed.push(name);
+                    }
+                } catch (e) {
+                    failed.push(name);
+                }
+            }
+
+            hideLoading();
+            let toast = `Weekend check-in sent to ${sent} employee(s).`;
+            if (failed.length > 0) toast += ` Failed: ${failed.join(', ')}`;
+            showToast(toast, sent > 0 ? 'success' : 'error');
+            setTimeout(() => loadConversations(), 2000);
+        } catch (e) {
+            hideLoading();
+            showToast('Failed: ' + e.message, 'error');
+        }
+    };
+
+    // Check in single employee via server-side API
+    window.checkInSelected = async function() {
+        if (!activeConvo) return;
+        showLoading();
+        try {
+            const resp = await fetch(`/api/schedule-checkin?name=${encodeURIComponent(activeConvo)}`, { method: 'POST' });
+            const result = await resp.json();
+            hideLoading();
+            if (result.success) {
+                showToast(`Check-in sent to ${activeConvo}`, 'success');
+                setTimeout(() => loadConversations(), 2000);
+            } else {
+                showToast('Failed: ' + (result.message || result.error || 'Unknown'), 'error');
+            }
+        } catch(e) {
+            hideLoading();
+            showToast('Failed: ' + e.message, 'error');
+        }
+    };
+
+    // Auto-refresh polling
+    window.toggleAutoRefresh = function() {
+        const on = document.getElementById('autoRefreshToggle').checked;
+        if (on) {
+            startAutoRefresh();
+        } else {
+            stopAutoRefresh();
+        }
+    };
+
+    function startAutoRefresh() {
+        stopAutoRefresh();
+        autoRefreshInterval = setInterval(() => {
+            loadConversations();
+        }, 10000); // Every 10 seconds
+    }
+
+    function stopAutoRefresh() {
+        if (autoRefreshInterval) {
+            clearInterval(autoRefreshInterval);
+            autoRefreshInterval = null;
+        }
+    }
+
+    // Week nav
+    document.getElementById('prevWeek').addEventListener('click', () => { currentWeekStart.setDate(currentWeekStart.getDate()-7); loadWeek(); });
+    document.getElementById('nextWeek').addEventListener('click', () => { currentWeekStart.setDate(currentWeekStart.getDate()+7); loadWeek(); });
+
+    // Close modal on overlay click
+    document.getElementById('editModal').addEventListener('click', (e) => { if (e.target === e.currentTarget) closeModal(); });
+
+    // Init
+    loadWeek();
+    loadConversations();
+    startAutoRefresh();
+
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,20 @@
+/* Hercules Moving Solutions - herculesmovingsolutions.com brand */
+:root {
+    --hms-orange: #FFA23F;
+    --hms-orange-dark: #e8891f;
+    --hms-orange-light: #FFB96B;
+    --hms-dark: #32373c;
+    --hms-dark-light: #4a4f54;
+    --hms-gray: #374151;
+    --hms-gray-light: #6b7280;
+    --hms-white: #ffffff;
+    --hms-bg-gradient: linear-gradient(135deg, #FFA23F 0%, #e8891f 50%, #d4780a 100%);
+}
+.hms-header { background: var(--hms-bg-gradient); color: var(--hms-white); }
+.hms-header .hms-text-primary { color: var(--hms-white); }
+.hms-logo { height: 40px; width: auto; vertical-align: middle; }
+.hms-logo-lg { height: 48px; width: auto; vertical-align: middle; }
+.hms-btn-primary { background: var(--hms-orange); color: var(--hms-white); }
+.hms-btn-primary:hover { background: var(--hms-orange-dark); color: var(--hms-white); }
+.hms-accent { color: var(--hms-orange); }
+.hms-border-accent { border-color: var(--hms-orange-light); }

@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Test</title>
+</head>
+<body>
+    <h1>Database Connection Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="testTable()">Test Table Structure</button>
+    <div id="results"></div>
+
+    <script>
+        const supabaseUrl = 'process.env.SUPABASE_URL';
+        const supabaseKey = 'process.env.SUPABASE_ANON_KEY';
+
+        async function testConnection() {
+            try {
+                const response = await fetch(`${supabaseUrl}/rest/v1/`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`
+                    }
+                });
+                
+                document.getElementById('results').innerHTML = `
+                    <h3>Connection Test:</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>OK: ${response.ok}</p>
+                    <p>Response: ${await response.text()}</p>
+                `;
+            } catch (error) {
+                document.getElementById('results').innerHTML = `
+                    <h3>Connection Error:</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+
+        async function testTable() {
+            try {
+                // Test basic table query
+                const response = await fetch(`${supabaseUrl}/rest/v1/job_submissions?select=*&limit=1`, {
+                    headers: {
+                        'apikey': supabaseKey,
+                        'Authorization': `Bearer ${supabaseKey}`
+                    }
+                });
+                
+                document.getElementById('results').innerHTML += `
+                    <h3>Table Test:</h3>
+                    <p>Status: ${response.status}</p>
+                    <p>OK: ${response.ok}</p>
+                    <p>Response: ${await response.text()}</p>
+                `;
+            } catch (error) {
+                document.getElementById('results').innerHTML += `
+                    <h3>Table Error:</h3>
+                    <p>${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

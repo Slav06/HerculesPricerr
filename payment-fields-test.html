@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Fields Test - HelloMoving Integration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 16px;
+        }
+
+        .content {
+            padding: 30px;
+        }
+
+        .test-section {
+            margin-bottom: 40px;
+            padding: 25px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            background: #f9fafb;
+        }
+
+        .test-section h2 {
+            color: #6b46c1;
+            margin-bottom: 20px;
+            font-size: 22px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .field-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .field-item {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #d1d5db;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .field-label {
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 14px;
+        }
+
+        .field-value {
+            font-size: 16px;
+            color: #1f2937;
+            padding: 8px 12px;
+            background: #f3f4f6;
+            border-radius: 6px;
+            border: 1px solid #d1d5db;
+            word-break: break-all;
+        }
+
+        .field-empty {
+            color: #9ca3af;
+            font-style: italic;
+        }
+
+        .field-source {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 5px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .extraction-demo {
+            background: #fef3c7;
+            border: 2px solid #f59e0b;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+
+        .extraction-demo h3 {
+            color: #92400e;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+
+        .code-block {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            margin: 10px 0;
+        }
+
+        .test-button {
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px 10px 10px 0;
+        }
+
+        .test-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(40, 167, 69, 0.3);
+        }
+
+        .test-button.secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        }
+
+        .test-button.secondary:hover {
+            box-shadow: 0 8px 20px rgba(108, 117, 125, 0.3);
+        }
+
+        .json-output {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .json-output h4 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .json-content {
+            background: #1f2937;
+            color: #f9fafb;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+            white-space: pre-wrap;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-warning {
+            background: #fff3cd;
+            color: #856404;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <script src="payment-test-script.js"></script>
+    <div class="container">
+        <div class="header">
+            <h1>💳 Payment Fields Extraction Test</h1>
+            <p>Testing HelloMoving form field extraction and processing</p>
+            <div id="connectionStatus" style="margin-top: 10px; padding: 8px 16px; background: rgba(255,255,255,0.2); border-radius: 20px; font-size: 14px; display: inline-block;">
+                <span id="statusIcon">🔴</span>
+                <span id="statusText">Waiting for payment data...</span>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Test Section 1: Field Extraction -->
+            <div class="test-section">
+                <h2>🔍 Field Extraction Test</h2>
+                <p>This section shows how we extract payment fields from the HelloMoving form.</p>
+                
+                <div class="extraction-demo">
+                    <h3>📋 Extracted Fields from HelloMoving Form:</h3>
+                    <div class="field-group">
+                        <div class="field-item">
+                            <div class="field-label">Full Name (CCNAME)</div>
+                            <div class="field-value" id="fullName">Anita Setser</div>
+                            <div class="field-source">input[name="CCNAME"]</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">First Name (Extracted)</div>
+                            <div class="field-value" id="firstName">Anita</div>
+                            <div class="field-source">Split from CCNAME</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">Last Name (Extracted)</div>
+                            <div class="field-value" id="lastName">Setser</div>
+                            <div class="field-source">Split from CCNAME</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">Billing Address (CCADD)</div>
+                            <div class="field-value" id="billingAddress">123 Main Street</div>
+                            <div class="field-source">input[name="CCADD"]</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">City (CCCITY)</div>
+                            <div class="field-value" id="city">Hammond</div>
+                            <div class="field-source">input[name="CCCITY"]</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">State (CCSTATEID)</div>
+                            <div class="field-value" id="state">LA</div>
+                            <div class="field-source">select[name="CCSTATEID"] option:selected</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">Zip Code (CCZIP)</div>
+                            <div class="field-value" id="zipCode">70401</div>
+                            <div class="field-source">input[name="CCZIP"]</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">Card Number (CREDITNO)</div>
+                            <div class="field-value" id="cardNumber">****1234</div>
+                            <div class="field-source">input[name="CREDITNO"]</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">Security Code (CCCODE)</div>
+                            <div class="field-value" id="securityCode">***</div>
+                            <div class="field-source">input[name="CCCODE"]</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">Expiration Month (EXPMONTH)</div>
+                            <div class="field-value" id="expMonth">10</div>
+                            <div class="field-source">select[name="EXPMONTH"] option:selected</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">Expiration Year (EXPYEAR)</div>
+                            <div class="field-value" id="expYear">2025</div>
+                            <div class="field-source">select[name="EXPYEAR"] option:selected</div>
+                        </div>
+                        
+                        <div class="field-item">
+                            <div class="field-label">Country</div>
+                            <div class="field-value" id="country">USA</div>
+                            <div class="field-source">Always USA</div>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="test-button" onclick="simulateFieldExtraction()">🧪 Simulate Field Extraction</button>
+                <button class="test-button secondary" onclick="clearFields()">🗑️ Clear Fields</button>
+                <button class="test-button" onclick="loadCapturedData()">📋 Load Captured Data</button>
+                <button class="test-button" onclick="testDisplayCapturedData()">🔍 Test Display Captured Data</button>
+            </div>
+
+            <!-- Test Section 2: Processing Logic -->
+            <div class="test-section">
+                <h2>⚙️ Processing Logic Test</h2>
+                <p>This section shows how the extracted fields are processed and formatted.</p>
+                
+                <div class="code-block">
+// Field Extraction Logic
+function extractPaymentFieldsFromHelloMoving() {
+    const form = document.forms['theForm'];
+    if (!form) return null;
+
+    // Extract full name and split it
+    const fullName = form.CCNAME?.value || '';
+    const nameParts = fullName.trim().split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    // Extract state from dropdown
+    const stateSelect = form.CCSTATEID;
+    const stateValue = stateSelect?.options[stateSelect.selectedIndex]?.value || '';
+    const stateText = stateSelect?.options[stateSelect.selectedIndex]?.text || '';
+
+    // Extract expiration date
+    const expMonth = form.EXPMONTH?.value || '';
+    const expYear = form.EXPYEAR?.value || '';
+    const expDate = expMonth && expYear ? `${expMonth.padStart(2, '0')}/${expYear.slice(-2)}` : '';
+
+    // Extract card number (mask for security)
+    const cardNumber = form.CREDITNO?.value || '';
+    const maskedCard = cardNumber ? `****${cardNumber.slice(-4)}` : '';
+
+    return {
+        // Personal Information
+        fullName: fullName,
+        firstName: firstName,
+        lastName: lastName,
+        
+        // Address Information
+        billingAddress: form.CCADD?.value || '',
+        city: form.CCCITY?.value || '',
+        state: stateText,
+        stateValue: stateValue,
+        zipCode: form.CCZIP?.value || '',
+        country: 'USA', // Always USA
+        
+        // Card Information
+        cardNumber: cardNumber,
+        maskedCard: maskedCard,
+        cardLastFour: cardNumber.slice(-4),
+        securityCode: form.CCCODE?.value || '',
+        expMonth: expMonth,
+        expYear: expYear,
+        expDate: expDate,
+        
+        // Timestamps
+        extractedAt: new Date().toISOString()
+    };
+}
+                </div>
+
+                <button class="test-button" onclick="testProcessingLogic()">🔄 Test Processing Logic</button>
+            </div>
+
+            <!-- Test Section 3: JSON Output -->
+            <div class="test-section">
+                <h2>📄 JSON Output Test</h2>
+                <p>This shows the final JSON structure that would be sent to the dashboard.</p>
+                
+                <div class="json-output">
+                    <h4>Generated Payment Data JSON:</h4>
+                    <div class="json-content" id="jsonOutput">Click "Generate JSON" to see the output...</div>
+                </div>
+
+                <button class="test-button" onclick="generateJSON()">📄 Generate JSON</button>
+                <button class="test-button secondary" onclick="copyToClipboard()">📋 Copy to Clipboard</button>
+            </div>
+
+            <!-- Test Section 4: Dashboard Integration Preview -->
+            <div class="test-section">
+                <h2>📊 Dashboard Integration Preview</h2>
+                <p>This shows how the payment data would appear on the dashboard.</p>
+                
+                <div style="background: white; border: 1px solid #d1d5db; border-radius: 8px; padding: 20px;">
+                    <h4 style="margin-bottom: 15px; color: #374151;">Dashboard Payment Button Preview:</h4>
+                    
+                    <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                        <button id="dashboardPaymentBtn" 
+                                style="background: linear-gradient(135deg, #6b46c1 0%, #553c9a 100%); 
+                                       color: white; 
+                                       border: none; 
+                                       padding: 10px 16px; 
+                                       border-radius: 8px; 
+                                       font-size: 14px; 
+                                       font-weight: 600; 
+                                       cursor: pointer; 
+                                       display: flex; 
+                                       align-items: center; 
+                                       gap: 8px;">
+                            <span>💳</span>
+                            <span id="btnText">****1234</span>
+                        </button>
+                        
+                        <div style="color: #6b7280; font-size: 14px;">
+                            <strong>Cardholder:</strong> <span id="cardholderName">Anita Setser</span><br>
+                            <strong>Amount:</strong> <span id="paymentAmount">$150.00</span><br>
+                            <strong>Status:</strong> <span class="status-indicator status-success" id="paymentStatus">✅ Processed</span>
+                        </div>
+                    </div>
+                </div>
+
+                <button class="test-button" onclick="updateDashboardPreview()">🔄 Update Dashboard Preview</button>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

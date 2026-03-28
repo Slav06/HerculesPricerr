@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Agreement - Sign</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; font-size: 12px; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #FFA23F 0%, #e8891f 100%); color: white; padding: 16px 20px; border-radius: 8px 8px 0 0; }
+        .header h1 { font-size: 20px; margin-bottom: 4px; }
+        .header .job-no { font-size: 14px; opacity: 0.9; }
+        .content { background: white; padding: 24px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .section { margin-bottom: 24px; }
+        .section-title { font-size: 13px; font-weight: bold; color: #FFA23F; margin-bottom: 12px; padding-bottom: 6px; border-bottom: 2px solid #FFA23F; }
+        .moving-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 16px; }
+        .moving-block { font-size: 12px; }
+        .moving-block .label { font-weight: 600; color: #475569; margin-bottom: 4px; font-size: 11px; }
+        .moving-block .name { font-weight: bold; font-size: 13px; margin-bottom: 4px; }
+        .moving-block .address { font-size: 12px; color: #334155; line-height: 1.4; }
+        .moving-block .contact { font-size: 11px; color: #64748b; margin-top: 4px; }
+        .pricing-table { width: 100%; font-size: 12px; margin-bottom: 12px; }
+        .pricing-table td { padding: 4px 0; }
+        .pricing-table .label-col { width: 140px; }
+        .pricing-table .value-col { text-align: right; font-weight: 600; }
+        .inventory-section { margin-top: 20px; }
+        .inventory-table { width: 100%; border-collapse: collapse; font-size: 11px; margin-top: 8px; }
+        .inventory-table th { background: #f8f9fa; padding: 8px; text-align: left; border: 1px solid #dee2e6; font-weight: 600; }
+        .inventory-table td { padding: 6px 8px; border: 1px solid #dee2e6; }
+        .inventory-table .col-item { min-width: 200px; }
+        .inventory-table .col-qty { text-align: center; width: 60px; }
+        .inventory-table .col-volume { text-align: right; width: 80px; }
+        .signature-section { margin-top: 32px; padding-top: 24px; border-top: 2px solid #e2e8f0; }
+        .signature-pad-container { margin: 20px 0; }
+        .signature-pad-label { font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 8px; }
+        #signatureCanvas { border: 2px solid #cbd5e1; border-radius: 4px; background: white; cursor: crosshair; display: block; width: 100%; max-width: 500px; height: 150px; }
+        .signature-controls { margin-top: 12px; display: flex; gap: 10px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 13px; transition: all 0.2s; }
+        .btn-primary { background: #FFA23F; color: white; }
+        .btn-primary:hover { background: #e8891f; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-secondary:hover { background: #475569; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-weight: 600; font-size: 12px; color: #374151; margin-bottom: 6px; }
+        .form-group input { width: 100%; max-width: 400px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+        .form-group select { width: 100%; max-width: 400px; padding: 8px 12px; border: 1px solid #cbd5e1; border-radius: 4px; font-size: 13px; }
+        .step-badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 10px; border-radius: 6px; font-size: 12px; margin-bottom: 8px; }
+        .cc-form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .cc-form-grid .full { grid-column: 1 / -1; }
+        @media (max-width: 600px) { .cc-form-grid { grid-template-columns: 1fr; } }
+        .loading, .error { text-align: center; padding: 40px; color: #64748b; }
+        .error { color: #dc2626; }
+        .thank-you { text-align: center; padding: 60px 20px; }
+        .thank-you h2 { font-size: 28px; color: #FFA23F; margin-bottom: 12px; }
+        .thank-you p { font-size: 16px; color: #64748b; margin-bottom: 8px; }
+        .signature-preview { margin-top: 16px; padding: 12px; background: #f8f9fa; border-radius: 4px; }
+        .signature-preview img { max-width: 100%; max-height: 100px; border: 1px solid #dee2e6; }
+        .company-header { font-size: 11px; line-height: 1.4; color: #374151; margin-bottom: 12px; }
+        .two-col-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px; }
+        .two-col-table th, .two-col-table td { padding: 6px 8px; border: 1px solid #e2e8f0; text-align: left; }
+        .two-col-table th { background: #f1f5f9; font-weight: 600; }
+        .terms-block { font-size: 11px; line-height: 1.5; color: #334155; }
+        .terms-block p { margin-bottom: 12px; }
+        .sign-prompt { font-weight: 600; margin: 16px 0; }
+        .detail-grid { display: grid; grid-template-columns: 160px 1fr; gap: 0; border: 1px solid #e2e8f0; border-radius: 6px; overflow: hidden; margin-bottom: 16px; font-size: 12px; }
+        .detail-row { display: contents; }
+        .detail-row .detail-label { background: #f8fafc; font-weight: 600; color: #475569; padding: 7px 12px; border-bottom: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0; }
+        .detail-row .detail-val { background: #fff; color: #1e293b; padding: 7px 12px; border-bottom: 1px solid #e2e8f0; }
+        .detail-row:last-of-type .detail-label, .detail-row:last-of-type .detail-val { border-bottom: none; }
+        .detail-waiver { grid-column: 1 / -1; background: #fefce8; border-bottom: 1px solid #e2e8f0; padding: 8px 12px; font-size: 11px; color: #713f12; line-height: 1.5; }
+        .charges-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 16px; }
+        .charges-table td { padding: 8px 12px; border-bottom: 1px solid #f1f5f9; }
+        .charges-table .c-label { color: #374151; }
+        .charges-table .c-note { font-size: 11px; color: #64748b; }
+        .charges-table .c-val { text-align: right; font-weight: 600; color: #1e293b; width: 90px; }
+        .charges-table .c-total td { border-top: 2px solid #FFA23F; border-bottom: 2px solid #FFA23F; background: #eff6ff; }
+        .charges-table .c-total .c-label { font-weight: 700; color: #FFA23F; font-size: 13px; }
+        .charges-table .c-total .c-val { font-size: 15px; color: #FFA23F; }
+        .charges-table .c-payment td { background: #f0fdf4; }
+        .charges-table .c-payment .c-label { font-weight: 700; color: #15803d; }
+        .charges-table .c-payment .c-val { color: #15803d; font-size: 13px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="loading" class="loading">Loading agreement...</div>
+        <div id="error" class="error" style="display: none;"></div>
+        <div id="agreementView" style="display: none;">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 8px;">
+                    <img src="/logo.svg" alt="Hercules Moving Solutions" style="height: 36px; width: auto;">
+                    <div>
+                        <div class="step-badge" id="stepBadge">Step 1 of 3</div>
+                        <h1 id="docTitle">Moving Agreement</h1>
+                        <div class="job-no">Job #<span id="jobNumber">-</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+                <div id="stepEstimateContent" class="section doc-text">
+                    <div class="company-header">HERCULES MOVING SOLUTIONS<br>1133 Snowy Owl Dr.,<br>Alvarado, TX 76009<br>818-322-3382<br>US DOT: 3516489 MC: 1197300<br>https://herculesmovingsolutions.com</div>
+                    <div class="section-title">MOVING ESTIMATE #<span id="estimateJobNo">-</span></div>
+                    <table class="two-col-table">
+                        <tr><th>MOVING FROM</th><th>MOVING TO</th></tr>
+                        <tr><td>Customer: <span id="fromName">-</span></td><td>Customer: <span id="toName">-</span></td></tr>
+                        <tr><td>Address: <span id="fromAddress">-</span></td><td>Address: <span id="toAddress">-</span></td></tr>
+                        <tr><td>Location:</td><td>Location:</td></tr>
+                        <tr><td>Floor, Apt:</td><td>Floor, Apt:</td></tr>
+                        <tr><td>City, State, Zip: <span id="fromCityState">-</span></td><td>City, State, Zip: <span id="toCityState">-</span></td></tr>
+                        <tr><td>Contact Phone: <span id="fromPhone">-</span></td><td>Contact Phone:</td></tr>
+                        <tr><td>Email: <span id="fromEmail">-</span></td><td></td></tr>
+                    </table>
+                    <div class="section-title">MOVING DETAILS</div>
+                    <div class="detail-grid">
+                        <div class="detail-row"><span class="detail-label">Job No</span><span class="detail-val" id="detailJobNo">-</span></div>
+                        <div class="detail-row"><span class="detail-label">Representative</span><span class="detail-val" id="repName">-</span></div>
+                        <div class="detail-row"><span class="detail-label">Rep. Email</span><span class="detail-val" id="repEmail">-</span></div>
+                        <div class="detail-row"><span class="detail-label">Rep. Phone #</span><span class="detail-val" id="repPhone">-</span></div>
+                        <div class="detail-row"><span class="detail-label">Visual Type</span><span class="detail-val">Waived</span></div>
+                        <div class="detail-waiver">The shipper has elected to waive the physical and virtual survey and signed the waiver agreement before the shipment is loaded in accordance with 49 CFR 375.401 (a).</div>
+                        <div class="detail-row"><span class="detail-label">Move Type</span><span class="detail-val">Residential Long Distance, <span id="moveMiles">-</span> miles</span></div>
+                        <div class="detail-row"><span class="detail-label">Est. Volume</span><span class="detail-val"><span id="estVolume">-</span> cf. (<span id="estLbs">-</span> lbs)</span></div>
+                        <div class="detail-row"><span class="detail-label">Est. Rate</span><span class="detail-val">$<span id="estRate">-</span> per cf</span></div>
+                        <div class="detail-row"><span class="detail-label">Move Date</span><span class="detail-val" id="moveDate">-</span></div>
+                        <div class="detail-row"><span class="detail-label">Created On</span><span class="detail-val" id="createdOn">-</span></div>
+                    </div>
+                    <div class="section-title">MOVING CHARGES</div>
+                    <table class="charges-table">
+                        <tr>
+                            <td class="c-label">Estimate Price <span class="c-note" id="pricingInitial"></span></td>
+                            <td class="c-val" id="initialCalc">$0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="c-label">Fuel Surcharge <span class="c-note">15.00%</span></td>
+                            <td class="c-val" id="fuelCalc">$0.00</td>
+                        </tr>
+                        <tr>
+                            <td class="c-label">Discounts <span class="c-note">Veteran · Manager · Early Reservation · AAA · Senior</span></td>
+                            <td class="c-val" id="discountDisplay">-</td>
+                        </tr>
+                        <tr>
+                            <td class="c-label">Basic Valuation Protection <span class="c-note">$0.60 per lb. per article</span></td>
+                            <td class="c-val">$0.00</td>
+                        </tr>
+                        <tr class="c-total">
+                            <td class="c-label">Total Estimate Price</td>
+                            <td class="c-val" id="totalEstimate">$0.00</td>
+                        </tr>
+                        <tr class="c-payment">
+                            <td class="c-label">Customer Payment</td>
+                            <td class="c-val" id="customerPayment">$0.00</td>
+                        </tr>
+                    </table>
+                    <p class="sign-prompt">Click on ONLINE SIGNATURE to confirm your move.</p>
+                    <div id="inventorySection" class="inventory-section" style="display: none;">
+                        <div class="section-title">ARTICLES LIST <span id="inventoryCount">0</span> Items, <span id="pieceCount">0</span> Pieces</div>
+                        <div id="inventoryBody"></div>
+                        <div style="margin-top: 12px;">Total Volume: <span id="totalVolume">0</span> cf</div>
+                    </div>
+                    <div class="terms-block">
+                        <div class="section-title">UNDERSTANDING YOUR ESTIMATE:</div>
+                        <p>Thank you for choosing Hercules Moving Solutions. This quote based on the list of items and services you requested at the time this estimate was prepared. This document is an estimate only and not a contract; it is only binding for the specific services and items listed here within; any deviation of the services listed and ordered will result in a new estimate being issued. In such cases, a revised written visual estimate must be executed prior to any services being performed.</p>
+                        <p><strong>The Estimate includes the following services:</strong><br>Transportation of goods with an 18-Wheeler or a Straight Truck.<br>Disassembly of Standard Furniture Items.<br>Reassembly of the items disassembled by the movers at time of pick up.<br>Wrapping of all furniture with quilted moving blankets.<br>Itemized inventory indicating condition at origin.<br>Loading and unloading of all goods.<br>All transportation, taxes, tolls, mileage, and fuel surcharge.<br>Standard Valuation Protection up to $10,000 based on .60 cents per lb. per article.<br>No date change penalties if request is made more than 7 business days prior to the originally scheduled pick up date.</p>
+                        <p><strong>The Estimate does not include the following services:</strong><br>Shuttle Service If Semi is not accessible to location or cannot get close enough to building for loading or unloading to perform relocation, minimum shuttle charge will be 1$ per cubic feet minimum $350.00<br>Additional Flights of Stairs (One flight is included in estimate, 7 steps) $70.00 each additional flight or any additional steps above 7.<br>Long Carry- First 50 Feet are included. Anything additional will be calculated at $100 for up to each additional 50 feet.<br>Packing supplies (boxes, bubble wrap); Packing of fragile items (TVs, Glass, etc.) crating services and loading of bulky materials (additional fee will apply).<br>Storage Cost is based on the weight or volume of the shipment. (30 Days)<br>DISCONNECTING &amp; RECONNECTING OF APPLIANCES ARE NOT INCLUDED (WASHER DRYER, ETC)</p>
+                        <p><strong>The Estimate will include the following ONLY if the option is taken and disclosed:</strong><br>Full Packing Services: Includes all materials and labor required to pack all items. If additional items are added at the time of pick up, then the full-service price will increase and adjust, at the same guaranteed rate. A new agreement will be presented at the time of pick up (Revised Written Estimate).</p>
+                        <p><strong>TERMS OF PAYMENTS:</strong> Upon booking a minimum of 30% deposit is required to be paid in the form of a Credit/Debit Card (subject to 5% admin fee), Zelle, Venmo (2% fee), Cashier's Check or Postal Money Order. On the day of pick up, 50% of the balance is due to the driver in Cash, Postal Money Order, Check, Wire Transfer, Zelle, or Cashier's Check (only when delivery time exceeds 48h, (two business days) . The balance remaining at delivery must be paid prior to offloading and can only be paid in Cash or Postal Money Order.</p>
+                        <p><strong>By signing this Binding Agreement, Customer is acknowledging and agreeing to the following:</strong><br>Hercules Moving Solutions is a properly licensed interstate moving company. Hercules Moving Solutions will be acting as an intrastate/interstate moving company and transport an individual shipper's household goods and will coordinate and arrange for the transportation of household goods.</p>
+                        <p><strong>Company Terms &amp; Conditions</strong> Please read the following requirements &amp; regulations to ensure a smooth and worry-free move.</p>
+                        <p><strong>RESCHEDULE OF SERVICE:</strong> Rescheduling your move date must be submitted in writing by the customer to move@herculesmovingsolutions.com at least three (3) business days prior to service date.</p>
+                        <p><strong>DO NOT SIGN THIS AGREEMENT UNLESS YOU AGREE TO CANCELLATION /DEPOSIT REFUND POLICY</strong><br>Hercules Moving Solutions cancellation policy reads:</p>
+                        <p><strong>CANCELLATION OF SERVICES</strong><br>Estimates may be canceled penalty free and deposits are fully refundable only if the customer cancels the move in writing during the 3 day window immediately after Bill of Lading is signed subject to 49 CFR § 375.505(h). An estimate/order may not be canceled and deposits are not refundable outside the three day window, or after the mover has begun the physical moving services, including but not limited to: packing, loading, storage, transportation to and from the pick-up or delivery address, etc. Moving services may not begin until the contract for service (Bill of Lading) is signed by the customer authorizing the mover to begin services. Services may not be canceled after the customer's property has been loaded on the truck. For the billing department to review a customer's file and cancellation, an email must be sent to the billing department at move@herculesmovingsolutions.com, explaining the cancellation request.</p>
+                        <p><strong>IF AT THE TIME OF PICKUP, YOU HAVE ADDITIONAL ITEMS THAT DO NOT APPEAR ON YOUR INITIAL SIGNED CONTRACT THERE ARE THREE OPTIONS AVAILABLE.</strong><br>OPTION ONE: THE ORIGINAL ITEMS LISTED WILL BE PICKED UP AND MOVED PER THE AGREEMENT.<br>OPTION 2: IF ADDITIONAL ITEMS ARE REQUESTED TO BE MOVED THERE WILL BE AN ADDITIONAL CHARGE.<br>OPTION 3: IF YOU CANCEL THE MOVE YOU FORFEIT THE DEPOSIT.</p>
+                        <p><strong>I UNDERSTAND THAT MY CREDIT CARD PAYMENT WILL BE PROCESSED AFTER I E-SIGN THIS ESTIMATE.</strong></p>
+                        <p>In addition, do to unforeseen circumstances or any additional services added to the account such, as packing services, additional items to be moved, overnight service, storage services or packing materials usage, that are not included in the initial Estimate Cost For Service, that was signed and approved by customer, the customer is fully responsible and will be charged the entire total Estimate Cost For Service given prior to service date.</p>
+                        <p><strong>PACKING YOUR GOODS:</strong> All Customers are responsible to pack all boxes and fragile items (glass, mirror, marble, and electronics) unless noted differently on this Estimate Cost For Service (via Your Estimate Cost For Service email). For health and sanitary reasons all mattress', box springs, and futon pads must be properly protected in Mattress box or plastic cover. Personal effects in plastic bags are not allowed in the truck. Packing supplies are not included in the transportation cost and will be charged if required. Elaborate furniture items that need to be disassembled and/or reassembled may require a 3rd party professional servicing or additional labor and should be disclosed to your estimator in advance of the move to be included on the estimate. Disconnecting and reconnecting of appliances is not included in the estimate. Reassembly of any item is subject to the availability of tools and/or parts being available at delivery. Packing, materials, and unpacking services are available at an additional charge and are only included in this estimate if the service is listed on the services section of the estimate.</p>
+                        <p><strong>ABBREVIATIONS and DEFINITIONS:</strong> Carrier: the moving company. Shipper: the consumer hiring the moving company. Articles listed as follows: Articles listed as CP = Carrier Packed; PBO = Packed By Owner; PO = fragile item to be wrapped with Pads Only per customer.</p>
+                        <p><strong>CERTIFICATE OF INSURANCE:</strong> Some buildings require a certificate of insurance from the mover. Please check with your building management at both current and new locations regarding their requirements. Please notify your Relocation Specialist and we will be glad to assist you. Note: A fee may apply depending on building requirements.</p>
+                        <p><strong>PARKING RESTRICTIONS:</strong> Customers must confirm parking restrictions with the building/s management or local police department at both current and new locations in order for the carrier to avoid parking violations. If the truck physically or for reasons of parking restrictions cannot park close enough, Long Carrying or Shuttle Truck Service charges will apply and be added to the original agreement.</p>
+                        <p><strong>FURNITURE TRANSPORTATION:</strong> Our Company requires that all drawers must be emptied prior to the day of move. Furniture with full drawers will not be transported due to high risk of damage to the actual furniture, premises walls and floors. Bulky service charges will apply and be added to the original agreement.</p>
+                        <p><strong>UTILITIES / APPLIANCES:</strong> Make sure that all of your utilities and appliances will be turned off and disassembled from electric, gas and water connections prior to the day of your move. We do not disassemble or reassemble any utilities or appliances at both current and new locations on the day of your move-out or move-in.</p>
+                        <p><strong>LIABILITY:</strong> Hercules Moving Solutions provides two valuation options: Limited liability and full replacement value (FVP). Both plans cover furniture and boxes packed/unpacked by Moving Companies. We suggest you purchase third party insurance to protect your property. Please read carefully before making your selection. Subject to the minimum valuation of $0.60 per pound per article and in compliance with and subject to the provisions of 49 CFR Section 375.701(a), HMS cannot control whether proper packing methods are used by shipper, therefore on boxes packed by the owner as well as pressed wood (particle board) furniture, fragile or brittle items such as glass, China, ornaments, etc.; liability is limited to $0.60 per pound per article. HMS has the right to inspect and repair any alleged damage. Consumer shipper waives all claims and HMS is not liable or negligent for any damage to the interior or exterior of any residence including, but not limited to walls, floors, ceilings, stairs, banisters, carpets, plumbing, doorways, driveways, walkways, landscaping, etc. In addition, you are not able to give to us to carry and we accept no liability whatsoever for firearms, jewelry, cash, bank notes, any financial instruments, hazardous materials, liquids.</p>
+                        <p><strong>PICK UP AND DELIVERY SCHEDULE:</strong> Pickup and delivery dates are not guaranteed unless the optional Premium Guaranteed Service (P.G.S.) is purchased.<br>Delivery ETA Schedule:<br>0-500 miles: 0-9 business days.<br>501-1000 miles: 2-14 business days.<br>1001-1500 miles: 4-16 business days.<br>1501-2000 miles: 4-18 business days.<br>2001-3300 miles: 5-21 business days.<br>Maximum: 30 business days<br>***ESTIMATED TIMES***<br>* Expedited delivery services available upon request.<br>not including storage time, beginning on the first date indicated as available for delivery (not the date of pickup). The date indicated as 1st available for delivery is the first date of the delivery window and not the promised delivery date. Hercules Moving Solutions Estimated delivery period is up to thirty business days from date indicated as first available for delivery. All Estimated time of arrivals are subject to change depending on many industries factors such as traffic, weather conditions, unforeseen mechanical problems or unexpected services to be rendered with orders scheduled before you (mostly applies on second, third or fourth shifts). Note: Hercules Moving Solutions will not discount any account due to any delays listed above. We will keep the customer informed verbally on the move date with a new revised ETA (Estimated Time of Arrival) depending on our schedule.</p>
+                        <p><strong>REVISED WRITTEN ESTIMATE:</strong> If prior to or on the day of the scheduled pick-up the shipper tenders more property or makes a change to the initial order for which they received an estimate; carrier and shipper may either (1) undertake the job with the additional property, in which case the shipper would only be required to pay 10% more than the initial estimate to receive the property on a non-binding estimate or 100% of the binding estimate and the remaining balance will be billed after the 30 day deferment. Or (2) execute a Revised/Rescission document, PRIOR TO LOADING OR OTHERWISE BEGINNING THE JOB, this rescission document and new estimate given prior to loading will service as the only active estimate for which charges will be calculated.</p>
+                        <p><strong>MOTORCYCLE HANDLING:</strong> HERCULES MOVING SOLUTIONS LLC, WILL NOT BE LIABLE FOR ANY DAMAGES THAT MAY OCCUR IN TRANSPORTING MOTORCYCLES ONTO OUR TRUCKS. CUSTOMER IS RESPONSIBLE TO PURCHASE HIS/HERS OWN INSURANCE AND PROVIDE A COPY OF INSURANCE PRIOR TO THE MOVE DATE. IF INSURANCE INFO IS NOT PROVIDED, CARRIER WILL NOT LOAD MOTORCYCLE ON THE TRUCK ON MOVING DAY.</p>
+                        <p><strong>AGREED MANDATORY CHOICE OF LAW, VENUE AND JURISDICTION:</strong> If a lawsuit becomes necessary to resolve any dispute between the carrier and shipper, said suit shall and must only be brought in circuit or county court in and for the State of California</p>
+                        <p><strong>LEGAL PROCESS NOTICE TO ALL CLAIMS:</strong> Hercules Moving Solutions shall not be liable for the loss or damage of the goods unless claim is made in writing supported by proof of ownership, value, and weight. As a condition precedent, all outstanding monies due to Hercules Moving Solutions must be paid in full before any claim can be made. Claims must be filed within 9 months of delivery or demand thereof is refused and must be limited to the destination descriptions of damages for each item on the inventory logs. All damages and missing items must be noted on the inventory logs. Damage indicators must specify each item damaged at the time of delivery. Shipper or agent has full authority to order services and enter into agreement.</p>
+                        <p><strong>SUMMARY OF NEUTRAL DISPUTE SETTLEMENT PROGRAM:</strong> The neutral arbitration program has been designed to give neither party any special advantage. If a dispute arises between Hercules Moving Solutions and the shipper arbitration may be a mutually beneficial alternative to help resolve the dispute. Section 49 CFR Section 375.211 provides that a mover must have a program in place to provide shippers with an Arbitration alternative. Arbitration is optional and not required under Federal law. A. Summary of the arbitration process: Arbitration is an alternative to courtroom litigation. It provides each party to the dispute to present their cases and allows a neutral third-party arbitrator to make a decision as to the merits of each side's case. Arbitration subject to this agreement shall be conducted via written submission and, subject to the arbitrator's discretion, through telephonic appearance. After the initial filing fees have been paid and the arbitrator selected, the initiating party or Claimant must submit a written brief summarizing their legal position and factual claims. All supporting documentation must be included with the initial arbitration brief. Copies of all documents must be submitted to all parties involved in the arbitration. Upon receipt of the Claimant's arbitration brief and supporting documents, the responding party or Respondent will have 30 days to file their responsive arbitration brief and supporting documentation. Further deadlines and timetables are subject to the arbitrator's discretion. B. Legal effects: If the arbitration alternative is chosen, then any decision made by the arbitrator may be binding. Additionally, an arbitration decision may not be appealed in a court of law. All parties agree that the Arbitrator's decision will be based exclusively on the governing United States Federal Law without regard to conflicting State laws or regulations. C. Applicable costs: Each party is responsible for their own costs associated with arbitration. A benefit to the arbitration alternative may be that it is less expensive than traditional litigation. Each party is responsible for 50% of the costs associated with securing the arbitrator and 100% of their own expenses, including but not limited to attorney fees. There is a $250 filing fee FOR EACH PARTY and a supplemental charge of $50 administration fee. Call carrier at phone number on front of this form for ADR processing forms.</p>
+                        <p><strong>SHIPMENT VALUATION AND COVERAGE:</strong> Hercules Moving Solutions Basic Liability of $0.60 per pound per article at no charge. If any article is lost, destroyed, or damaged while in your mover's custody, your mover's liability is limited to the actual weight of the lost, destroyed, or damaged article multiplied by $0.60 cent per pound per article. This is the basic liability level and is provided to you at no charge. It is considerably less than the average value of household goods. Full value protection coverage is available for additional cost at customer's request (cannot be purchased after move has begun and must be requested 72h before pick-up date). See "Full Value Protection Amount of Liability" above.</p>
+                        <p><strong>Notice of Maximum amount due upon delivery:</strong> Final charges will be based on actual weight or cubic feet/volume of property and services provided. Maximum amount demanded at time of delivery, prior to unloading, is the amount of the non-binding estimate plus 10%; or 100% of the binding estimate. Actual charges may exceed the amount of estimate if additional services were ordered or required to be performed; if customer moved additional items, weight, or cubic feet; or if extra service options such as packing or storage were necessary.</p>
+                        <p><strong>VERY IMPORTANT - IF YOU ADD ITEMS AT PICK-UP OR IF THE ITEMS ARE A DIFFERENT VOLUME AND/OR WEIGHT FROM WHAT IS ITEMIZED ON THIS ESTIMATE</strong> The mover may provide you with a revised estimate.<br>DO NOT allow the mover to load the truck or perform any services before you agree in writing to the new estimate.<br>If you have not signed the mover's revised estimate, and the mover loads the truck, then Federal regulation requires that the mover has reaffirmed the original estimate and cannot demand additional payment at delivery for the additional items. Any balance due above the binding estimate would need to be billed by the mover thirty days after delivery.<br>Therefore we ask you to notify us of modifications at least 3 business days before the scheduled pick-up date, to avoid surprises at pick-up! On the day of pick-up, your foreman may offer you a new revised estimate listing all costs for the entire move including the additional services ordered or additional items to be moved, if any. The total price will be the same as the price listed on this estimate if your inventory's estimated weight/volume has not changed and if you do not require additional services. If your inventory's estimated weight/volume increases or if you require additional services, however, then your price may change based on the rate per pound and/or cubic feet stated in this estimate.</p>
+                        <p><strong>CLAIM FILING PROCEDURE:</strong> As per company TERMS AND CONDITIONS, in the unlikely event a customer realizes that some of their goods are damaged or missing, or if they feel that they have been over-charged or charged for services that they didn't received prior, during or after services were completed, all customers FULLY understand that they MUST initially give the service provider (Moving Company) the FIRST RIGHT to fully investigate and respond in writing with a resolution to their issues.</p>
+                        <p><strong>NOTICE AND WAIVERS:</strong> In accordance with, 49 CFR § 375.401(a) and 49 CFR §371.113(c)(1), customer agrees to<br>waive a physical survey in-home estimate of the household goods and alternatively agrees to receive a non-physical survey<br>based written e-mail generated Binding Estimate based upon the customer provided item list of property to be transported<br>and services ordered. The terms of this estimate and all services to be provided are subject to the carrier's tariffs,<br>incorporated by reference and available for inspection upon reasonable request at the carrier's offices.</p>
+                        <p>Thank you for choosing Hercules Moving Solutions.<br>818-322-3382</p>
+                        <p><strong>FULL VALUE PROTECTION AMOUNT OF LIABILITY:</strong> $67,200.00 (OPTIONAL)<br>Deductible Levels: 	$0 	$250 	$500 	$750 	$1000 	$1500<br>Valuation Charge: 	$0.00 	$0.00 	$0.00 	$0.00 	$0.00 	$0.00<br>Total Estimate Plus<br>Valuation Charge: <span id="totalWithValuation">$0.00</span> 	$0.00 	$0.00 	$0.00 	$0.00 	$0.00 	$0.00<br>Customer's Initials: 	x_________ 	x_________ 	x_________ 	x_________ 	x_________ 	x_________</p>
+                        <p><strong>WARNING:</strong> If a moving company loses or damages your goods, there are 2 different standards for the company's liability based on the types of rates you pay. BY FEDERAL LAW, THIS FORM MUST CONTAIN A FILLED-IN ESTIMATE OF THE COST OF A MOVE FOR WHICH THE MOVING COMPANY IS LIABLE FOR THE FULL (REPLACEMENT) VALUE OF YOUR GOODS in the event of loss of, or damage to, the goods. This form may also contain an estimate of the cost of a move in which the moving company is liable for FAR LESS than the replacement value of your goods, typically at a lower cost to you. You will select the liability level later, on the bill of lading (contract) for your move. Before selecting a liability level, please read Your Rights and Responsibilities When You Move and Ready to Move? brochures provided by the moving company, and seek further information at the government website https://fmcsa.dot.gov/protect-your-move and Tips for a Successful Move.</p>
+                        <p class="sign-prompt">Click on ONLINE SIGNATURE to confirm your move.</p>
+                    </div>
+                </div>
+                <div id="stepBOLContent" class="section doc-text" style="display: none;">
+                    <p>Order No: <span id="bolOrderNo">-</span><br>Pick-Up Date: <span id="bolPickupDate">-</span><br>1ST Available Date for Delivery: <span id="bolDeliveryDate">-</span><br>Vehicle ID:</p>
+                    <div class="company-header">1133 Snowy Owl Dr.,<br>Alvarado, TX 76009<br>818-322-3382<br>US DOT No: 3516489<br>ICC/MC No: 1197300<br><strong>HERCULES MOVING SOLUTIONS</strong><br>INTERSTATE BILL OF LADING CONTRACT</div>
+                    <div class="section-title">ORIGIN</div>
+                    <p>SHIPPER: <span id="bolFromName">-</span><br>ADDRESS: <span id="bolFromAddress">-</span><br>FLOOR/APT/LEVEL:<br>CITY/STATE/ZIP: <span id="bolFromCityState">-</span><br>PHONE: <span id="bolFromPhone">-</span></p>
+                    <div class="section-title">DESTINATION</div>
+                    <p>CONSIGNED TO: <span id="bolToName">-</span><br>ADDRESS: <span id="bolToAddress">-</span><br>FLOOR/APT/LEVEL:<br>CITY/STATE/ZIP: <span id="bolToCityState">-</span><br>PHONE:</p>
+                    <p>Agent Name: &nbsp; Address: &nbsp; Phone: &nbsp; US DOT:</p>
+                    <p><strong>SIGN AT LEAST 3 DAYS BEFORE PICK-UP DATE:</strong><br>I, <span id="bolSignerName">-</span>, acknowledge I have read and agree to all the terms and conditions on both sides of this bill of lading contract. I have received<br>the arbitration information and the booklet: Your Rights and Responsibilities When you Move and pamphlet Ready to Move. I agree to pay for<br>the total charges for moving services. I approved the total estimated charges prior to the moving services beginning.<br>Signature: 	Clear 	Customer Name:</p>
+                    <p><strong>PAYMENT TERMS:</strong><br>Upon booking a deposit is required to be paid. Acceptable payment forms are credit card, cashier`s check, or cash. Prior to pick-up a portion of the balance is due. Acceptable payment forms are credit card, cashier`s check, cash, postal money order. Balance is due at delivery prior to unloading. Acceptable payment form post money order or Cash.<br>Signature: &nbsp; Clear<br>Accept and Sign</p>
+                    <div class="section-title">VALUATION OPTIONS</div>
+                    <p>THE CONSUMER MUST SELECT ONE OF THESE OPTIONS FOR THE CARRIER`S LIABILITY FOR LOSS OR DAMAGE TO YOUR HOUSEHOLD GOODS. CUSTOMER`S DECLARATION OF VALUE. THIS IS A TARIFF LEVEL OF CARRIER LIABILITY -IT IS NOT INSURANCE.</p>
+                        <p><strong>OPTION 1: FULL VALUE PROTECTION</strong> <span id="bolFVPAmount">$0.00</span><br>Deductible: 	$0 	$250 	$500 	$750 	$1000 $1500<br>Valuation: 	$0.00 	$0.00 	$0.00 	$0.00 	$0.00 	$0.00<br>Estimate Plus<br>Valuation: 	<span id="bolEstimatePlusVal">$0.00</span> $0.00 $0.00 $0.00 $0.00 $0.00 $0.00</p>
+                    <p>The Cost Estimate that you receive from your mover MUST INCLUDE Full<br>(Replacement) Value Protection for the articles that are included in your<br>shipment. If you wish to waive the Full (Replacement) Value level of protection<br>you must complete the WAIVER of Full (Replacement) Value Protection shown<br>below.</p>
+                    <p>Full (Replacement) Value Protection is the most comprehensive plan available<br>for protection of your goods. If any article is lost, destroyed, or damaged while in<br>your mover's custody, your mover will, at its option, either 1) repair the article to<br>the extent necessary to restore it to the same condition as when it was received<br>by your mover, or pay you for the cost of such repairs; or 2) replace the article<br>with an article of like kind and quality, or pay you for the cost of such a<br>replacement. Under Full (Replacement) Value Protection, if you do not declare a<br>higher replacement value on this form prior to the time of shipment, the value of<br>your goods will be deemed to be equal to $6.00 multiplied by the weight (in<br>pounds) of the shipment, subject to a minimum valuation for the shipment of<br>$6000. Under this option, the cost of your move will be composed of a base rate<br>plus an added cost reflecting the cost of providing this full value cargo liability</p>
+                    <p><strong>SUMMARY OF CHARGES</strong><br>CUBIC FEET CHARGES:<br>Base: 	1800 cu.ft. @ $8.00 per cu.ft. 	$14400.00<br>Additional:_________ cu.ft. @ $________ per cu.ft. 	$<br>Additional:_________ cu.ft. @ $________ per cu.ft. 	$<br>WEIGHT CHARGES:<br>Base: 	_______ lbs. @ _______ per lbs.<br>Additional:___________ lbs. @ $________ per lbs. 	$<br>Additional:___________ lbs. @ $________ per lbs. 	$<br>HOURLY CHARGES:<br>Part One: __________ Start Time __________ End Time _________ Hours<br>Part Two: __________ Start Time __________ End Time _________ Hours<br>______ hrs. _____ men _____ Trucks @ $______/hr. 	$<br>______ hrs. _____ men _____ Trucks @ $______/hr. 	$<br>SERVICE CHARGES:<br>Fuel Surcharge: 15.00 % 	$2160.00<br>Valuation Protection at $0.60 per pound per Item: 	INCLUDED<br>Other: 	$<br>Other: 	$</p>
+                    <p>protection for your shipment. If you wish to declare a higher value for your<br>shipment than these default amounts, you must indicate that value here.<br>Declaring a higher value may increase the valuation charge in your cost<br>estimate.<br>The Total Value of my shipment is: $__________(provided by the customer)<br>Dollar Estimate of the cost of your move<br>at Full (Replacement) Value Protection: $___________(provided by carrier)<br>I acknowledge that for my shipment I have 1) ACCEPTED the Full<br>(Replacement) Level of protection included in this estimate and declared a<br>higher total value of my shipment (if appropriate), and 2) received a copy of the<br>Your Rights and Responsibilities When You Move brochure explaining these<br>provisions.<br>Customer's Signature 	Date</p>
+                    <p>☑ <strong>OPTION 2: RELEASE VALUE</strong><br>WAIVER of Full (Replacement) Value Protection. This lower level of protection is provided at no additional cost beyond the base rate; however, it provides only minimal protection that is considerably less than the average value of household goods. Under this option, a claim for an article that may be lost, destroyed, or damaged while in your mover`s custody will be settled based on the weight of the individual article multiplied by 60 cents. For example, the settlement for an audio component valued at $1000 that weighs 10 pounds would be $6.00 (10 pounds times 60 cents).<br>COMPLETE THIS PART ONLY if you wish to WAIVE the Full (Replacement) Level of Protection included in the higher cost estimate provided above in Option 1 for your shipment and instead select the LOWER Released Value of 60 Cents Per Pound Per Article; to do so you must initial and sign on the lines below.<br>I wish to Release My Shipment to a Maximum Value of 60 Cents per Pound per Article. Customer Initials:<br>I acknowledge that for my shipment I have 1) WAIVED the Full (Replacement) Level of protection for which I have received an estimate of charges, and 2) received a copy of the Your Rights and Responsibilities When You Move brochure explaining these provisions.<br>Dollar Estimate of the cost of your move under the 60-cents option: $___________(provided by carrier)<br>Signature: Clear</p>
+                    <p><strong>PHYSICAL SURVEY:</strong> The shipper has elected to waive the physical<br>and virtual survey and signed the waiver agreement before the<br>shipment is loaded in accordance with 49 CFR 375.401 (a).</p>
+                    <p><strong>TOTAL ESTIMATED CHARGES:</strong><br>Estimates are not guaranteed per 49 CFR 375.403(6) <span id="bolTotal">$0.00</span><br>ESTIMATED Cu.Ft./Lbs.: <span id="bolCuFt">-</span> cf.<br>TOTAL MINIMUM CHARGE: $<br>Other: 	$<br>PACKING MATERIALS AND LABOR:<br>Other: 	$<br>DISCOUNTS AND ADJUSTMENTS:<br>Veteran Discount - Manager's Discount - Early<br>Reservation - AAA - Senior Discount 	- $8100.00<br>Other: 	$<br>STORAGE CHARGES:<br>____ Days @ cu.ft. _____ @ $____per cu.ft. per month $<br>Other: 	$</p>
+                    <p><strong>SUMMARY OF CHARGES:</strong><br>TOTAL CHARGES: <span id="bolTotalCharges">$0.00</span><br>PAYMENTS: 	<span id="bolPayments">$0.00</span><br>PAYMENTS: 	$<br>BALANCE DUE: $<br>PRICE ADJUSTMENT: 	$<br>Payment Collected at Delivery: $<br>$<br>NEW BALANCE DUE IN 30 DAYS: $</p>
+                    <p><strong>PICK-UP 	ACKNOWLEDGEMENT:</strong> 	I, 	<span id="bolPickupSigner">-</span>,<br>acknowledge that I carefully read and fully understand the terms and<br>conditions in this Interstate Bill of Lading contract. I confirm my<br>responsibility for the charges and services listed above and hold all<br>else harmless. I acknowledge that the charges above are based on the<br>actual household goods shipment weight or volume. I hereby<br>authorize the release of my household goods to the carrier subject<br>to the terms and conditions thereof.<br>Customer's Signature at Pick-Up 	Date<br>Carrier Signature at Pick-Up 	Date</p>
+                    <p><strong>Notice of Maximum amount due upon delivery:</strong> Final charges will<br>be based on actual weight or cubic feet of property and services<br>provided or time. Maximum amount to be paid to the carrier and<br>demanded at destination is the amount of the last issued non-<br>binding estimate plus 10%; or 100% of the last binding estimate<br>issued; plus post contract services; any remaining balances due will<br>be billed after 30 days of delivery. Payment in full of all charges is<br>due before unloading. Fees for post contract services must be paid<br>in advance of delivery and prior to unloading.</p>
+                    <p><strong>DELIVERY ACKNOWLEDGEMENT:</strong> Shipper hereby acknowledges that the shipment was received in apparently good condition except as<br>noted on the inventory list. Shipper acknowledges that all the services that were ordered have been performed, have been fully satisfied, and<br>the truck was inspected and nothing has been left behind. Shipper and/or agent has full authority to accept the shipment and enter into this<br>agreement.<br>Customer's Signature at Delivery 	Date<br>Carrier Signature at Delivery 	Date</p>
+                    <p><strong>CONTRACT TERMS AND CONDITIONS OF BILL OF LADING</strong><br>Bill of Lading Terms and Conditions</p>
+                </div>
+                <div id="stepCCContent" class="section doc-text" style="display: none;">
+                    <div class="company-header">HERCULES MOVING SOLUTIONS<br>1133 Snowy Owl Dr., Alvarado, TX 76009<br>Phone: 818-322-3382<br>DOT: 3516489 | MC: 1197300</div>
+                    <div class="section-title">Credit Card Payment Authorization Form</div>
+                    <p>Sign and complete this form to authorize HERCULES MOVING SOLUTIONS to make a debit to your credit card listed below.</p>
+                    <div class="cc-form-grid">
+                        <div class="form-group">
+                            <label for="cardType">Credit Card Type:</label>
+                            <select id="cardType"><option value="">Select</option><option value="Visa">Visa</option><option value="Mastercard">Mastercard</option><option value="Amex">Amex</option><option value="Discover">Discover</option></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="cardholderName">Cardholder Name (as shown<br>on the card):</label>
+                            <input type="text" id="cardholderName" placeholder="Full name">
+                        </div>
+                        <div class="form-group">
+                            <label for="cardLast4">Credit Card Number:</label>
+                            <input type="text" id="cardLast4" placeholder="xxxx-xxxx-xxxx-1234 (last 4 digits only)" maxlength="4" pattern="[0-9]*" inputmode="numeric" style="max-width: 200px;"> <span style="font-size: 11px;">(Enter last 4 digits only)</span>
+                        </div>
+                        <div class="form-group">
+                            <label for="cardExpiry">Expiration Date:</label>
+                            <input type="text" id="cardExpiry" placeholder="08/2028" maxlength="7">
+                        </div>
+                        <div class="form-group full">
+                            <label for="billingAddress">Billing Address:</label>
+                            <input type="text" id="billingAddress" placeholder="Street address">
+                        </div>
+                        <div class="form-group">
+                            <label for="billingCity">City:</label>
+                            <input type="text" id="billingCity" placeholder="City">
+                        </div>
+                        <div class="form-group">
+                            <label for="billingState">State:</label>
+                            <input type="text" id="billingState" placeholder="State" maxlength="2" style="max-width: 80px;">
+                        </div>
+                        <div class="form-group">
+                            <label for="billingZip">ZIP Code:</label>
+                            <input type="text" id="billingZip" placeholder="ZIP" maxlength="10" style="max-width: 120px;">
+                        </div>
+                        <div class="form-group">
+                            <label for="ccEmail">Email:</label>
+                            <input type="email" id="ccEmail" placeholder="Email">
+                        </div>
+                        <div class="form-group">
+                            <label for="ccAmount">Amount of Charge:</label>
+                            <input type="text" id="ccAmount" placeholder="0.00" inputmode="decimal">
+                        </div>
+                    </div>
+                    <p id="ccAuthStatement" style="margin: 16px 0; font-size: 12px;">I, <span id="ccAuthName">-</span> , hereby authorize to charge my credit card <span id="ccAuthLast4">____</span> listed above for the amount of $<span id="ccAuthAmount">0.00</span> on <span id="ccAuthDate">-</span>. This payment is for moving related expenses rendered to: <span id="ccAuthCustomer">-</span> on the Job #<span id="ccAuthJobNo">-</span>.</p>
+                    <p>I agree to HERCULES MOVING SOLUTIONS cancellation policy, as well, which reads: "If electing to cancel<br>your move with HERCULES MOVING SOLUTIONS, a written notification must be sent to<br>move@herculesmovingsolutions.com. Written notification must be received no later than 72 hours after signing<br>the HERCULES MOVING SOLUTIONS agreement to receive a full refund. If your first available pickup date is<br>within seven (7) business days of the electronically signed HERCULES MOVING SOLUTIONS agreement and you<br>request to cancel, your deposit is not refundable."</p>
+                    <p>I agree that any deposit provided to HERCULES MOVING SOLUTIONS can be utilized for a future move within<br>a 12 month period of placing a reservation, should I request to cancel.</p>
+                    <p class="sign-prompt">PLEASE CLICK TO SIGN THIS CREDIT CARD AUTHORIZATION FORM.</p>
+
+                    <div style="margin-top:20px;padding:16px;background:#eef2ff;border:2px solid #6366f1;border-radius:10px;">
+                        <div style="font-weight:700;color:#4f46e5;font-size:14px;margin-bottom:10px;">⚡ Or pay deposit securely via Stripe</div>
+                        <div id="agr-stripe-card" style="background:#fff;border:2px solid #c7d2fe;border-radius:6px;padding:12px;margin-bottom:10px;min-height:44px;"></div>
+                        <div id="agr-stripe-error" style="color:#dc2626;font-size:12px;margin-bottom:8px;"></div>
+                        <button type="button" id="agr-stripe-btn" onclick="agreementStripeCharge()"
+                            style="width:100%;padding:12px;background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border:none;border-radius:8px;font-size:15px;font-weight:700;cursor:pointer;">
+                            ⚡ Pay Deposit via Stripe
+                        </button>
+                        <div id="agr-stripe-success" style="display:none;background:#f0fdf4;border:1px solid #86efac;border-radius:6px;padding:10px;margin-top:10px;color:#166534;font-weight:600;text-align:center;"></div>
+                    </div>
+                </div>
+                <div class="section signature-section">
+                    <div class="section-title">Signature</div>
+                    <p style="font-size: 12px; color: #64748b; margin-bottom: 16px;">
+                        By signing below, you agree to the terms and conditions of this moving agreement.
+                    </p>
+                    <div class="form-group">
+                        <label for="signerName">Your Name (as it appears on the agreement)</label>
+                        <input type="text" id="signerName" placeholder="Enter your full name" required>
+                    </div>
+                    <div class="signature-pad-container">
+                        <div class="signature-pad-label">Please sign below:</div>
+                        <canvas id="signatureCanvas"></canvas>
+                        <div class="signature-controls">
+                            <button type="button" class="btn btn-secondary" id="btnClear">Clear</button>
+                        </div>
+                    </div>
+                    <div style="margin-top: 24px;">
+                        <button type="button" class="btn btn-primary" id="btnSubmit" disabled>Submit Signature</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="thankYouView" style="display: none;">
+            <div class="thank-you">
+                <h2>✅ Thank You!</h2>
+                <p>You have completed all 3 documents: Moving Estimate, Bill of Lading, and Credit Card Authorization.</p>
+                <p style="font-size: 14px; color: #64748b; margin-top: 20px;">
+                    You will receive a confirmation email shortly.
+                </p>
+                <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #e2e8f0;">
+                    <p style="font-size: 13px; color: #64748b; margin-bottom: 12px;">
+                        Track all your documents in one place:
+                    </p>
+                    <a href="/client-portal" style="display: inline-block; background: #FFA23F; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; font-weight: 600;">
+                        Go to My Documents Portal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        const SUPABASE_URL = 'process.env.SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+        
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get('t') || params.get('token');
+        
+        let agreement = null;
+        let job = null;
+        let inventory = null;
+        let nextToken = null;
+        let estimateTotal = 0;
+        let canvas = null;
+        let ctx = null;
+        let isDrawing = false;
+        
+        function initCanvas() {
+            canvas = document.getElementById('signatureCanvas');
+            ctx = canvas.getContext('2d');
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+            ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+            
+            canvas.addEventListener('mousedown', startDrawing);
+            canvas.addEventListener('mousemove', draw);
+            canvas.addEventListener('mouseup', stopDrawing);
+            canvas.addEventListener('mouseout', stopDrawing);
+            canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); });
+            canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+            canvas.addEventListener('touchend', stopDrawing);
+            
+            document.getElementById('signerName').addEventListener('input', checkCanSubmit);
+            document.getElementById('btnClear').addEventListener('click', clearSignature);
+            document.getElementById('btnSubmit').addEventListener('click', submitSignature);
+        }
+        
+        let hasDrawn = false;
+        function startDrawing(e) {
+            isDrawing = true;
+            hasDrawn = true;
+            const rect = canvas.getBoundingClientRect();
+            ctx.beginPath();
+            ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+        }
+        
+        function draw(e) {
+            if (!isDrawing) return;
+            const rect = canvas.getBoundingClientRect();
+            ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+            ctx.stroke();
+        }
+        
+        function stopDrawing() {
+            isDrawing = false;
+            checkCanSubmit();
+        }
+        
+        function clearSignature() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            hasDrawn = false;
+            checkCanSubmit();
+        }
+        
+        function updateCCStatement() {
+            const nameEl = document.getElementById('signerName');
+            const last4El = document.getElementById('cardLast4');
+            const amountEl = document.getElementById('ccAmount');
+            if (document.getElementById('ccAuthName')) document.getElementById('ccAuthName').textContent = (nameEl && nameEl.value.trim()) || '-';
+            if (document.getElementById('ccAuthLast4')) document.getElementById('ccAuthLast4').textContent = (last4El && last4El.value.trim()) || '____';
+            if (document.getElementById('ccAuthAmount')) document.getElementById('ccAuthAmount').textContent = (amountEl && amountEl.value.trim()) || '0.00';
+        }
+
+        function checkCanSubmit() {
+            const name = document.getElementById('signerName').value.trim();
+            const hasSignature = hasDrawn;
+            let ok = name && hasSignature;
+            if (agreement && agreement.document_type === 'credit_card_authorization') {
+                const cardType = document.getElementById('cardType').value;
+                const cardholder = document.getElementById('cardholderName').value.trim();
+                const last4 = document.getElementById('cardLast4').value.trim();
+                const expiry = document.getElementById('cardExpiry').value.trim();
+                const billing = document.getElementById('billingAddress').value.trim();
+                const city = document.getElementById('billingCity') ? document.getElementById('billingCity').value.trim() : '';
+                const state = document.getElementById('billingState') ? document.getElementById('billingState').value.trim() : '';
+                const zip = document.getElementById('billingZip') ? document.getElementById('billingZip').value.trim() : '';
+                const amount = document.getElementById('ccAmount').value.trim();
+                ok = ok && cardType && cardholder && last4.length === 4 && expiry && billing && amount && parseFloat(amount) > 0;
+                if (document.getElementById('billingCity')) ok = ok && city && state && zip;
+            }
+            document.getElementById('btnSubmit').disabled = !ok;
+        }
+        
+        async function loadAgreement() {
+            if (!token) {
+                showError('Missing agreement token. Please use the link provided in your email.');
+                return;
+            }
+            
+            try {
+                const baseUrl = window.location.origin;
+                const res = await fetch(`${baseUrl}/api/get-agreement?t=${encodeURIComponent(token)}`);
+                const data = await res.json();
+                
+                if (!data.success || !data.agreement) {
+                    showError(data.error || 'Agreement not found');
+                    return;
+                }
+                
+                agreement = data.agreement;
+                job = data.job;
+                inventory = data.inventory;
+                nextToken = data.nextToken || null;
+
+                if (agreement.status === 'signed') {
+                    if (nextToken) {
+                        window.location.href = window.location.origin + '/agreement?t=' + nextToken;
+                        return;
+                    }
+                    showThankYou();
+                    return;
+                }
+
+                renderAgreement();
+            } catch (err) {
+                showError('Failed to load agreement: ' + err.message);
+            }
+        }
+        
+        function renderAgreement() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('agreementView').style.display = 'block';
+
+            const docType = agreement.document_type || 'moving_estimate';
+            const stepOrder = agreement.step_order != null ? agreement.step_order : 1;
+            const docTitle = agreement.agreement_title || (stepOrder === 1 ? 'Moving Estimate' : stepOrder === 2 ? 'Interstate Bill of Lading' : 'Credit Card Authorization Form');
+
+            document.getElementById('stepBadge').textContent = 'Step ' + stepOrder + ' of 3';
+            document.getElementById('docTitle').textContent = docTitle;
+            document.getElementById('stepEstimateContent').style.display = docType === 'moving_estimate' ? 'block' : 'none';
+            document.getElementById('stepBOLContent').style.display = docType === 'bill_of_lading' ? 'block' : 'none';
+            document.getElementById('stepCCContent').style.display = docType === 'credit_card_authorization' ? 'block' : 'none';
+            if (docType === 'credit_card_authorization') initAgreementStripe();
+
+            if (job) {
+                const cf = parseFloat(job.cubes) || 0;
+                const perCf = parseFloat(job.rate_per_cf) || 8;
+                const initial = cf * perCf;
+                const fuel = initial * 0.15;
+                const discount = 0;
+                const total = initial + fuel - discount;
+                estimateTotal = total;
+                const fromAddr = (job.moving_from || job.moving_from_address || job.address_from || '').toString();
+                const toAddr = (job.moving_to || job.moving_to_address || job.address_to || '').toString();
+
+                document.getElementById('jobNumber').textContent = job.job_number || '-';
+                document.getElementById('estimateJobNo').textContent = job.job_number || '-';
+                document.getElementById('fromName').textContent = job.customer_name || '-';
+                document.getElementById('toName').textContent = job.customer_name || '-';
+                document.getElementById('fromAddress').textContent = fromAddr || '-';
+                document.getElementById('toAddress').textContent = toAddr || '-';
+                document.getElementById('fromCityState').textContent = fromAddr || '-';
+                document.getElementById('toCityState').textContent = toAddr || '-';
+                document.getElementById('fromPhone').textContent = job.phone || '-';
+                document.getElementById('fromEmail').textContent = job.email || '-';
+                document.getElementById('detailJobNo').textContent = job.job_number || '-';
+                document.getElementById('repName').textContent = job.user_name || job.rep_name || '-';
+                document.getElementById('repEmail').textContent = job.rep_email || '-';
+                document.getElementById('repPhone').textContent = job.phone || '-';
+                document.getElementById('moveMiles').textContent = job.distance || '-';
+                document.getElementById('estVolume').textContent = cf ? cf.toString() : '-';
+                document.getElementById('estLbs').textContent = cf ? Math.round(cf * 7).toString() : '-';
+                document.getElementById('estRate').textContent = perCf.toString();
+                document.getElementById('moveDate').textContent = job.move_date || job.pickup_date || '-';
+                document.getElementById('createdOn').textContent = job.submitted_at ? new Date(job.submitted_at).toLocaleDateString() : new Date().toLocaleDateString();
+                document.getElementById('pricingInitial').textContent = cf ? `${cf} cf × $${perCf}/cf` : '-';
+                document.getElementById('initialCalc').textContent = '$' + initial.toFixed(2);
+                document.getElementById('fuelCalc').textContent = '$' + fuel.toFixed(2);
+                document.getElementById('discountDisplay').textContent = discount > 0 ? '$' + discount.toFixed(2) : '-';
+                document.getElementById('totalEstimate').textContent = '$' + total.toFixed(2);
+                document.getElementById('customerPayment').textContent = '$0.00';
+                document.getElementById('totalWithValuation').textContent = '$' + total.toFixed(2);
+
+                document.getElementById('bolOrderNo').textContent = job.job_number ? job.job_number + ' -' : '-';
+                document.getElementById('bolPickupDate').textContent = job.move_date || job.pickup_date || '-';
+                document.getElementById('bolDeliveryDate').textContent = job.delivery_date || '-';
+                document.getElementById('bolFromName').textContent = job.customer_name || '-';
+                document.getElementById('bolFromAddress').textContent = fromAddr || '-';
+                document.getElementById('bolFromCityState').textContent = fromAddr || '-';
+                document.getElementById('bolFromPhone').textContent = job.phone || '-';
+                document.getElementById('bolToName').textContent = job.customer_name || '-';
+                document.getElementById('bolToAddress').textContent = toAddr || '-';
+                document.getElementById('bolToCityState').textContent = toAddr || '-';
+                document.getElementById('bolSignerName').textContent = job.customer_name || '-';
+                document.getElementById('bolPickupSigner').textContent = job.customer_name || '-';
+                document.getElementById('bolFVPAmount').textContent = '$' + (total * 1.2).toFixed(0);
+                document.getElementById('bolEstimatePlusVal').textContent = '$' + total.toFixed(2);
+                document.getElementById('bolTotal').textContent = '$' + total.toFixed(2);
+                document.getElementById('bolCuFt').textContent = cf ? cf.toString() : '-';
+                document.getElementById('bolTotalCharges').textContent = '$' + total.toFixed(2);
+                document.getElementById('bolPayments').textContent = '$0.00';
+
+                if (job.deposit_amount != null && parseFloat(job.deposit_amount) > 0) {
+                    document.getElementById('ccAmount').value = Number(job.deposit_amount).toFixed(2);
+                } else {
+                    document.getElementById('ccAmount').placeholder = total.toFixed(2);
+                }
+                document.getElementById('ccAuthCustomer').textContent = job.customer_name || '-';
+                document.getElementById('ccAuthJobNo').textContent = job.job_number || '-';
+                document.getElementById('ccAuthDate').textContent = new Date().toLocaleDateString();
+                const ccEmailEl = document.getElementById('ccEmail');
+                if (ccEmailEl) ccEmailEl.value = job.email || '';
+            }
+
+            if (inventory && Array.isArray(inventory) && inventory.length > 0) {
+                document.getElementById('inventorySection').style.display = docType === 'moving_estimate' ? 'block' : 'none';
+                const container = document.getElementById('inventoryBody');
+                let totalVol = 0, pieces = 0;
+                const byRoom = {};
+                inventory.forEach(item => {
+                    const room = item.room || 'Other';
+                    if (!byRoom[room]) byRoom[room] = [];
+                    byRoom[room].push(item);
+                    const qty = item.qty || 0;
+                    pieces += qty;
+                    totalVol += (item.volume || 0) * qty;
+                });
+                const roomOrder = ['Bedroom','Living Room','Dining Room','Kitchen','Bathroom','Office','Garage','Patio','Basement','Attic','Nursery','Play Room','Other'];
+                const sortedRooms = Object.keys(byRoom).sort((a, b) => {
+                    const ia = roomOrder.indexOf(a);
+                    const ib = roomOrder.indexOf(b);
+                    if (ia === -1 && ib === -1) return a.localeCompare(b);
+                    if (ia === -1) return 1;
+                    if (ib === -1) return -1;
+                    return ia - ib;
+                });
+                container.innerHTML = sortedRooms.map(room => {
+                    const rows = byRoom[room].map(item => {
+                        const qty = item.qty || 0;
+                        return `<tr><td class="col-qty">${qty}</td><td class="col-item">${escapeHtml(item.name || '-')}</td></tr>`;
+                    }).join('');
+                    return `<div class="inventory-room-group" style="margin-bottom: 12px;"><div class="inventory-room-title" style="font-weight: 600; color: #FFA23F; margin-bottom: 4px;">${escapeHtml(room)}</div><table class="inventory-table"><thead><tr><th class="col-qty">Qty</th><th class="col-item">Items</th></tr></thead><tbody>${rows}</tbody></table></div>`;
+                }).join('');
+                document.getElementById('totalVolume').textContent = totalVol.toFixed(1);
+                document.getElementById('inventoryCount').textContent = inventory.length;
+                document.getElementById('pieceCount').textContent = pieces;
+            }
+
+            if (docType === 'credit_card_authorization') {
+                updateCCStatement();
+                ['cardType','cardholderName','cardLast4','cardExpiry','billingAddress','billingCity','billingState','billingZip','ccEmail','ccAmount','signerName'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener('input', function() { updateCCStatement(); checkCanSubmit(); });
+                });
+            }
+            initCanvas();
+        }
+        
+        async function submitSignature() {
+            const name = document.getElementById('signerName').value.trim();
+            if (!name) {
+                alert('Please enter your name');
+                return;
+            }
+
+            const signatureDataUrl = canvas.toDataURL('image/png');
+            if (signatureDataUrl.endsWith('AAAAAElFTkSuQmCC')) {
+                alert('Please provide your signature');
+                return;
+            }
+
+            if (agreement && agreement.document_type === 'credit_card_authorization') {
+                const last4 = document.getElementById('cardLast4').value.trim();
+                if (last4.length !== 4 || !/^\d+$/.test(last4)) {
+                    alert('Please enter the last 4 digits of your card');
+                    return;
+                }
+            }
+
+            document.getElementById('btnSubmit').disabled = true;
+            document.getElementById('btnSubmit').textContent = 'Submitting...';
+
+            const body = { token, signerName: name, signatureDataUrl };
+            if (agreement && agreement.document_type === 'credit_card_authorization') {
+                body.agreementBody = {
+                    cardType: document.getElementById('cardType').value,
+                    cardholderName: document.getElementById('cardholderName').value.trim(),
+                    cardLast4: document.getElementById('cardLast4').value.trim(),
+                    cardExpiry: document.getElementById('cardExpiry').value.trim(),
+                    billingAddress: document.getElementById('billingAddress').value.trim(),
+                    billingCity: document.getElementById('billingCity') ? document.getElementById('billingCity').value.trim() : '',
+                    billingState: document.getElementById('billingState') ? document.getElementById('billingState').value.trim() : '',
+                    billingZip: document.getElementById('billingZip') ? document.getElementById('billingZip').value.trim() : '',
+                    email: document.getElementById('ccEmail') ? document.getElementById('ccEmail').value.trim() : '',
+                    amountCharged: document.getElementById('ccAmount').value.trim(),
+                };
+            }
+
+            try {
+                const baseUrl = window.location.origin;
+                const res = await fetch(`${baseUrl}/api/sign-agreement`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                const data = await res.json();
+
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to submit signature');
+                }
+
+                if (data.nextToken) {
+                    window.location.href = baseUrl + '/agreement?t=' + data.nextToken;
+                    return;
+                }
+                showThankYou();
+            } catch (err) {
+                alert('Error submitting signature: ' + err.message);
+                document.getElementById('btnSubmit').disabled = false;
+                document.getElementById('btnSubmit').textContent = 'Submit Signature';
+            }
+        }
+        
+        function showThankYou() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('agreementView').style.display = 'none';
+            document.getElementById('thankYouView').style.display = 'block';
+        }
+        
+        function showError(msg) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('error').style.display = 'block';
+            document.getElementById('error').textContent = msg;
+        }
+        
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+        
+        document.addEventListener('DOMContentLoaded', loadAgreement);
+
+        // ── Stripe in CC authorization step ─────────────────────────
+        const AGR_STRIPE_PK = 'pk_live_51Sv2HE3Vm2xod16QgHjHyYZUutbTU9wtvttCftX5RZpo7rqV5wFCvrtSM2dSck1FOxgHi8AUDqGFY9AB8IreHdeC00gHhxYNiU';
+        let _agrStripe = null, _agrCard = null;
+
+        // Called from renderAgreement() when docType === 'credit_card_authorization'
+        async function initAgreementStripe() {
+            if (_agrCard) return;
+            if (!window.Stripe) {
+                const s = document.createElement('script');
+                s.src = 'https://js.stripe.com/v3/';
+                document.head.appendChild(s);
+                await new Promise(r => s.onload = r);
+            }
+            _agrStripe = window.Stripe(AGR_STRIPE_PK);
+            const elements = _agrStripe.elements();
+            _agrCard = elements.create('card', {
+                style: { base: { fontSize: '15px', color: '#374151', '::placeholder': { color: '#94a3b8' } } }
+            });
+            _agrCard.mount('#agr-stripe-card');
+            _agrCard.on('change', e => {
+                document.getElementById('agr-stripe-error').textContent = e.error ? e.error.message : '';
+            });
+        }
+
+        async function agreementStripeCharge() {
+            if (!_agrStripe || !_agrCard) { alert('Stripe not loaded yet. Please wait a moment.'); return; }
+            const amountEl = document.getElementById('ccAmount');
+            const amount = parseFloat(amountEl ? amountEl.value : 0);
+            if (!amount || amount <= 0) { alert('Please fill in the "Amount of Charge" field above first.'); if (amountEl) amountEl.focus(); return; }
+
+            const btn = document.getElementById('agr-stripe-btn');
+            btn.disabled = true; btn.textContent = 'Processing…';
+            document.getElementById('agr-stripe-error').textContent = '';
+
+            try {
+                const cardholderName = (document.getElementById('cardholderName')?.value || '').trim();
+                const { paymentMethod, error } = await _agrStripe.createPaymentMethod({
+                    type: 'card',
+                    card: _agrCard,
+                    billing_details: { name: cardholderName || undefined }
+                });
+                if (error) throw new Error(error.message);
+
+                // job is the loaded job data (from loadAgreement → renderAgreement scope)
+                const jobNumber    = (typeof job !== 'undefined' && job) ? (job.job_number || '') : '';
+                const customerName = (typeof job !== 'undefined' && job) ? (job.customer_name || cardholderName) : cardholderName;
+
+                const res = await fetch('/api/stripe-charge', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ amount, paymentMethodId: paymentMethod.id, jobNumber, customerName })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    const successEl = document.getElementById('agr-stripe-success');
+                    successEl.textContent = `✅ Deposit of $${parseFloat(amount).toFixed(2)} received via Stripe! Transaction ID: ${data.paymentIntentId}`;
+                    successEl.style.display = 'block';
+                    btn.style.display = 'none';
+                } else {
+                    throw new Error(data.error || 'Payment failed');
+                }
+            } catch(err) {
+                document.getElementById('agr-stripe-error').textContent = err.message;
+                btn.disabled = false; btn.textContent = '⚡ Pay Deposit via Stripe';
+            }
+        }
+    </script>
+</body>
+</html>

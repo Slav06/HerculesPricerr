@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "Job Tracker - Closer Edition",
+  "version": "1.0",
+  "description": "Chrome extension for closers to track job statuses on HelloMoving pages",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "icons": {
+    "16": "icon16.png",
+    "48": "icon48.png",
+    "128": "icon128.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Closer Job Tracker"
+  }
+}

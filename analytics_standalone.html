@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics Dashboard - GoHighLevel Contacts</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .header {
+            background: white;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            color: #e8891f;
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .nav-links a {
+            color: #3b82f6;
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-links a:hover {
+            background: #eff6ff;
+        }
+
+        .admin-notice {
+            background: #fef3c7;
+            border: 1px solid #f59e0b;
+            color: #92400e;
+            padding: 1rem;
+            margin: 1rem;
+            border-radius: 8px;
+            font-weight: 500;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .stat-card h3 {
+            color: #64748b;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .trend {
+            font-size: 0.75rem;
+            color: #64748b;
+            margin-top: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .trend.positive {
+            color: #16a34a;
+        }
+
+        .trend.negative {
+            color: #dc2626;
+        }
+
+        .stats-dashboard {
+            margin-bottom: 2rem;
+        }
+
+        .stats-grid-large {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .stat-card-large {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid #10b981;
+        }
+
+        .stat-card-large h3 {
+            color: #1e293b;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .chart-container {
+            min-height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .chart-bar {
+            background: #3b82f6;
+            margin: 2px;
+            border-radius: 2px;
+            transition: height 0.3s ease;
+        }
+
+        .chart-label {
+            font-size: 0.75rem;
+            color: #64748b;
+            text-align: center;
+            margin-top: 0.5rem;
+        }
+
+        .sync-section {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 6px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        .btn:disabled {
+            background: #94a3b8;
+            cursor: not-allowed;
+        }
+
+        .data-table {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .table-header {
+            background: #f8fafc;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .table-header h2 {
+            color: #1e293b;
+            font-size: 1.25rem;
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.75rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        th {
+            background: #f8fafc;
+            font-weight: 600;
+            color: #374151;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            color: #64748b;
+        }
+
+        .error {
+            background: #fef2f2;
+            border: 1px solid #f87171;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .success {
+            background: #f0fdf4;
+            border: 1px solid #22c55e;
+            color: #16a34a;
+            padding: 1rem;
+            border-radius: 6px;
+            margin: 1rem 0;
+        }
+
+        .unauthorized {
+            text-align: center;
+            padding: 4rem;
+            color: #dc2626;
+        }
+
+        .unauthorized h2 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Analytics Dashboard</h1>
+        <div class="nav-links">
+            <a href="index.html">🏠 Home</a>
+            <a href="dashboard.html">📋 Dashboard</a>
+            <a href="#" onclick="refreshPage()">🔄 Refresh</a>
+        </div>
+    </div>
+
+    <div id="unauthorized" class="unauthorized" style="display: none;">
+        <h2>🔒 Access Denied</h2>
+        <p>This dashboard is only accessible to admin users.</p>
+        <p>Please login with an admin account in the popup to view analytics data.</p>
+    </div>
+
+    <div id="dashboard" style="display: none;">
+        <div class="admin-notice">
+            🛡️ <strong>Admin Dashboard:</strong> You have exclusive access to GoHighLevel analytics data.
+        </div>
+
+        <div class="container">
+            <!-- Stats Overview -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3>Total Contacts</h3>
+                    <div class="value" id="totalContacts">-</div>
+                    <div class="trend" id="contactsTrend"></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Active Opportunities</h3>
+                    <div class="value" id="activeOpportunities">-</div>
+                    <div class="trend" id="opportunitiesTrend"></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Pipelines</h3>
+                    <div class="value" id="totalPipelines">-</div>
+                </div>
+                <div class="stat-card">
+                    <h3>Lead Status Distribution</h3>
+                    <div class="value" id="leadStatusCount">-</div>
+                    <div class="trend" id="leadStatusBreakdown"></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Last Sync</h3>
+                    <div class="value" id="lastSync">Never</div>
+                    <div class="trend" id="syncStatus"></div>
+                </div>
+                <div class="stat-card">
+                    <h3>Data Quality</h3>
+                    <div class="value" id="dataQuality">-</div>
+                    <div class="trend" id="qualityDetails"></div>
+                </div>
+            </div>
+
+            <!-- GoHighLevel Data Sync -->
+            <div class="sync-section">
+                <h2>GoHighLevel Data Sync</h2>
+                <p style="margin: 1rem 0; color: #64748b;">
+                    Sync data from your GoHighLevel account to view analytics and insights.
+                </p>
+                <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+                    <button class="btn" onclick="syncGHLData()" id="syncBtn">
+                        🔄 Sync Data from GoHighLevel
+                    </button>
+                    <button class="btn" onclick="pullAllContacts()" id="pullContactsBtn" style="background: #dc2626;">
+                        📥 Pull All Contacts to Database
+                    </button>
+                    <button class="btn" onclick="exportData('csv')" id="exportCsvBtn" style="background: #059669;">
+                        📊 Export CSV
+                    </button>
+                    <button class="btn" onclick="exportData('json')" id="exportJsonBtn" style="background: #7c3aed;">
+                        📄 Export JSON
+                    </button>
+                    <button class="btn" onclick="testGHLConnection()" id="testBtn" style="background: #ea580c;">
+                        🔍 Test API Connection
+                    </button>
+                </div>
+                <div id="syncStatusSection"></div>
+            </div>
+
+            <!-- Contact Statistics Dashboard -->
+            <div class="stats-dashboard">
+                <div class="table-header">
+                    <h2>📊 Contact Statistics Dashboard</h2>
+                </div>
+                <div class="stats-grid-large">
+                    <div class="stat-card-large">
+                        <h3>📈 Contact Source Distribution</h3>
+                        <div id="sourceChart" class="chart-container">
+                            <div class="loading">Loading source data...</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-large">
+                        <h3>👥 Representative Assignment</h3>
+                        <div id="repChart" class="chart-container">
+                            <div class="loading">Loading rep data...</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-large">
+                        <h3>🏷️ Lead Status Breakdown</h3>
+                        <div id="statusChart" class="chart-container">
+                            <div class="loading">Loading status data...</div>
+                        </div>
+                    </div>
+                    <div class="stat-card-large">
+                        <h3>📅 Monthly Contact Growth</h3>
+                        <div id="growthChart" class="chart-container">
+                            <div class="loading">Loading growth data...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Data Table -->
+            <div class="data-table">
+                <div class="table-header">
+                    <h2>Recent GoHighLevel Data</h2>
+                </div>
+                <div id="dataTableContent">
+                    <div class="loading">
+                        Click "Sync Data" to load GoHighLevel analytics
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const SUPABASE_URL = 'process.env.SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+        const GHL_API_KEY = process.env.GHL_API_KEY;
+        
+        let GHL_LOCATION_ID = process.env.GHL_LOCATION_ID;
+        let currentUser = null;
+
+        // Check admin access and load dashboard
+        async function initDashboard() {
+            try {
+                // Get current user from popup or session storage
+                const user = await getCurrentUser();
+                
+                if (!user) {
+                    document.getElementById('unauthorized').style.display = 'block';
+                    return;
+                }
+
+                // Check if user is admin
+                if (user.role !== 'admin') {
+                    document.getElementById('unauthorized').style.display = 'block';
+                    return;
+                }
+
+                // User is admin, show dashboard
+                currentUser = user;
+                document.getElementById('dashboard').style.display = 'block';
+                
+                // Load existing analytics data
+                loadAnalyticsData();
+                loadContactStatistics();
+
+            } catch (error) {
+                console.error('❌ Error initializing dashboard:', error);
+                document.getElementById('unauthorized').style.display = 'block';
+            }
+        }
+
+        async function getCurrentUser() {
+            // Try to get user from chrome storage (if extension popup)
+            if (window.chrome && chrome.storage) {
+                const result = await new Promise((resolve) => {
+                    chrome.storage.local.get(['popupUser'], (result) => {
+                        resolve(result.popupUser || null);
+                    });
+                });
+                if (result) return result;
+            }
+
+            // Try session storage
+            const sessionUser = sessionStorage.getItem('currentUser');
+            if (sessionUser) {
+                return JSON.parse(sessionUser);
+            }
+
+            return null;
+        }
+
+        function refreshPage() {
+            location.reload();
+        }
+
+        // Custom field mappings (discovered through API testing)
+        const CUSTOM_FIELD_MAPPINGS = {
+            'QSG9Rn9qEceAQ3jGLo7r': 'lead_status',
+            'Xs06oL2GnemvPxfrkJo6': 'field_2', // Unknown field - update name when identified
+            'xXKs2xmaZHTSEs7rgjuA': 'field_3', // Unknown field - update name when identified
+            '6q7SkZeD90CGVd2rRJZY': 'field_4', // Unknown field - update name when identified
+            'UZIm1Ck8jZVoepZEGpPK': 'field_5'  // Unknown field - update name when identified
+        };
+
+        async function syncGHLData() {
+            const syncBtn = document.getElementById('syncBtn');
+            const syncStatus = document.getElementById('syncStatusSection');
+            
+            syncBtn.disabled = true;
+            syncBtn.textContent = '⏳ Syncing...';
+            syncStatus.innerHTML = '<div class="loading">Connecting to GoHighLevel...</div>';
+
+            try {
+                // Test GHL API connection
+                const ghlData = await fetchGHLData();
+                
+                if (ghlData) {
+                    // Store data in Supabase
+                    await storeAnalyticsData(ghlData);
+                    
+                    syncStatus.innerHTML = '<div class="success">✅ Data synced successfully!</div>';
+                    
+                    // Update stats
+                    updateStats(ghlData);
+                    document.getElementById('lastSync').textContent = new Date().toLocaleString();
+                    
+                    // Refresh data table
+                    loadAnalyticsData();
+                } else {
+                    throw new Error('No data received from GoHighLevel');
+                }
+
+            } catch (error) {
+                console.error('❌ Sync failed:', error);
+                syncStatus.innerHTML = `<div class="error">❌ Sync failed: ${error.message}</div>`;
+            } finally {
+                syncBtn.disabled = false;
+                syncBtn.textContent = '🔄 Sync Data from GoHighLevel';
+            }
+        }
+
+        async function fetchGHLData() {
+            console.log('🔍 Fetching data from GoHighLevel v2 API...');
+            console.log('🔑 Using API Key:', GHL_API_KEY);
+            
+            // Try both authentication formats
+            const authFormats = [
+                { name: 'Direct Token', auth: GHL_API_KEY },
+                { name: 'Bearer Token', auth: `Bearer ${GHL_API_KEY}` }
+            ];
+            
+            let successfulAuth = null;
+            let lastError = null;
+            
+            // Test authentication formats
+            for (const authFormat of authFormats) {
+                try {
+                    console.log(`🔐 Testing ${authFormat.name} format...`);
+                    
+                    const testResponse = await fetch('https://services.leadconnectorhq.com/contacts/', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': authFormat.auth,
+                            'Version': '2021-07-28'
+                        }
+                    });
+
+                    console.log(`📡 ${authFormat.name} Response:`, testResponse.status, testResponse.statusText);
+                    
+                    if (testResponse.ok) {
+                        successfulAuth = authFormat;
+                        console.log(`✅ ${authFormat.name} works!`);
+                        break;
+                    } else {
+                        const errorText = await testResponse.text();
+                        console.log(`❌ ${authFormat.name} Error:`, errorText);
+                        lastError = { format: authFormat.name, status: testResponse.status, error: errorText };
+                        
+                        // If we get 403 (permission error), this auth format works but lacks permissions
+                        if (testResponse.status === 403) {
+                            successfulAuth = authFormat;
+                            console.log(`⚠️ ${authFormat.name} works but lacks permissions`);
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.log(`❌ ${authFormat.name} Network Error:`, error);
+                    lastError = { format: authFormat.name, error: error.message };
+                }
+            }
+            
+            if (!successfulAuth) {
+                throw new Error(`Authentication failed with all formats. Last error: ${JSON.stringify(lastError)}`);
+            }
+            
+            console.log(`🎯 Using ${successfulAuth.name} for API calls`);
+            
+            // First, try to detect location ID if we don't have one
+            if (!GHL_LOCATION_ID) {
+                GHL_LOCATION_ID = await detectLocationId(successfulAuth.auth);
+            }
+            
+            try {
+                // Now fetch data using the successful auth format
+                const contactsUrl = GHL_LOCATION_ID 
+                    ? `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}`
+                    : 'https://services.leadconnectorhq.com/contacts/';
+                    
+                console.log('🔗 Contacts URL:', contactsUrl);
+                
+                const contactsResponse = await fetch(contactsUrl, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json',
+                        'Authorization': successfulAuth.auth,
+                        'Version': '2021-07-28'
+                    }
+                });
+
+                console.log('📡 Contacts API Response:', contactsResponse.status, contactsResponse.statusText);
+
+                let contactsData = [];
+                if (contactsResponse.ok) {
+                    const contactsResult = await contactsResponse.json();
+                    const rawContacts = contactsResult.contacts || contactsResult || [];
+                    
+                    // Process contacts to extract custom fields with proper names
+                    contactsData = rawContacts.map(contact => {
+                        const processedContact = { ...contact };
+                        
+                        // Extract and map custom fields
+                        if (contact.customFields && Array.isArray(contact.customFields)) {
+                            processedContact.customFieldsMapped = {};
+                            contact.customFields.forEach(field => {
+                                const fieldName = CUSTOM_FIELD_MAPPINGS[field.id] || field.id;
+                                processedContact.customFieldsMapped[fieldName] = field.value;
+                            });
+                            
+                            // Add lead_status as a top-level property for easy access
+                            if (processedContact.customFieldsMapped.lead_status) {
+                                processedContact.lead_status = processedContact.customFieldsMapped.lead_status;
+                            }
+                        }
+                        
+                        return processedContact;
+                    });
+                    
+                    console.log('✅ Processed contacts data with custom fields:', contactsData);
+                    
+                    // Log lead status distribution
+                    const leadStatusCounts = {};
+                    contactsData.forEach(contact => {
+                        const status = contact.lead_status || 'No Status';
+                        leadStatusCounts[status] = (leadStatusCounts[status] || 0) + 1;
+                    });
+                    console.log('📊 Lead Status Distribution:', leadStatusCounts);
+                } else {
+                    const errorText = await contactsResponse.text();
+                    console.log('❌ Contacts API Error:', errorText);
+                }
+
+                // Try to get opportunities
+                let opportunitiesData = [];
+                try {
+                    const opportunitiesResponse = await fetch('https://services.leadconnectorhq.com/opportunities/', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': successfulAuth.auth,
+                            'Version': '2021-07-28'
+                        }
+                    });
+
+                    console.log('📡 Opportunities API Response:', opportunitiesResponse.status);
+
+                    if (opportunitiesResponse.ok) {
+                        const opportunitiesResult = await opportunitiesResponse.json();
+                        opportunitiesData = opportunitiesResult.opportunities || opportunitiesResult || [];
+                        console.log('✅ Opportunities data:', opportunitiesData);
+                    }
+                } catch (error) {
+                    console.log('⚠️ Opportunities endpoint not available:', error.message);
+                }
+
+                // Try to get pipelines
+                let pipelinesData = [];
+                try {
+                    const pipelinesResponse = await fetch('https://services.leadconnectorhq.com/opportunities/pipelines', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': successfulAuth.auth,
+                            'Version': '2021-07-28'
+                        }
+                    });
+
+                    console.log('📡 Pipelines API Response:', pipelinesResponse.status);
+
+                    if (pipelinesResponse.ok) {
+                        const pipelinesResult = await pipelinesResponse.json();
+                        pipelinesData = pipelinesResult.pipelines || pipelinesResult || [];
+                        console.log('✅ Pipelines data:', pipelinesData);
+                    }
+                } catch (error) {
+                    console.log('⚠️ Pipelines endpoint not available:', error.message);
+                }
+
+                // Return combined data
+                const combinedData = {
+                    contacts: contactsData,
+                    opportunities: opportunitiesData,
+                    pipelines: pipelinesData,
+                    fetchedAt: new Date().toISOString(),
+                    totalContacts: Array.isArray(contactsData) ? contactsData.length : 0,
+                    totalOpportunities: Array.isArray(opportunitiesData) ? opportunitiesData.length : 0,
+                    totalPipelines: Array.isArray(pipelinesData) ? pipelinesData.length : 0
+                };
+
+                console.log('📊 Combined GHL data:', combinedData);
+                return combinedData;
+
+            } catch (error) {
+                console.error('❌ GHL API Error:', error);
+                throw new Error(`GoHighLevel API Error: ${error.message}`);
+            }
+        }
+
+        // Function to detect location ID from token context
+        async function detectLocationId(authToken) {
+            console.log('🔍 Attempting to detect location ID...');
+            
+            // Try different approaches to get location info
+            const locationEndpoints = [
+                'https://services.leadconnectorhq.com/locations/',
+                'https://services.leadconnectorhq.com/users/search',
+                'https://services.leadconnectorhq.com/users/',
+                'https://services.leadconnectorhq.com/oauth/me'
+            ];
+            
+            for (const endpoint of locationEndpoints) {
+                try {
+                    console.log(`🔍 Trying endpoint: ${endpoint}`);
+                    
+                    const response = await fetch(endpoint, {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': authToken,
+                            'Version': '2021-07-28'
+                        }
+                    });
+                    
+                    console.log(`📡 Location detection - ${endpoint}: ${response.status}`);
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        console.log('✅ Location detection success:', data);
+                        
+                        // Extract location ID from various response formats
+                        const locationId = extractLocationId(data);
+                        if (locationId) {
+                            console.log(`🎯 Detected location ID: ${locationId}`);
+                            return locationId;
+                        }
+                    } else {
+                        const errorText = await response.text();
+                        console.log(`❌ Location detection error: ${errorText}`);
+                    }
+                } catch (error) {
+                    console.log(`❌ Location detection failed for ${endpoint}:`, error.message);
+                }
+            }
+            
+            console.log('⚠️ Could not detect location ID - will try without it');
+            return null;
+        }
+
+        // Extract location ID from API response
+        function extractLocationId(data) {
+            // Common patterns for location ID in GoHighLevel responses
+            if (data.locationId) return data.locationId;
+            if (data.location && data.location.id) return data.location.id;
+            if (data.user && data.user.locationId) return data.user.locationId;
+            if (data.locations && data.locations.length > 0) return data.locations[0].id;
+            if (Array.isArray(data) && data.length > 0 && data[0].locationId) return data[0].locationId;
+            
+            // Check for nested location info
+            for (const key in data) {
+                if (typeof data[key] === 'object' && data[key] && data[key].locationId) {
+                    return data[key].locationId;
+                }
+            }
+            
+            return null;
+        }
+
+        async function storeAnalyticsData(data) {
+            const analyticsRecord = {
+                sync_timestamp: new Date().toISOString(),
+                total_contacts: data.contacts?.length || 0,
+                total_opportunities: data.opportunities?.length || 0,
+                data_snapshot: data,
+                synced_by: currentUser.name
+            };
+
+            const response = await fetch(`${SUPABASE_URL}/rest/v1/ghl_analytics`, {
+                method: 'POST',
+                headers: {
+                    'apikey': SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(analyticsRecord)
+            });
+
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(`Failed to store data: ${error}`);
+            }
+        }
+
+        function updateStats(data) {
+            document.getElementById('totalContacts').textContent = data.totalContacts || data.contacts?.length || 0;
+            document.getElementById('activeOpportunities').textContent = data.totalOpportunities || data.opportunities?.length || 0;
+            document.getElementById('totalPipelines').textContent = data.totalPipelines || data.pipelines?.length || 0;
+        }
+
+        async function loadAnalyticsData() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/ghl_analytics?order=sync_timestamp.desc&limit=10`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayAnalyticsTable(data);
+                } else {
+                    console.log('No analytics data found yet');
+                    document.getElementById('dataTableContent').innerHTML = '<div class="loading">No data synced yet. Click "Sync Data" to get started.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading analytics:', error);
+            }
+        }
+
+        function displayAnalyticsTable(data) {
+            if (!data || data.length === 0) {
+                document.getElementById('dataTableContent').innerHTML = '<div class="loading">No analytics data available</div>';
+                return;
+            }
+
+            const html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Sync Time</th>
+                            <th>Contacts</th>
+                            <th>Opportunities</th>
+                            <th>Synced By</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.map(record => `
+                            <tr>
+                                <td>${new Date(record.sync_timestamp).toLocaleString()}</td>
+                                <td>${record.total_contacts}</td>
+                                <td>${record.total_opportunities}</td>
+                                <td>${record.synced_by}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('dataTableContent').innerHTML = html;
+        }
+
+        // Pull all contacts from GHL to database
+        async function pullAllContacts() {
+            const pullBtn = document.getElementById('pullContactsBtn');
+            const syncStatus = document.getElementById('syncStatusSection');
+            
+            pullBtn.disabled = true;
+            pullBtn.textContent = '⏳ Pulling All Contacts...';
+            syncStatus.innerHTML = '<div class="loading">Connecting to GoHighLevel and pulling all contacts...</div>';
+
+            try {
+                // Get working auth
+                const auth = await getWorkingGhlAuth();
+                let allContacts = [];
+                let page = 1;
+                let hasMore = true;
+
+                // Pull contacts page by page
+                while (hasMore) {
+                    syncStatus.innerHTML = `<div class="loading">Pulling page ${page} of contacts...</div>`;
+                    
+                    const contactsUrl = `https://services.leadconnectorhq.com/contacts/?locationId=${GHL_LOCATION_ID}&page=${page}`;
+                    const response = await fetch(contactsUrl, {
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': auth,
+                            'Version': '2021-07-28'
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const contacts = data.contacts || [];
+                        
+                        if (contacts.length === 0) {
+                            hasMore = false;
+                        } else {
+                            allContacts = allContacts.concat(contacts);
+                            page++;
+                            
+                            // Add delay to avoid rate limiting
+                            await new Promise(resolve => setTimeout(resolve, 100));
+                        }
+                    } else {
+                        throw new Error(`Failed to fetch page ${page}: ${response.status}`);
+                    }
+                }
+
+                // Store all contacts in database
+                syncStatus.innerHTML = `<div class="loading">Storing ${allContacts.length} contacts in database...</div>`;
+                
+                for (let i = 0; i < allContacts.length; i++) {
+                    const contact = allContacts[i];
+                    await storeContactInDatabase(contact);
+                    
+                    if (i % 10 === 0) {
+                        syncStatus.innerHTML = `<div class="loading">Stored ${i + 1}/${allContacts.length} contacts...</div>`;
+                    }
+                }
+
+                syncStatus.innerHTML = `<div class="success">✅ Successfully pulled and stored ${allContacts.length} contacts!</div>`;
+                
+                // Refresh dashboard
+                loadContactStatistics();
+                
+            } catch (error) {
+                console.error('❌ Pull contacts failed:', error);
+                syncStatus.innerHTML = `<div class="error">❌ Failed to pull contacts: ${error.message}</div>`;
+            } finally {
+                pullBtn.disabled = false;
+                pullBtn.textContent = '📥 Pull All Contacts to Database';
+            }
+        }
+
+        // Store individual contact in database
+        async function storeContactInDatabase(contact) {
+            try {
+                // Map GHL contact to our database schema
+                const contactData = {
+                    ghl_contact_id: contact.id,
+                    location_id: contact.locationId,
+                    contact_name: contact.contactName,
+                    first_name: contact.firstName,
+                    last_name: contact.lastName,
+                    first_name_raw: contact.firstNameRaw,
+                    last_name_raw: contact.lastNameRaw,
+                    company_name: contact.companyName,
+                    email: contact.email,
+                    phone: contact.phone,
+                    dnd: contact.dnd,
+                    dnd_settings: contact.dndSettings,
+                    contact_type: contact.type,
+                    source: contact.source,
+                    assigned_to: contact.assignedTo,
+                    city: contact.city,
+                    state: contact.state,
+                    postal_code: contact.postalCode,
+                    address1: contact.address1,
+                    date_added: contact.dateAdded,
+                    date_updated: contact.dateUpdated,
+                    date_of_birth: contact.dateOfBirth,
+                    business_id: contact.businessId,
+                    tags: contact.tags,
+                    followers: contact.followers,
+                    country: contact.country,
+                    website: contact.website,
+                    timezone: contact.timezone,
+                    additional_emails: contact.additionalEmails,
+                    attributions: contact.attributions,
+                    custom_fields: contact.customFields,
+                    synced_at: new Date().toISOString()
+                };
+
+                // Map custom fields
+                if (contact.customFields && Array.isArray(contact.customFields)) {
+                    contact.customFields.forEach(field => {
+                        const fieldName = `custom_${field.id.toLowerCase()}`;
+                        if (contactData.hasOwnProperty(fieldName)) {
+                            contactData[fieldName] = field.value;
+                        }
+                    });
+                }
+
+                // Insert or update contact
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/contacts`, {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'resolution=merge-duplicates'
+                    },
+                    body: JSON.stringify(contactData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.text();
+                    console.error(`Failed to store contact ${contact.id}:`, error);
+                }
+            } catch (error) {
+                console.error(`Error storing contact ${contact.id}:`, error);
+            }
+        }
+
+        // Load contact statistics for dashboard
+        async function loadContactStatistics() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/contacts?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (response.ok) {
+                    const contacts = await response.json();
+                    updateDashboardCharts(contacts);
+                }
+            } catch (error) {
+                console.error('Error loading contact statistics:', error);
+            }
+        }
+
+        // Update dashboard charts
+        function updateDashboardCharts(contacts) {
+            // Source distribution chart
+            const sourceStats = {};
+            contacts.forEach(contact => {
+                const source = contact.source || 'Unknown';
+                sourceStats[source] = (sourceStats[source] || 0) + 1;
+            });
+            updateSourceChart(sourceStats);
+
+            // Representative assignment chart
+            const repStats = {};
+            contacts.forEach(contact => {
+                const rep = contact.assigned_to || 'Unassigned';
+                repStats[rep] = (repStats[rep] || 0) + 1;
+            });
+            updateRepChart(repStats);
+
+            // Lead status chart
+            const statusStats = {};
+            contacts.forEach(contact => {
+                const status = contact.custom_qsg9rn9qeceaq3jglo7r || 'No Status';
+                statusStats[status] = (statusStats[status] || 0) + 1;
+            });
+            updateStatusChart(statusStats);
+
+            // Monthly growth chart
+            const growthStats = {};
+            contacts.forEach(contact => {
+                if (contact.date_added) {
+                    const month = new Date(contact.date_added).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
+                    growthStats[month] = (growthStats[month] || 0) + 1;
+                }
+            });
+            updateGrowthChart(growthStats);
+        }
+
+        // Update individual charts
+        function updateSourceChart(sourceStats) {
+            const container = document.getElementById('sourceChart');
+            const sortedSources = Object.entries(sourceStats).sort((a, b) => b[1] - a[1]);
+            
+            const html = `
+                <div style="width: 100%; height: 200px; display: flex; align-items: end; justify-content: space-around; padding: 1rem;">
+                    ${sortedSources.map(([source, count]) => `
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="chart-bar" style="width: 30px; height: ${(count / Math.max(...Object.values(sourceStats))) * 150}px;"></div>
+                            <div class="chart-label">${source}</div>
+                            <div style="font-weight: bold; color: #1e293b;">${count}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function updateRepChart(repStats) {
+            const container = document.getElementById('repChart');
+            const sortedReps = Object.entries(repStats).sort((a, b) => b[1] - a[1]);
+            
+            const html = `
+                <div style="width: 100%; height: 200px; display: flex; align-items: end; justify-content: space-around; padding: 1rem;">
+                    ${sortedReps.map(([rep, count]) => `
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="chart-bar" style="width: 30px; height: ${(count / Math.max(...Object.values(repStats))) * 150}px;"></div>
+                            <div class="chart-label">${rep}</div>
+                            <div style="font-weight: bold; color: #1e293b;">${count}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function updateStatusChart(statusStats) {
+            const container = document.getElementById('statusChart');
+            const sortedStatuses = Object.entries(statusStats).sort((a, b) => b[1] - a[1]);
+            
+            const html = `
+                <div style="width: 100%; height: 200px; display: flex; align-items: end; justify-content: space-around; padding: 1rem;">
+                    ${sortedStatuses.map(([status, count]) => `
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="chart-bar" style="width: 30px; height: ${(count / Math.max(...Object.values(statusStats))) * 150}px;"></div>
+                            <div class="chart-label">${status}</div>
+                            <div style="font-weight: bold; color: #1e293b;">${count}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        function updateGrowthChart(growthStats) {
+            const container = document.getElementById('growthChart');
+            const sortedMonths = Object.entries(growthStats).sort((a, b) => new Date(a[0]) - new Date(b[0]));
+            
+            const html = `
+                <div style="width: 100%; height: 200px; display: flex; align-items: end; justify-content: space-around; padding: 1rem;">
+                    ${sortedMonths.map(([month, count]) => `
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <div class="chart-bar" style="width: 30px; height: ${(count / Math.max(...Object.values(growthStats))) * 150}px;"></div>
+                            <div class="chart-label">${month}</div>
+                            <div style="font-weight: bold; color: #1e293b;">${count}</div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            container.innerHTML = html;
+        }
+
+        // Helper function to get working GHL auth
+        async function getWorkingGhlAuth() {
+            const formats = [GHL_API_KEY, `Bearer ${GHL_API_KEY}`];
+            for (const fmt of formats) {
+                try {
+                    const res = await fetch('https://services.leadconnectorhq.com/contacts/', {
+                        method: 'GET',
+                        headers: {
+                            'Accept': 'application/json',
+                            'Authorization': fmt,
+                            'Version': '2021-07-28'
+                        }
+                    });
+                    if (res.ok || res.status === 403) return fmt;
+                } catch (e) {
+                    // continue
+                }
+            }
+            throw new Error('No working GHL auth format');
+        }
+
+        // Export functions
+        async function exportData(format) {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/contacts?select=*`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+                    }
+                });
+
+                if (response.ok) {
+                    const contacts = await response.json();
+                    
+                    if (format === 'csv') {
+                        downloadCSV(contacts, 'ghl_contacts.csv');
+                    } else if (format === 'json') {
+                        downloadJSON(contacts, 'ghl_contacts.json');
+                    }
+                }
+            } catch (error) {
+                console.error('Export failed:', error);
+                alert('Export failed: ' + error.message);
+            }
+        }
+
+        function downloadCSV(data, filename) {
+            const headers = Object.keys(data[0] || {});
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => headers.map(header => JSON.stringify(row[header] || '')).join(','))
+            ].join('\n');
+            
+            const blob = new Blob([csvContent], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function downloadJSON(data, filename) {
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        // Test GHL connection
+        async function testGHLConnection() {
+            const testBtn = document.getElementById('testBtn');
+            const syncStatus = document.getElementById('syncStatusSection');
+            
+            testBtn.disabled = true;
+            testBtn.textContent = '⏳ Testing...';
+            syncStatus.innerHTML = '<div class="loading">Testing GoHighLevel API connection...</div>';
+
+            try {
+                const auth = await getWorkingGhlAuth();
+                syncStatus.innerHTML = '<div class="success">✅ GoHighLevel API connection successful!</div>';
+            } catch (error) {
+                syncStatus.innerHTML = `<div class="error">❌ GoHighLevel API connection failed: ${error.message}</div>`;
+            } finally {
+                testBtn.disabled = false;
+                testBtn.textContent = '🔍 Test API Connection';
+            }
+        }
+        
+        // Initialize dashboard when page loads
+        initDashboard();
+    </script>
+</body>
+</html>

@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Simple Extension Icons</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .icon { 
+            width: 128px; height: 128px; 
+            border-radius: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            color: white; 
+            font-weight: bold; 
+            font-size: 60px;
+            margin: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .fronter { background: #007bff; }
+        .closer { background: #fd7e14; }
+        .instructions { background: #f0f0f0; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>🎨 Simple Extension Icons</h1>
+    
+    <div class="instructions">
+        <h3>📋 Instructions:</h3>
+        <ol>
+            <li>Right-click on each icon below</li>
+            <li>Select "Save image as..."</li>
+            <li>Save as icon16.png, icon48.png, icon128.png in each extension folder</li>
+        </ol>
+    </div>
+
+    <h2>🚛 Fronter Extension (Blue with F)</h2>
+    <canvas class="icon fronter" id="fronter-icon" width="128" height="128"></canvas>
+    
+    <h2>🎯 Closer Extension (Orange with C)</h2>
+    <canvas class="icon closer" id="closer-icon" width="128" height="128"></canvas>
+
+    <script>
+        function createIcon(canvasId, letter, color) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Fill background
+            ctx.fillStyle = color;
+            ctx.fillRect(0, 0, 128, 128);
+            
+            // Add border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(0, 0, 128, 128);
+            
+            // Add letter
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 80px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText(letter, 64, 64);
+        }
+
+        // Create icons
+        createIcon('fronter-icon', 'F', '#007bff');
+        createIcon('closer-icon', 'C', '#fd7e14');
+
+        // Make downloadable
+        document.getElementById('fronter-icon').addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            const link = document.createElement('a');
+            link.download = 'fronter-icon.png';
+            link.href = this.toDataURL('image/png');
+            link.click();
+        });
+
+        document.getElementById('closer-icon').addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            const link = document.createElement('a');
+            link.download = 'closer-icon.png';
+            link.href = this.toDataURL('image/png');
+            link.click();
+        });
+
+        console.log('✅ Icons ready! Right-click to download.');
+    </script>
+</body>
+</html>

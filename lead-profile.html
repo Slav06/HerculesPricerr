@@ -1,0 +1,1620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Long Distance Charges - Lead Profile</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; overflow: hidden; margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #f0f2f5; color: #333; font-size: 12px; }
+        .top-nav { background: #e8891f; padding: 4px 12px; display: flex; gap: 12px; align-items: center; }
+        .top-nav a { color: #4ade80; text-decoration: none; font-size: 11px; padding: 4px 8px; }
+        .top-nav a:hover { color: white; }
+        .top-nav a.active { background: #FFA23F; color: white; border-radius: 3px; }
+        .status-indicators { display: flex; gap: 10px; padding: 4px 12px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 11px; }
+        .status-indicator { display: flex; align-items: center; gap: 4px; }
+        .status-dot { width: 6px; height: 6px; border-radius: 50%; background: #ef4444; }
+        .main-header { background: #FFA23F; color: white; padding: 6px 12px; font-size: 14px; font-weight: bold; }
+        .profile-content { padding: 10px; height: calc(100vh - 70px); min-height: 0; overflow: hidden; }
+        .profile-main { display: grid; grid-template-columns: 240px minmax(280px, 1fr) minmax(280px, 1fr) 240px; gap: 10px; height: 100%; min-height: 0; }
+        @media (max-width: 1100px) {
+            html, body { height: auto; overflow: auto; }
+            .profile-main { display: flex; flex-direction: column; height: auto; gap: 10px; }
+            .profile-content { height: auto; overflow: visible; }
+            .col, .notes-col, .inventory-col { overflow: visible; height: auto; min-height: auto; }
+            .notes-panel, .inventory-panel { height: auto; }
+            .notes-list { max-height: 300px; overflow-y: auto; }
+        }
+        .col { display: flex; flex-direction: column; gap: 8px; min-height: 0; overflow: auto; }
+        .section-card { background: white; border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,0.06); padding: 8px 10px; flex-shrink: 0; }
+        .section-title { font-size: 11px; font-weight: bold; color: #FFA23F; margin-bottom: 6px; padding-bottom: 4px; border-bottom: 1px solid #FFA23F; }
+        .moving-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .moving-block { font-size: 11px; }
+        .moving-block .label { font-weight: 600; color: #475569; margin-bottom: 2px; }
+        .moving-block .name { font-weight: bold; font-size: 12px; margin-bottom: 2px; }
+        .moving-block .address { font-size: 11px; color: #334155; line-height: 1.3; word-break: break-word; white-space: normal; }
+        .moving-block .contact { font-size: 10px; color: #64748b; }
+        .view-map { color: #2563eb; text-decoration: none; font-size: 10px; }
+        .form-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+        .form-row label { min-width: 100px; font-size: 11px; }
+        .form-row input, .form-row select { padding: 4px 6px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 11px; }
+        .form-row input[type="number"] { width: 60px; }
+        .pricing-table { width: 100%; font-size: 11px; }
+        .pricing-table td { padding: 2px 0; }
+        .pricing-table .label-col { width: 110px; }
+        .pricing-table .value-col { text-align: right; font-weight: 600; }
+        .liability-table { width: 100%; border-collapse: collapse; font-size: 10px; }
+        .liability-table th, .liability-table td { padding: 4px; border: 1px solid #e2e8f0; }
+        .job-no { font-size: 16px; font-weight: bold; color: #FFA23F; margin-bottom: 6px; }
+        .job-status { font-size: 12px; font-weight: bold; color: #7c3aed; margin-bottom: 6px; }
+        .book-job-btn { background: #dc2626; color: white; border: none; padding: 6px 14px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 11px; margin: 6px 0; }
+        .btn { padding: 4px 10px; border-radius: 4px; font-weight: 500; cursor: pointer; border: none; font-size: 11px; }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-success { background: #FFA23F; color: white; }
+        .action-link { color: #2563eb; cursor: pointer; font-size: 10px; }
+        .back-link { color: #2563eb; text-decoration: none; font-size: 11px; margin-bottom: 6px; }
+        .loading { text-align: center; padding: 20px; color: #64748b; }
+        .error-msg { background: #fef2f2; color: #dc2626; padding: 10px; border-radius: 4px; margin: 10px; font-size: 12px; }
+        .btns-row { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+        .edit-input { width: 100%; padding: 6px 8px; border: 1px solid #cbd5e1; border-radius: 3px; font-size: 11px; }
+        .edit-input:focus { outline: none; border-color: #FFA23F; }
+        .edit-input[readonly] { background: #f9fafb; color: #64748b; cursor: default; }
+        .save-profile-row { margin-top: 8px; padding-top: 8px; border-top: 1px solid #e2e8f0; }
+        .save-msg { font-size: 11px; margin-top: 6px; }
+        .save-msg.success { color: #16a34a; }
+        .save-msg.error { color: #dc2626; }
+        .agreements-table { width: 100%; font-size: 11px; border-collapse: collapse; }
+        .agreements-table th, .agreements-table td { padding: 6px 8px; border-bottom: 1px solid #e2e8f0; text-align: left; }
+        .agreements-table th { background: #f8fafc; font-weight: 600; color: #475569; }
+        .agreements-table .status-signed { color: #16a34a; font-weight: 600; }
+        .agreements-table .status-pending { color: #d97706; }
+        .agreements-table .link-view { color: #2563eb; text-decoration: none; }
+        .agreements-table .link-view:hover { text-decoration: underline; }
+        .agreements-empty { font-size: 11px; color: #64748b; padding: 8px 0; }
+
+        /* Notes sidebar */
+        .notes-col { display: flex; flex-direction: column; min-height: 0; height: 100%; }
+        .notes-panel {
+            background: #0f172a;
+            color: #e5e7eb;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+            padding: 8px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .notes-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #bfdbfe;
+        }
+        .notes-header span {
+            font-size: 10px;
+            color: #9ca3af;
+            font-weight: 400;
+        }
+        .notes-list {
+            flex: 1;
+            overflow-y: auto;
+            padding-right: 4px;
+            margin-bottom: 8px;
+        }
+        .note-item {
+            padding: 5px 6px;
+            border-radius: 5px;
+            background: rgba(15,23,42,0.6);
+            margin-bottom: 4px;
+        }
+        .note-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin-bottom: 2px;
+        }
+        .note-author {
+            font-size: 10px;
+            font-weight: 700;
+            padding: 0 4px;
+            border-radius: 3px;
+        }
+        .note-time {
+            font-size: 9px;
+            color: #6b7280;
+        }
+        .note-text {
+            font-size: 11px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: #d1d5db;
+        }
+        .note-chance {
+            font-size: 9px;
+            color: #6b7280;
+            margin-top: 1px;
+        }
+        .notes-empty {
+            font-size: 10px;
+            color: #9ca3af;
+            padding: 6px 2px;
+        }
+        .notes-input {
+            border-top: 1px solid rgba(148,163,184,0.4);
+            padding-top: 6px;
+        }
+        .notes-input textarea {
+            width: 100%;
+            min-height: 48px;
+            max-height: 120px;
+            resize: vertical;
+            font-size: 11px;
+            padding: 6px 8px;
+            border-radius: 4px;
+            border: 1px solid #4b5563;
+            background: #020617;
+            color: #e5e7eb;
+        }
+        .notes-input textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        .notes-input-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 4px;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+        .notes-input-row button {
+            padding: 4px 10px;
+            font-size: 11px;
+            border-radius: 999px;
+            border: none;
+            cursor: pointer;
+            background: #2563eb;
+            color: white;
+            font-weight: 600;
+        }
+        .notes-input-row button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        /* ── Mobile responsive ── */
+        @media (max-width: 768px) {
+            html, body { height: auto; overflow: auto; overflow-x: hidden; font-size: 13px; }
+            .top-nav { flex-wrap: wrap; padding: 6px 10px; }
+            .main-header { font-size: 13px; padding: 8px 10px; }
+            .profile-content { height: auto; overflow: visible; padding: 8px; }
+            .profile-main {
+                display: flex !important;
+                flex-direction: column;
+                height: auto !important;
+                gap: 10px;
+            }
+            .col, .notes-col, .inventory-col {
+                overflow: visible;
+                min-height: auto;
+                height: auto !important;
+            }
+            /* Reorder: Job info first, then details, notes, inventory */
+            .profile-main > .col:nth-child(3) { order: -2; }
+            .profile-main > .col:nth-child(2) { order: -1; }
+            .profile-main > .notes-col { order: 1; }
+            .profile-main > .inventory-col { order: 2; }
+            .notes-panel { height: auto; max-height: 400px; }
+            .notes-list { max-height: 250px; overflow-y: auto; }
+            .inventory-panel { height: auto; }
+            .inventory-list { max-height: 200px; overflow-y: auto; }
+            .section-card { padding: 10px 12px; }
+            .moving-row { grid-template-columns: 1fr; gap: 8px; }
+            .form-row { flex-wrap: wrap; gap: 4px 8px; }
+            .form-row label { min-width: 80px; font-size: 12px; }
+            .form-row input, .form-row select { font-size: 12px; max-width: 100%; }
+            .edit-input { font-size: 13px; padding: 8px 10px; }
+            .pricing-table td { padding: 4px 2px; font-size: 12px; }
+            .pricing-table input[type="number"] { width: 50px; font-size: 12px; }
+            .btns-row { flex-wrap: wrap; }
+            .btn { padding: 8px 14px; font-size: 12px; }
+            .book-job-btn { width: 100%; padding: 10px; font-size: 13px; }
+            .job-no { font-size: 18px; }
+            .job-status { font-size: 13px; }
+            .back-link { font-size: 12px; display: inline-block; margin-bottom: 4px; }
+            .agreements-table { font-size: 11px; display: block; overflow-x: auto; }
+            .status-indicators { flex-wrap: wrap; gap: 6px; }
+            .liability-table { font-size: 11px; display: block; overflow-x: auto; }
+        }
+
+        /* Email preview modal */
+        .email-modal-overlay {
+            display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center;
+        }
+        .email-modal-overlay.open { display: flex; }
+        .email-modal {
+            background: #fff; border-radius: 10px; width: 650px; max-width: 95vw; max-height: 90vh;
+            display: flex; flex-direction: column; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .email-modal-header {
+            padding: 12px 16px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;
+        }
+        .email-modal-header h3 { font-size: 13px; margin: 0; }
+        .email-modal-close { background: none; border: none; font-size: 18px; cursor: pointer; color: #64748b; padding: 4px; }
+        .email-modal-meta { padding: 8px 16px; font-size: 11px; color: #64748b; border-bottom: 1px solid #f1f5f9; }
+        .email-modal-meta div { margin-bottom: 2px; }
+        .email-modal-body { flex: 1; overflow: auto; padding: 0; }
+        .email-modal-body iframe { width: 100%; height: 100%; min-height: 400px; border: none; }
+
+        /* Inventory sidebar on right */
+        .inventory-col { display: flex; flex-direction: column; min-height: 0; }
+        .inventory-panel {
+            background: #ffffff;
+            border-radius: 4px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            padding: 8px 10px;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            border: 1px solid #e2e8f0;
+        }
+        .inventory-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            color: #1f2937;
+        }
+        .inventory-header small {
+            font-weight: 400;
+            color: #6b7280;
+            font-size: 10px;
+        }
+        .inventory-open-btn {
+            border: none;
+            padding: 4px 8px;
+            font-size: 10px;
+            border-radius: 999px;
+            background: #FFA23F;
+            color: #ffffff;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .inventory-list {
+            flex: 1;
+            overflow-y: auto;
+            font-size: 10px;
+            padding-right: 4px;
+            margin-bottom: 6px;
+        }
+        .inventory-empty {
+            font-size: 10px;
+            color: #6b7280;
+            padding: 4px 0;
+        }
+        .inventory-room {
+            margin-bottom: 6px;
+        }
+        .inventory-room-title {
+            font-size: 10px;
+            font-weight: 600;
+            color: #FFA23F;
+            margin-bottom: 2px;
+        }
+        .inventory-item-line {
+            font-size: 10px;
+            color: #4b5563;
+            line-height: 1.3;
+        }
+        .inventory-footer {
+            font-size: 10px;
+            color: #6b7280;
+            border-top: 1px solid #e5e7eb;
+            padding-top: 4px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav"></nav>
+    <header class="main-header">
+        <img src="/logo.svg" alt="Hercules Moving Solutions" style="height: 28px; vertical-align: middle; margin-right: 10px;">
+        Long Distance Charges
+    </header>
+    <div class="profile-content">
+        <div id="profileLoading" class="loading" style="display:none">Loading...</div>
+        <div id="profileError" class="error-msg" style="display:none"></div>
+        <div id="profileMain" style="display:none" class="profile-main">
+            <div class="notes-col">
+                <div class="notes-panel">
+                    <div class="notes-header">
+                        <div>Lead Notes</div>
+                        <span id="notesJobLabel">Job: -</span>
+                    </div>
+                    <div class="notes-input">
+                        <textarea id="noteInput" placeholder="Add a note... (Enter to save, Shift+Enter for new line)"></textarea>
+                        <div class="notes-input-row">
+                            <span id="notesHint">Notes are shared for this job.</span>
+                            <button type="button" id="addNoteBtn">Add note</button>
+                        </div>
+                    </div>
+                    <div id="notesList" class="notes-list">
+                        <div class="notes-empty">No notes yet. Add the first one for this job.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col">
+                <a href="dashboard.html" class="back-link">← Back</a>
+                <div class="section-card">
+                    <div class="section-title">
+                        Moving Details
+                        <span style="font-weight:normal;color:#64748b;font-size:10px">(click Edit to change)</span>
+                        <button type="button" class="btn btn-secondary" id="editProfileToggleBtn" style="float:right;padding:2px 8px;font-size:10px">✏️ Edit</button>
+                    </div>
+                    <div class="moving-row">
+                        <div class="moving-block">
+                            <div class="label">Customer Name</div>
+                            <input type="text" id="editCustomerName" class="edit-input" placeholder="Customer name" readonly>
+                            <div class="label" style="margin-top:8px">Moving From</div>
+                            <a href="#" id="viewMapFrom" class="view-map" target="_blank">View Map</a>
+                            <input type="text" id="editMovingFrom" class="edit-input" placeholder="Address or city, state" readonly>
+                            <div id="cityStateFrom" style="font-size:11px;font-weight:600;color:#3b82f6;min-height:14px;margin-top:2px;"></div>
+                            <div class="label" style="margin-top:6px;display:flex;align-items:center;justify-content:space-between;">
+                                Phone
+                                <button id="callBtn" onclick="dialerCall(this)" data-ph="" data-n="" style="display:none;background:#16a34a;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:11px;cursor:pointer;" title="Call">📞 Call</button>
+                            </div>
+                            <input type="text" id="editPhone" class="edit-input" placeholder="Phone number" readonly>
+                            <div class="label" style="margin-top:6px">Email</div>
+                            <input type="email" id="editEmail" class="edit-input" placeholder="Email address" readonly>
+                        </div>
+                        <div class="moving-block">
+                            <div class="label">Moving To</div>
+                            <a href="#" id="viewMapTo" class="view-map" target="_blank">View Map</a>
+                            <input type="text" id="editMovingTo" class="edit-input" placeholder="Address or city, state" readonly>
+                            <div id="cityStateTo" style="font-size:11px;font-weight:600;color:#3b82f6;min-height:14px;margin-top:2px;"></div>
+                            <div class="label" style="margin-top:8px">Cubes</div>
+                            <input type="text" id="editCubes" class="edit-input" placeholder="Cubes" style="width:80px" readonly>
+                            <div class="label" style="margin-top:6px">Distance (mi)</div>
+                            <div style="display:flex;align-items:center;gap:6px;">
+                                <input type="text" id="editDistance" placeholder="—" readonly style="width:90px;font-size:22px;font-weight:800;color:#e8891f;border:none;background:transparent;padding:0;outline:none;cursor:default;letter-spacing:-0.5px;">
+                                <button type="button" id="calcDistBtn" onclick="calculateDistance()" style="padding:3px 9px;font-size:11px;border-radius:4px;border:1px solid #3b82f6;background:#eff6ff;color:#FFA23F;cursor:pointer;font-weight:600;white-space:nowrap;">📍 Calc</button>
+                            </div>
+                            <span id="distCalcStatus" style="font-size:10px;color:#6b7280;margin-top:2px;display:block;"></span>
+                        </div>
+                    </div>
+                    <div class="save-profile-row">
+                        <button type="button" class="btn btn-success" id="saveProfileBtn" disabled>💾 Save Profile</button>
+                        <span id="saveProfileMsg" class="save-msg"></span>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-title">Charges & Pricing</div>
+                    <table class="pricing-table">
+                        <tr><td class="label-col">Initial:</td><td><input type="number" id="initialCf" value="0" style="width:50px"> cf × <input type="number" id="initialPerCf" value="0" step="0.01" style="width:50px">/cf</td><td class="value-col" id="initialCalc">0.00</td></tr>
+                        <tr><td class="label-col">Fuel Surcharge:</td><td><input type="number" id="fuelSurcharge" value="15" step="0.01" style="width:40px">%</td><td class="value-col" id="fuelCalc">$0.00</td></tr>
+                        <tr><td class="label-col">Subtotal:</td><td></td><td class="value-col" id="subtotal1">$0.00</td></tr>
+                        <tr><td class="label-col" style="color:#dc2626;font-weight:600">Discount:</td><td><input type="number" id="discount" value="0" step="0.01" style="width:60px"></td><td class="value-col" style="color:#dc2626;font-weight:700" id="discountDisplay">-$0.00</td></tr>
+                        <tr><td class="label-col"><strong>Total Estimate:</strong></td><td></td><td class="value-col" style="font-size:13px;color:#FFA23F" id="totalEstimate">$0.00</td></tr>
+                        <tr><td colspan="3" style="padding:6px 0 2px"><hr style="border:none;border-top:1px dashed #cbd5e1;margin:0"></td></tr>
+                        <tr><td class="label-col" style="color:#059669;font-weight:600">Deposit:</td><td><input type="number" id="depositAmount" value="" step="0.01" style="width:80px" placeholder="0.00"></td><td class="value-col" style="color:#059669;font-weight:700" id="depositDisplay">$0.00</td></tr>
+                        <tr><td class="label-col" style="color:#0284c7">Pick Up:</td><td></td><td class="value-col" style="color:#0284c7" id="pickUpDisplay">$0.00</td></tr>
+                        <tr><td class="label-col" style="color:#0284c7">Drop Off:</td><td></td><td class="value-col" style="color:#0284c7" id="dropOffDisplay">$0.00</td></tr>
+                    </table>
+                    <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
+                        <span id="chargeSaveStatus" style="font-size:11px;color:#94a3b8;"></span>
+                    </div>
+                    <div id="pricingHintBar" style="display:none;margin-top:6px;padding:6px 10px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:6px;font-size:11px;color:#e8891f;align-items:center;gap:6px;">
+                        <span id="pricingHintText"></span>
+                        <button type="button" id="pricingHintApply" style="background:#2563eb;color:#fff;border:none;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;">Apply</button>
+                        <button type="button" id="pricingHintDismiss" style="background:transparent;color:#64748b;border:1px solid #cbd5e1;border-radius:4px;padding:2px 8px;font-size:10px;cursor:pointer;">Dismiss</button>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-title">Liability & Packing</div>
+                    <table class="pricing-table">
+                        <tr><td class="label-col">Release value:</td><td><label><input type="checkbox" id="releaseValue" checked> Basic Valuation</label></td></tr>
+                        <tr><td class="label-col">Packing:</td><td><select id="packingPackers" style="width:50px"><option value="0">0</option></select> pkrs <input type="number" id="packingHrs" value="0" style="width:40px"> hrs</td></tr>
+                        <tr><td class="label-col">Unpacking:</td><td><select id="unpackingPackers" style="width:50px"><option value="0">0</option></select> pkrs <input type="number" id="unpackingHrs" value="0" style="width:40px"> hrs</td></tr>
+                    </table>
+                </div>
+            </div>
+            <div class="col">
+                <div class="section-card">
+                    <div class="job-no">Job #<span id="jobNo">-</span></div>
+                    <div class="job-status">Status: <span id="jobStatus">-</span></div>
+                    <div class="form-row"><label>Dept:</label><select id="department" style="width:60px"><option value="A">A</option></select><label style="min-width:50px">Ref:</label><input type="text" id="refNo" style="width:100px"></div>
+                    <div class="form-row"><label>Priority:</label><span id="priority">Level-1</span><label style="margin-left:12px">Cf-Lbs:</label><span id="cfLbsRatio">7.00</span></div>
+                    <div style="font-size:10px;margin:4px 0"><span id="pricingBreakdown1">-</span> | <span id="pricingBreakdown2">-</span></div>
+                    <div class="btns-row">
+                        <button class="book-job-btn">Book This Job</button>
+                        <button class="btn btn-success" id="sendAgreementBtn" style="background: #FFA23F;">📧 Send Agreement</button>
+                        <a href="#" class="action-link">Calc by lbs</a><a href="#" class="action-link">Switch to Local</a>
+                    </div>
+                    <div class="form-row"><label>Binding:</label><select id="bindingType" style="width:80px"><option value="None">None</option></select><label><input type="checkbox" id="needStorage"> Storage</label></div>
+                </div>
+                <div class="section-card">
+                    <div class="section-title">Scheduling <span style="font-weight:normal;color:#64748b;font-size:10px">(editable)</span></div>
+                    <div class="form-row"><label>Follow Up:</label><input type="date" id="followUpDate" style="width:110px"><input type="time" id="followUpTime" style="width:80px"></div>
+                    <div class="form-row"><label>Pick-Up:</label><input type="date" id="pickupDate" style="width:110px"><input type="text" id="pickupConfirm" placeholder="Confirm" style="width:80px"></div>
+                    <div class="form-row"><label>Delivery:</label><input type="date" id="deliveryDate" style="width:110px"><input type="time" id="deliveryTime" style="width:80px"></div>
+                    <div class="form-row"><label><input type="checkbox" id="vip"> VIP</label><input type="date" id="vipDate" style="width:110px"><label><input type="checkbox" id="deliverImmediately"> Deliver Now</label></div>
+                    <div class="btns-row"><button class="btn btn-primary" id="saveSchedulingBtn">💾 Save Scheduling</button></div>
+                </div>
+                <div class="section-card">
+                    <div class="section-title">Assignment & Reference</div>
+                    <div class="form-row"><label>Represent:</label><span id="represent">-</span></div>
+                    <div class="form-row"><label>User:</label><span id="userField">-</span><label style="margin-left:8px">Agent:</label><span id="agentField">-</span></div>
+                    <div class="form-row"><label>Reference:</label><span id="reference">-</span></div>
+                    <div class="form-row"><label>Distance:</label><span id="distance">-</span><label style="margin-left:8px">Open:</label><span id="openDate">-</span></div>
+                    <div class="form-row"><label>Location:</label><span id="locationType">Residential</span></div>
+                    <div class="btns-row"><button class="btn btn-success">Carrier Notes</button></div>
+                </div>
+                <div class="section-card">
+                    <div class="section-title">Sent Agreements</div>
+                    <div id="agreementsLoading" class="loading" style="display:none; padding:8px 0;">Loading…</div>
+                    <div id="agreementsContainer">
+                        <table class="agreements-table" id="agreementsTable" style="display:none;">
+                            <thead>
+                                <tr>
+                                    <th>Document</th>
+                                    <th>Status</th>
+                                    <th>Sent</th>
+                                    <th>Completed</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="agreementsBody"></tbody>
+                        </table>
+                        <div class="agreements-empty" id="agreementsEmpty" style="display:none;">No agreements sent yet.</div>
+                    </div>
+                </div>
+                <div class="section-card">
+                    <div class="section-title">Emails Sent</div>
+                    <div id="emailsLoading" class="loading" style="display:none; padding:8px 0;">Loading…</div>
+                    <div id="emailsContainer">
+                        <table class="agreements-table" id="emailsTable" style="display:none;">
+                            <thead>
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>To</th>
+                                    <th>Subject</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody id="emailsBody"></tbody>
+                        </table>
+                        <div class="agreements-empty" id="emailsEmpty" style="display:none;">No emails sent for this job.</div>
+                    </div>
+                </div>
+            </div>
+            <div class="inventory-col">
+                <div class="inventory-panel">
+                    <div class="inventory-header">
+                        <div>Inventory</div>
+                        <button type="button" class="inventory-open-btn" onclick="openInventoryForJob()">Open / edit</button>
+                    </div>
+                    <div id="inventorySummary" class="inventory-list">
+                        <div class="inventory-empty">No inventory snapshot yet for this job.</div>
+                    </div>
+                    <div class="inventory-footer">
+                        <div id="inventoryTotalVolume">Total volume: —</div>
+                        <div id="inventoryUpdatedAt">Last updated: —</div>
+                    </div>
+                </div>
+                <div class="inventory-panel" style="margin-top:12px;">
+                    <div class="inventory-header">
+                        <div>Elavon Charges</div>
+                    </div>
+                    <div id="linkedChargesList" class="inventory-list">
+                        <div class="inventory-empty">Loading…</div>
+                    </div>
+                </div>
+                <div id="dialerrPlaceholder" class="inventory-panel" style="margin-top:12px;text-align:center;padding:16px 12px;background:linear-gradient(135deg,#f0f4ff 0%,#e8ecf8 100%);border:1px dashed #a0b4e8;border-radius:8px;">
+                    <img src="https://dialerr.com/logo.svg" alt="Dialerr" style="height:32px;margin-bottom:8px;" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+                    <div style="display:none;font-size:20px;font-weight:700;color:#FFA23F;margin-bottom:8px;">Dialerr</div>
+                    <div style="font-size:12px;color:#555;margin-bottom:10px;">Power dialer toolbar for one-click calling directly from leads.</div>
+                    <a href="https://chromewebstore.google.com/detail/dialerr-toolbar/aeoaomcjklbpgkbkioidnhbbikdpnnnn" target="_blank" rel="noopener" style="display:inline-block;background:#FFA23F;color:#fff;text-decoration:none;padding:8px 16px;border-radius:6px;font-size:12px;font-weight:600;">Install Extension</a>
+                    <div style="font-size:10px;color:#888;margin-top:6px;">Chrome Web Store</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Email Preview Modal -->
+    <div class="email-modal-overlay" id="emailModalOverlay" onclick="if(event.target===this)closeEmailModal()">
+        <div class="email-modal">
+            <div class="email-modal-header">
+                <h3 id="emailModalTitle">Email Preview</h3>
+                <button class="email-modal-close" onclick="closeEmailModal()">&times;</button>
+            </div>
+            <div class="email-modal-meta" id="emailModalMeta"></div>
+            <div class="email-modal-body">
+                <iframe id="emailModalIframe" sandbox="allow-same-origin"></iframe>
+            </div>
+        </div>
+    </div>
+    <script>
+        const SUPABASE_URL = 'process.env.SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+        
+        let currentJobData = null;
+        let isEditingProfile = false;
+        let notesSaving = false;
+        let pricingMatrix = [];
+        let pricingHintDismissed = false;
+
+        // Fetch pricing matrix once on load
+        (async function loadPricingMatrix() {
+            try {
+                const res = await fetch(SUPABASE_URL + '/rest/v1/pricing_matrix?select=*&order=min_miles.asc,min_cubes.asc', {
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+                });
+                if (res.ok) pricingMatrix = await res.json();
+            } catch (e) { console.warn('Could not load pricing matrix:', e); }
+        })();
+
+        function findPricingTier(miles, cubes) {
+            return pricingMatrix.find(r => miles >= r.min_miles && miles <= r.max_miles && cubes >= r.min_cubes && cubes <= r.max_cubes) || null;
+        }
+
+        function showPricingHint(tier, autoApplied) {
+            const bar = document.getElementById('pricingHintBar');
+            const text = document.getElementById('pricingHintText');
+            if (!bar || !tier || pricingHintDismissed) return;
+            text.textContent = 'Matrix: ' + (tier.label || 'Matched') + ' — $' + Number(tier.per_cf_rate).toFixed(2) + '/cf, ' + Number(tier.fuel_surcharge_pct) + '% fuel' + (autoApplied ? ' (applied)' : '');
+            document.getElementById('pricingHintApply').style.display = autoApplied ? 'none' : '';
+            bar.style.display = 'flex';
+        }
+
+        function applyPricingTier(tier) {
+            if (!tier) return;
+            document.getElementById('initialPerCf').value = Number(tier.per_cf_rate);
+            document.getElementById('fuelSurcharge').value = Number(tier.fuel_surcharge_pct);
+            document.getElementById('initialPerCf').dispatchEvent(new Event('input'));
+            showPricingHint(tier, true);
+        }
+
+        function dialerCall(el) {
+            const phone = atob(el.dataset.ph || '');
+            const name = atob(el.dataset.n || '');
+            if (!phone) return;
+            const iframe = document.getElementById('dialerr-toolbar-iframe');
+            if (!iframe) { alert('Dialerr toolbar not found on page'); return; }
+            iframe.contentWindow.postMessage({ type: 'DIALERR_START_CALL', phone: phone, leadName: name }, 'https://dialerr.com');
+        }
+
+        function escapeHtml(value) {
+            if (value === undefined || value === null) return '';
+            return String(value)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function colorForAuthor(name) {
+            const palette = [
+                { bg: '#FFA23F', fg: '#ffffff' },
+                { bg: '#16a34a', fg: '#ffffff' },
+                { bg: '#db2777', fg: '#ffffff' },
+                { bg: '#f97316', fg: '#111827' },
+                { bg: '#0ea5e9', fg: '#0f172a' },
+                { bg: '#a855f7', fg: '#f9fafb' }
+            ];
+            const key = (name || 'User').toUpperCase();
+            let sum = 0;
+            for (let i = 0; i < key.length; i++) sum = (sum + key.charCodeAt(i) * (i + 11)) % 9973;
+            const idx = sum % palette.length;
+            return palette[idx];
+        }
+
+        function renderNotesList(notes) {
+            const listEl = document.getElementById('notesList');
+            if (!listEl) return;
+            if (!notes || notes.length === 0) {
+                listEl.innerHTML = '<div class="notes-empty">No notes yet. Add the first one for this job.</div>';
+                return;
+            }
+            const html = notes.map(n => {
+                const author = n.author_name || 'Unknown';
+                const colors = colorForAuthor(author);
+                const created = n.created_at ? new Date(n.created_at) : null;
+                const timeStr = created ? created.toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '';
+                const isDialerr = author === 'Dialerr' || author.includes('Dialerr');
+                const lines = (n.body || '').split('\n');
+                const mainText = isDialerr ? lines[0] : escapeHtml(lines[0]);
+                const chanceText = lines.length > 1 ? lines.slice(1).map(l => isDialerr ? l : escapeHtml(l)).join('<br>') : '';
+                return (
+                    '<div class="note-item" data-note-id="' + escapeHtml(n.id) + '">' +
+                        '<div class="note-meta">' +
+                            '<span class="note-author" style="background:' + colors.bg + ';color:' + colors.fg + ';">' + escapeHtml(author) + '</span>' +
+                            '<span class="note-time">' + escapeHtml(timeStr) + '</span>' +
+                        '</div>' +
+                        '<div class="note-text">' + mainText + '</div>' +
+                        (chanceText ? '<div class="note-chance">' + chanceText + '</div>' : '') +
+                    '</div>'
+                );
+            }).join('');
+            listEl.innerHTML = html;
+        }
+
+        async function loadJobNotes(jobSubmissionId) {
+            const listEl = document.getElementById('notesList');
+            if (!jobSubmissionId || !listEl) return;
+            listEl.innerHTML = '<div class="notes-empty">Loading notes…</div>';
+            try {
+                const url = SUPABASE_URL + '/rest/v1/job_notes?job_submission_id=eq.' + encodeURIComponent(jobSubmissionId) +
+                    '&select=id,job_submission_id,job_number,author_name,body,created_at&order=created_at.desc';
+                const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+                if (!res.ok) {
+                    console.warn('Job notes fetch failed:', res.status);
+                    listEl.innerHTML = '<div class="notes-empty">No notes yet. Add the first one for this job.</div>';
+                    return;
+                }
+                const rows = await res.json();
+                renderNotesList(rows || []);
+            } catch (e) {
+                console.warn('Job notes error:', e);
+                listEl.innerHTML = '<div class="notes-empty">Could not load notes.</div>';
+            }
+        }
+
+        async function addJobNote() {
+            if (!currentJobData || notesSaving) return;
+            const input = document.getElementById('noteInput');
+            const btn = document.getElementById('addNoteBtn');
+            if (!input || !btn) return;
+            const text = input.value.trim();
+            if (!text) return;
+            const author = currentJobData.user_name || currentJobData.chrome_profile_name || 'User';
+            const payload = {
+                job_submission_id: currentJobData.id,
+                job_number: currentJobData.job_number,
+                author_name: author,
+                body: text
+            };
+            notesSaving = true;
+            btn.disabled = true;
+            try {
+                const res = await fetch(SUPABASE_URL + '/rest/v1/job_notes', {
+                    method: 'POST',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=representation'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) {
+                    console.warn('Add note failed with status', res.status);
+                    notesSaving = false;
+                    btn.disabled = false;
+                    return;
+                }
+                const created = await res.json();
+                const newNote = created && created[0] ? created[0] : null;
+                if (newNote) {
+                    const listEl = document.getElementById('notesList');
+                    if (listEl) {
+                        const existingItems = listEl.querySelectorAll('.note-item');
+                        const existingNotes = [];
+                        existingItems.forEach(el => {
+                            const authorEl = el.querySelector('.note-author');
+                            const textEl = el.querySelector('.note-text');
+                            const timeEl = el.querySelector('.note-time');
+                            existingNotes.push({
+                                author_name: authorEl ? authorEl.textContent : '',
+                                body: textEl ? textEl.textContent : '',
+                                created_at: timeEl ? timeEl.textContent : ''
+                            });
+                        });
+                        renderNotesList([newNote].concat(existingNotes));
+                    }
+                    input.value = '';
+                }
+            } catch (e) {
+                console.warn('Error adding note:', e);
+            } finally {
+                notesSaving = false;
+                btn.disabled = false;
+            }
+        }
+        
+        function setProfileEditing(enabled) {
+            isEditingProfile = !!enabled;
+            const fields = [
+                'editCustomerName',
+                'editMovingFrom',
+                'editMovingTo',
+                'editPhone',
+                'editEmail',
+                'editCubes'
+            ];
+            fields.forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.readOnly = !isEditingProfile;
+            });
+            const saveBtn = document.getElementById('saveProfileBtn');
+            const toggleBtn = document.getElementById('editProfileToggleBtn');
+            if (saveBtn) {
+                saveBtn.disabled = !isEditingProfile;
+            }
+            if (toggleBtn) {
+                toggleBtn.textContent = isEditingProfile ? '💾 Save' : '✏️ Edit';
+            }
+        }
+        
+        function updateMapLinks() {
+            const from = document.getElementById('editMovingFrom').value.trim();
+            const to = document.getElementById('editMovingTo').value.trim();
+            document.getElementById('viewMapFrom').href = from ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(from) : '#';
+            document.getElementById('viewMapTo').href = to ? 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(to) : '#';
+        }
+
+        const STATE_ABBR = { 'Alabama':'AL','Alaska':'AK','Arizona':'AZ','Arkansas':'AR','California':'CA','Colorado':'CO','Connecticut':'CT','Delaware':'DE','Florida':'FL','Georgia':'GA','Hawaii':'HI','Idaho':'ID','Illinois':'IL','Indiana':'IN','Iowa':'IA','Kansas':'KS','Kentucky':'KY','Louisiana':'LA','Maine':'ME','Maryland':'MD','Massachusetts':'MA','Michigan':'MI','Minnesota':'MN','Mississippi':'MS','Missouri':'MO','Montana':'MT','Nebraska':'NE','Nevada':'NV','New Hampshire':'NH','New Jersey':'NJ','New Mexico':'NM','New York':'NY','North Carolina':'NC','North Dakota':'ND','Ohio':'OH','Oklahoma':'OK','Oregon':'OR','Pennsylvania':'PA','Rhode Island':'RI','South Carolina':'SC','South Dakota':'SD','Tennessee':'TN','Texas':'TX','Utah':'UT','Vermont':'VT','Virginia':'VA','Washington':'WA','West Virginia':'WV','Wisconsin':'WI','Wyoming':'WY','District of Columbia':'DC' };
+
+        const _csTimers = {};
+        async function lookupCityState(inputId, displayId) {
+            const el = document.getElementById(displayId);
+            if (!el) return;
+            const val = (document.getElementById(inputId).value || '').trim();
+            if (!val) { el.textContent = ''; return; }
+
+            // Always cancel any pending Nominatim timer first
+            clearTimeout(_csTimers[displayId]);
+
+            // Zip code — instant lookup via zippopotam.us
+            if (/^\d{5}$/.test(val)) {
+                try {
+                    el.textContent = '…';
+                    const r = await fetch('https://api.zippopotam.us/us/' + val);
+                    if (r.ok) {
+                        const d = await r.json();
+                        const p = d.places && d.places[0];
+                        el.textContent = p ? p['place name'] + ', ' + p['state abbreviation'] : '';
+                    } else { el.textContent = ''; }
+                } catch(e) { el.textContent = ''; }
+                return;
+            }
+
+            // Full address — use Nominatim (debounced 600ms)
+            _csTimers[displayId] = setTimeout(async () => {
+                const currentVal = (document.getElementById(inputId).value || '').trim();
+                if (currentVal !== val) return; // stale — input changed
+                try {
+                    el.textContent = '…';
+                    const r = await fetch(
+                        'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(val) +
+                        '&format=json&limit=1&countrycodes=us&addressdetails=1',
+                        { headers: { 'User-Agent': 'HerculesMovingCRM/1.0' } }
+                    );
+                    const data = await r.json();
+                    if (data && data[0] && data[0].address) {
+                        const a = data[0].address;
+                        const city = a.city || a.town || a.village || a.suburb || a.county || '';
+                        const stateRaw = a.state || '';
+                        const state = STATE_ABBR[stateRaw] || stateRaw;
+                        el.textContent = [city, state].filter(Boolean).join(', ');
+                    } else { el.textContent = ''; }
+                } catch(e) { el.textContent = ''; }
+            }, 600);
+        }
+
+        async function calculateDistance() {
+            const from = (document.getElementById('editMovingFrom').value || '').trim();
+            const to   = (document.getElementById('editMovingTo').value   || '').trim();
+            const btn  = document.getElementById('calcDistBtn');
+            const status = document.getElementById('distCalcStatus');
+            if (!from || !to) { if (status) status.textContent = 'Enter both addresses first.'; return; }
+
+            if (btn) { btn.disabled = true; btn.textContent = '…'; }
+            if (status) status.textContent = 'Geocoding addresses…';
+
+            try {
+                // Geocode via Nominatim (OpenStreetMap) — free, no key
+                const geocode = async (addr) => {
+                    const r = await fetch(
+                        'https://nominatim.openstreetmap.org/search?q=' + encodeURIComponent(addr) + '&format=json&limit=1&countrycodes=us',
+                        { headers: { 'User-Agent': 'HerculesMovingCRM/1.0' } }
+                    );
+                    const d = await r.json();
+                    if (!d || !d.length) throw new Error('Address not found: ' + addr);
+                    return { lat: parseFloat(d[0].lat), lon: parseFloat(d[0].lon) };
+                };
+
+                if (status) status.textContent = 'Fetching route…';
+                const [origin, dest] = await Promise.all([geocode(from), geocode(to)]);
+
+                // Driving route via OSRM public server — free, no key
+                const osrmRes = await fetch(
+                    'https://router.project-osrm.org/route/v1/driving/' +
+                    origin.lon + ',' + origin.lat + ';' + dest.lon + ',' + dest.lat + '?overview=false'
+                );
+                const osrmData = await osrmRes.json();
+                if (!osrmData.routes || !osrmData.routes.length) throw new Error('No route found between these addresses');
+
+                const miles = Math.round(osrmData.routes[0].distance / 1609.34);
+                const totalMin = Math.round(osrmData.routes[0].duration / 60);
+                const hrs = Math.floor(totalMin / 60), mins = totalMin % 60;
+                const timeStr = hrs > 0 ? hrs + 'h ' + mins + 'm' : mins + 'm';
+
+                // Update UI
+                document.getElementById('editDistance').value = miles;
+                document.getElementById('distance').textContent = miles + ' mi';
+                if (status) status.textContent = '✓ ' + miles + ' mi · ~' + timeStr + ' drive';
+
+                // Update local data + save to DB
+                if (currentJobData) currentJobData.distance = miles;
+                if (currentJobData && currentJobData.id) {
+                    await fetch(SUPABASE_URL + '/rest/v1/job_submissions?id=eq.' + currentJobData.id, {
+                        method: 'PATCH',
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                        body: JSON.stringify({ distance: miles })
+                    });
+                }
+            } catch (e) {
+                if (status) status.textContent = '⚠ ' + (e.message || 'Could not calculate');
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = '📍 Calc'; }
+            }
+        }
+        
+        async function loadAgreements(jobSubmissionId) {
+            const loadingEl = document.getElementById('agreementsLoading');
+            const tableEl = document.getElementById('agreementsTable');
+            const tbody = document.getElementById('agreementsBody');
+            const emptyEl = document.getElementById('agreementsEmpty');
+            if (!jobSubmissionId || !tbody) return;
+            loadingEl.style.display = 'block';
+            tableEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            try {
+                const url = SUPABASE_URL + '/rest/v1/agreements?job_submission_id=eq.' + encodeURIComponent(jobSubmissionId) + '&select=id,token,agreement_title,status,created_at,signed_at,document_type,step_order&order=created_at.desc';
+                const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+                if (!res.ok) throw new Error('Failed to load agreements');
+                const list = await res.json();
+                tbody.innerHTML = '';
+                if (!list || list.length === 0) {
+                    emptyEl.style.display = 'block';
+                } else {
+                    tableEl.style.display = 'table';
+                    const baseUrl = window.location.origin;
+                    list.forEach(function(a) {
+                        const title = a.agreement_title || (a.document_type === 'bill_of_lading' ? 'Bill of Lading' : a.document_type === 'credit_card_authorization' ? 'Credit Card Authorization' : 'Moving Estimate') + (a.step_order ? ' (Step ' + a.step_order + ')' : '');
+                        const statusClass = a.status === 'signed' ? 'status-signed' : 'status-pending';
+                        const statusText = a.status === 'signed' ? 'Signed' : 'Pending';
+                        const sentDate = a.created_at ? new Date(a.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—';
+                        const completedDate = a.signed_at ? new Date(a.signed_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—';
+                        const viewUrl = baseUrl + '/agreement?t=' + encodeURIComponent(a.token);
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + escapeHtml(title) + '</td><td class="' + statusClass + '">' + statusText + '</td><td>' + sentDate + '</td><td>' + completedDate + '</td><td><a href="' + viewUrl + '" target="_blank" rel="noopener" class="link-view">View / Download</a></td>';
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                emptyEl.textContent = 'Could not load agreements.';
+                emptyEl.style.display = 'block';
+            } finally {
+                loadingEl.style.display = 'none';
+            }
+        }
+        async function loadEmailLogs(jobSubmissionId) {
+            const loadingEl = document.getElementById('emailsLoading');
+            const tableEl = document.getElementById('emailsTable');
+            const tbody = document.getElementById('emailsBody');
+            const emptyEl = document.getElementById('emailsEmpty');
+            if (!jobSubmissionId || !tbody) return;
+            loadingEl.style.display = 'block';
+            tableEl.style.display = 'none';
+            emptyEl.style.display = 'none';
+            try {
+                const url = SUPABASE_URL + '/rest/v1/email_logs?job_submission_id=eq.' + encodeURIComponent(jobSubmissionId) + '&select=id,to_email,subject,status,created_at,html_body,from_email,resend_id&order=created_at.desc';
+                const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+                if (!res.ok) throw new Error('Failed');
+                const logs = await res.json();
+                tbody.innerHTML = '';
+                if (!logs || logs.length === 0) {
+                    emptyEl.style.display = 'block';
+                } else {
+                    tableEl.style.display = 'table';
+                    window.__emailLogs = logs;
+                    logs.forEach(function(log, idx) {
+                        const dt = log.created_at ? new Date(log.created_at).toLocaleString(undefined, { dateStyle: 'short', timeStyle: 'short' }) : '—';
+                        const statusColor = log.status === 'sent' ? '#16a34a' : '#dc2626';
+                        const hasBody = !!log.html_body;
+                        const viewBtn = hasBody
+                            ? '<a href="#" onclick="openEmailModal(' + idx + '); return false;" style="color:#2563eb;text-decoration:none;font-weight:600;">View Email</a>'
+                            : '<span style="color:#94a3b8;font-size:10px;">No preview</span>';
+                        const tr = document.createElement('tr');
+                        tr.innerHTML = '<td>' + dt + '</td><td>' + escapeHtml(log.to_email || '-') + '</td><td>' + escapeHtml((log.subject || '-').slice(0, 40)) + ((log.subject||'').length > 40 ? '...' : '') + '</td><td style="color:' + statusColor + ';font-weight:600;">' + (log.status || '-').toUpperCase() + '</td><td>' + viewBtn + '</td>';
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch (err) {
+                emptyEl.textContent = 'Could not load email logs.';
+                emptyEl.style.display = 'block';
+            } finally {
+                loadingEl.style.display = 'none';
+            }
+        }
+
+        function openEmailModal(idx) {
+            const log = window.__emailLogs && window.__emailLogs[idx];
+            if (!log || !log.html_body) return;
+            document.getElementById('emailModalTitle').textContent = log.subject || 'Email Preview';
+            const dt = log.created_at ? new Date(log.created_at).toLocaleString() : '—';
+            document.getElementById('emailModalMeta').innerHTML =
+                '<div><strong>To:</strong> ' + escapeHtml(log.to_email) + '</div>' +
+                '<div><strong>From:</strong> ' + escapeHtml(log.from_email || '-') + '</div>' +
+                '<div><strong>Sent:</strong> ' + dt + '</div>' +
+                '<div><strong>Status:</strong> ' + (log.status || '-').toUpperCase() + '</div>';
+            const iframe = document.getElementById('emailModalIframe');
+            iframe.srcdoc = log.html_body;
+            document.getElementById('emailModalOverlay').classList.add('open');
+        }
+
+        function closeEmailModal() {
+            document.getElementById('emailModalOverlay').classList.remove('open');
+            document.getElementById('emailModalIframe').srcdoc = '';
+        }
+
+        function escapeHtml(s) {
+            if (s == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(s);
+            return div.innerHTML;
+        }
+        
+        async function saveProfile() {
+            if (!currentJobData || !currentJobData.id) {
+                alert('No lead loaded');
+                return;
+            }
+            if (!isEditingProfile) {
+                // Ignore accidental clicks when not in edit mode
+                return;
+            }
+            const msgEl = document.getElementById('saveProfileMsg');
+            msgEl.textContent = 'Saving...';
+            msgEl.className = 'save-msg';
+            try {
+                const payload = {
+                    customer_name: document.getElementById('editCustomerName').value.trim() || null,
+                    moving_from: document.getElementById('editMovingFrom').value.trim() || null,
+                    moving_to: document.getElementById('editMovingTo').value.trim() || null,
+                    phone: document.getElementById('editPhone').value.trim() || null,
+                    email: document.getElementById('editEmail').value.trim() || null,
+                    cubes: document.getElementById('editCubes').value.trim() || null,
+                    distance: document.getElementById('editDistance').value.trim() || null,
+                    ref_id: document.getElementById('refNo').value.trim() || null,
+                    click_id: document.getElementById('refNo').value.trim() || null,
+                    deposit_amount: parseFloat(document.getElementById('depositAmount').value) || null,
+                    updated_at: new Date().toISOString()
+                };
+                const res = await fetch(SUPABASE_URL + '/rest/v1/job_submissions?id=eq.' + currentJobData.id, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    console.error('Save failed:', errorText);
+                    throw new Error(errorText);
+                }
+                
+                // Reload from database to verify save persisted and get latest data
+                const verifyRes = await fetch(SUPABASE_URL + '/rest/v1/job_submissions?select=*&id=eq.' + currentJobData.id + '&limit=1', {
+                    headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+                });
+                if (verifyRes.ok) {
+                    const verifyData = await verifyRes.json();
+                    if (verifyData && verifyData.length > 0) {
+                        currentJobData = verifyData[0];
+                        // Update input fields with verified saved data
+                        document.getElementById('editCustomerName').value = currentJobData.customer_name || '';
+                        document.getElementById('editMovingFrom').value = (currentJobData.moving_from || currentJobData.moving_from_address || currentJobData.address_from || '').toString();
+                        document.getElementById('editMovingTo').value = (currentJobData.moving_to || currentJobData.moving_to_address || currentJobData.address_to || '').toString();
+                        document.getElementById('editPhone').value = currentJobData.phone || '';
+                        document.getElementById('editEmail').value = currentJobData.email || '';
+                        document.getElementById('editCubes').value = currentJobData.cubes != null ? String(currentJobData.cubes) : '';
+                        document.getElementById('editDistance').value = currentJobData.distance != null ? String(currentJobData.distance) : '';
+                        updateMapLinks();
+                    }
+                }
+                
+                msgEl.textContent = 'Profile saved.';
+                msgEl.className = 'save-msg success';
+                setProfileEditing(false);
+                // Also show a clear popup so the closer/fronter sees it worked
+                alert('Profile saved.');
+                setTimeout(function() { msgEl.textContent = ''; }, 3000);
+            } catch (err) {
+                msgEl.textContent = 'Error: ' + (err.message || 'Save failed');
+                msgEl.className = 'save-msg error';
+            }
+        }
+        
+        async function saveScheduling() {
+            if (!currentJobData || !currentJobData.id) {
+                alert('No lead loaded');
+                return;
+            }
+            try {
+                const payload = {
+                    pickup_date: document.getElementById('pickupDate').value || null,
+                    callback_date: document.getElementById('followUpDate').value || null,
+                    callback_time: document.getElementById('followUpTime').value || null,
+                    updated_at: new Date().toISOString()
+                };
+                const res = await fetch(SUPABASE_URL + '/rest/v1/job_submissions?id=eq.' + currentJobData.id, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (!res.ok) throw new Error(await res.text());
+                alert('Scheduling saved.');
+            } catch (err) {
+                alert('Error saving: ' + (err.message || 'Save failed'));
+            }
+        }
+        
+        async function sendAgreement() {
+            const email = document.getElementById('editEmail').value.trim();
+            if (!currentJobData) {
+                alert('No lead loaded');
+                return;
+            }
+            if (!email) {
+                alert('Customer email is required to send agreement');
+                return;
+            }
+            
+            const btn = document.getElementById('sendAgreementBtn');
+            const originalText = btn.textContent;
+            btn.disabled = true;
+            btn.textContent = 'Sending...';
+            
+            try {
+                // Load email service
+                const emailServiceScript = document.createElement('script');
+                emailServiceScript.src = 'email-service.js';
+                document.head.appendChild(emailServiceScript);
+                
+                await new Promise((resolve) => {
+                    emailServiceScript.onload = resolve;
+                    setTimeout(resolve, 1000); // Fallback
+                });
+                
+                const emailService = new EmailService();
+                
+                const customerName = document.getElementById('editCustomerName').value.trim() || currentJobData.customer_name || 'Customer';
+                const baseUrl = window.location.origin || 'https://app.herculesmovingsolutions.com';
+                const logoUrl = baseUrl + '/logo.svg';
+                // At a Glance: read from form / current job
+                const cubesVal = document.getElementById('editCubes').value.trim() || (currentJobData.cubes != null ? String(currentJobData.cubes) : '');
+                const pickupVal = document.getElementById('pickupDate').value || (currentJobData.pickup_date ? new Date(currentJobData.pickup_date).toLocaleDateString() : '');
+                const deliveryVal = document.getElementById('deliveryDate').value || '';
+                const timeframeStr = (pickupVal && deliveryVal) ? (pickupVal + ' – ' + deliveryVal) : (pickupVal || deliveryVal || '—');
+                const totalCostStr = (document.getElementById('totalEstimate') && document.getElementById('totalEstimate').textContent) ? document.getElementById('totalEstimate').textContent.trim() : '—';
+                const depositStr = (currentJobData.deposit_amount != null ? '$' + Number(currentJobData.deposit_amount).toFixed(2) : 'See Step 3 (Credit Card Authorization)');
+                const dotUrl = 'https://safer.fmcsa.dot.gov/query.asp?searchtype=ANY&query_type=queryCarrierSnapshot&query_param=USDOT&original_query_param=NAME&query_string=3516489&original_query_string=PERFECTLY%20FAST%20MOVING%20LLC';
+                const myGoodMoversUrl = 'https://mygoodmovers.com/movers/perfectly-fast-moving';
+                const angiUrl = 'https://www.angi.com/companylist/us/wa/spokane/perfectly-fast-moving-llc-reviews-1.htm';
+                const consumerAffairsUrl = 'https://www.consumeraffairs.com/movers/perfectly-fast-moving.html';
+                const homeAdvisorUrl = 'https://www.homeadvisor.com/rated.PerfectlyFastMovingLLC.131888457.html';
+                const htmlBody = `
+                    <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; color: #1f2937;">
+                    <!-- Header -->
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background-color: #FFA23F; background: linear-gradient(135deg, #FFA23F 0%, #e8891f 100%); border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 24px 28px;">
+                                <img src="${logoUrl}" alt="Hercules Moving Solutions" width="180" height="48" style="display: block; height: 48px; width: auto; max-width: 200px;" />
+                                <p style="margin: 12px 0 0 0; font-size: 14px; color: rgba(255,255,255,0.95); font-weight: 600;">Your moving documents are ready</p>
+                            </td>
+                        </tr>
+                    </table>
+                    <!-- Body -->
+                    <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 28px 28px 20px;">
+                                <h1 style="margin: 0 0 8px 0; font-size: 22px; color: #FFA23F; font-weight: 700;">Moving Documents – ${currentJobData.job_number}</h1>
+                                <p style="margin: 0; font-size: 14px; color: #6b7280;">Complete your paperwork in 3 simple steps</p>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 0 28px 20px;">
+                                <p style="margin: 0 0 16px 0; font-size: 16px; color: #1f2937;">Dear ${customerName},</p>
+                                <p style="margin: 0 0 20px 0; font-size: 15px; color: #374151; line-height: 1.5;">Please complete the following 3 steps by clicking the button below. Each step will open one document to review and sign.</p>
+                                <!-- At a Glance -->
+                                <table width="100%" cellpadding="0" cellspacing="0" style="background: #f0f9ff; border: 1px solid #bae6fd; border-radius: 8px; margin: 20px 0; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 16px 20px;">
+                                            <p style="margin: 0 0 12px 0; font-size: 12px; color: #0369a1; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700;">At a glance</p>
+                                            <table width="100%" cellpadding="0" cellspacing="0" style="font-size: 14px; color: #1f2937;">
+                                                <tr><td style="padding: 4px 0;">Total cubic feet:</td><td style="text-align: right; font-weight: 600;">${cubesVal ? cubesVal + ' cf' : '—'}</td></tr>
+                                                <tr><td style="padding: 4px 0;">Delivery timeframe:</td><td style="text-align: right; font-weight: 600;">${timeframeStr}</td></tr>
+                                                <tr><td style="padding: 4px 0;">Total estimate:</td><td style="text-align: right; font-weight: 600; color: #FFA23F;">${totalCostStr}</td></tr>
+                                                <tr><td style="padding: 4px 0;">Deposit required:</td><td style="text-align: right; font-weight: 600;">${depositStr}</td></tr>
+                                                <tr><td style="padding: 8px 0 0 0;" colspan="2"><a href="${dotUrl}" style="color: #FFA23F; font-weight: 600;">View our FMCSA DOT listing (USDOT 3516489)</a></td></tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <table width="100%" cellpadding="0" cellspacing="0" style="background: #f8fafc; border-left: 4px solid #d4af37; border-radius: 8px; margin: 20px 0; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 20px 20px 16px;">
+                                            <p style="margin: 0 0 8px 0; font-size: 13px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Your 3 steps</p>
+                                            <ol style="margin: 0; padding-left: 20px; font-size: 15px; color: #1f2937; line-height: 1.8;">
+                                                <li><strong style="color: #FFA23F;">Moving Estimate</strong> – Review and sign your estimate</li>
+                                                <li><strong style="color: #FFA23F;">Bill of Lading</strong> – Contract and payment terms</li>
+                                                <li><strong style="color: #FFA23F;">Credit Card Authorization</strong> – Authorize your deposit payment</li>
+                                            </ol>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p style="margin: 24px 0 16px 0; font-size: 15px; color: #374151;">Click the button below to get started:</p>
+                                <table cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                    <tr>
+                                        <td style="border-radius: 8px; background: #FFA23F;">
+                                            <a href="{{AGREEMENT_LINK}}" style="display: inline-block; padding: 14px 32px; font-size: 16px; font-weight: 700; color: #ffffff; text-decoration: none;">Start – Sign All 3 Documents</a>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p style="margin: 24px 0 0 0; font-size: 13px; color: #6b7280;">If the button doesn't work, copy and paste this link into your browser:</p>
+                                <p style="margin: 8px 0 0 0; word-break: break-all; font-size: 13px; color: #FFA23F;"><a href="{{AGREEMENT_LINK}}" style="color: #FFA23F;">{{AGREEMENT_LINK}}</a></p>
+                                <!-- Reviews -->
+                                <table width="100%" cellpadding="0" cellspacing="0" style="margin: 28px 0 0 0; border-collapse: collapse;">
+                                    <tr>
+                                        <td style="padding: 16px 0; border-top: 1px solid #e5e7eb;">
+                                            <p style="margin: 0 0 12px 0; font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 0.5px;">Read our reviews</p>
+                                            <table cellpadding="0" cellspacing="0" style="border-collapse: collapse;">
+                                                <tr>
+                                                    <td style="padding: 6px 12px 6px 0; vertical-align: middle;"><a href="${myGoodMoversUrl}" style="text-decoration: none; color: #1f2937; font-size: 13px; font-weight: 600;"><img src="https://mygoodmovers.com/favicon.ico" alt="" width="20" height="20" style="vertical-align: middle; margin-right: 6px;" /> My Good Movers</a></td>
+                                                    <td style="padding: 6px 12px; vertical-align: middle;"><a href="${angiUrl}" style="text-decoration: none; color: #1f2937; font-size: 13px; font-weight: 600;"><img src="https://www.angi.com/favicon.ico" alt="" width="20" height="20" style="vertical-align: middle; margin-right: 6px;" /> Angi</a></td>
+                                                </tr>
+                                                <tr>
+                                                    <td style="padding: 6px 12px 6px 0; vertical-align: middle;"><a href="${consumerAffairsUrl}" style="text-decoration: none; color: #1f2937; font-size: 13px; font-weight: 600;"><img src="https://www.consumeraffairs.com/favicon.ico" alt="" width="20" height="20" style="vertical-align: middle; margin-right: 6px;" /> Consumer Affairs</a></td>
+                                                    <td style="padding: 6px 12px; vertical-align: middle;"><a href="${homeAdvisorUrl}" style="text-decoration: none; color: #1f2937; font-size: 13px; font-weight: 600;"><img src="https://www.homeadvisor.com/favicon.ico" alt="" width="20" height="20" style="vertical-align: middle; margin-right: 6px;" /> HomeAdvisor</a></td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                                <p style="margin: 24px 0 0 0; font-size: 15px; color: #374151;">Thank you,<br><strong style="color: #FFA23F;">Hercules Moving Solutions</strong></p>
+                            </td>
+                        </tr>
+                    </table>
+                    <!-- Footer -->
+                    <table width="100%" cellpadding="0" cellspacing="0" style="background: #d4780a; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 20px 28px; text-align: center;">
+                                <p style="margin: 0; font-size: 13px; color: rgba(255,255,255,0.9);">Hercules Moving Solutions</p>
+                                <p style="margin: 4px 0 0 0; font-size: 12px; color: rgba(255,255,255,0.7);">professional moving &amp; storage</p>
+                                <p style="margin: 12px 0 0 0; font-size: 11px; color: rgba(255,255,255,0.5);">app.herculesmovingsolutions.com</p>
+                            </td>
+                        </tr>
+                    </table>
+                    </div>
+                `;
+                
+                const agreementFrom = 'Long Distance Moving <inbox@herculesmovingsolutions.com>';
+                const result = await emailService.sendWithAgreement(
+                    email,
+                    `Moving Documents (3 steps) - ${currentJobData.job_number}`,
+                    htmlBody,
+                    {
+                        jobSubmissionId: currentJobData.id,
+                        jobNumber: currentJobData.job_number,
+                        customerEmail: email
+                    },
+                    { from: agreementFrom }
+                );
+                
+                if (result.success) {
+                    alert(`✅ Agreement sent successfully to ${email}`);
+                    loadAgreements(currentJobData.id);
+                    loadEmailLogs(currentJobData.id);
+                } else {
+                    throw new Error(result.error || 'Failed to send agreement');
+                }
+            } catch (err) {
+                console.error('Send agreement error:', err);
+                alert('❌ Error sending agreement: ' + err.message);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = originalText;
+            }
+        }
+        
+        function groupInventoryByRoom(items) {
+            const byRoom = {};
+            if (!Array.isArray(items)) return byRoom;
+            items.forEach(it => {
+                const room = (it.room || 'Other').toString();
+                if (!byRoom[room]) byRoom[room] = [];
+                byRoom[room].push(it);
+            });
+            return byRoom;
+        }
+
+        function renderInventorySummary(items, totalVolume, updatedAt) {
+            const listEl = document.getElementById('inventorySummary');
+            const totalEl = document.getElementById('inventoryTotalVolume');
+            const updatedEl = document.getElementById('inventoryUpdatedAt');
+            if (!listEl) return;
+            if (!items || !Array.isArray(items) || items.length === 0) {
+                listEl.innerHTML = '<div class=\"inventory-empty\">No inventory snapshot yet for this job.</div>';
+            } else {
+                const byRoom = groupInventoryByRoom(items);
+                const rooms = Object.keys(byRoom).sort();
+                const html = rooms.map(room => {
+                    const lines = byRoom[room].map(it => {
+                        const name = escapeHtml(it.name || '');
+                        const qty = it.qty && it.qty > 1 ? ' × ' + it.qty : '';
+                        const vol = (it.volume && it.qty) ? ' (' + (it.volume * it.qty) + ' cf)' : '';
+                        return '<div class=\"inventory-item-line\">' + name + qty + vol + '</div>';
+                    }).join('');
+                    return '<div class=\"inventory-room\"><div class=\"inventory-room-title\">' + escapeHtml(room) + '</div>' + lines + '</div>';
+                }).join('');
+                listEl.innerHTML = html;
+            }
+            if (totalEl) {
+                totalEl.textContent = 'Total volume: ' + (totalVolume != null ? Math.round(totalVolume) + ' cf' : '—');
+            }
+            if (updatedEl) {
+                if (updatedAt) {
+                    const d = new Date(updatedAt);
+                    updatedEl.textContent = 'Last updated: ' + d.toLocaleString();
+                } else {
+                    updatedEl.textContent = 'Last updated: —';
+                }
+            }
+            // Sync Cubes field and Initial CF from inventory total
+            if (totalVolume != null && totalVolume > 0) {
+                const rounded = Math.round(totalVolume);
+                const cubesEl = document.getElementById('editCubes');
+                const cfEl = document.getElementById('initialCf');
+                if (cubesEl) cubesEl.value = rounded;
+                if (cfEl) {
+                    cfEl.value = rounded;
+                    cfEl.dispatchEvent(new Event('input'));
+                }
+            }
+        }
+
+        async function loadLinkedCharges(jobSubmissionId) {
+            const el = document.getElementById('linkedChargesList');
+            if (!el || !jobSubmissionId) return;
+            try {
+                const url = SUPABASE_URL + '/rest/v1/transactions?job_submission_id=eq.' + encodeURIComponent(jobSubmissionId) +
+                    '&select=id,processed_at,amount,transaction_type,auth_code,card_number,trans_status&order=processed_at.desc';
+                const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+                const rows = res.ok ? await res.json() : [];
+                if (!rows || !rows.length) {
+                    el.innerHTML = '<div class="inventory-empty">No linked charges.<br><small style="color:#64748b;">Link from Transactions page.</small></div>';
+                    return;
+                }
+                el.innerHTML = rows.map(function(t) {
+                    var amt = parseFloat(t.amount || 0);
+                    var isReturn = (t.transaction_type || '').toUpperCase() === 'RETURN';
+                    var amtColor = isReturn ? '#f87171' : '#4ade80';
+                    var date = t.processed_at ? new Date(t.processed_at).toLocaleDateString(undefined, { dateStyle: 'short' }) : '—';
+                    var statusText = (t.trans_status || '').toUpperCase() === 'STL' ? 'Settled' : (isReturn ? 'Return' : (t.trans_status || '—'));
+                    return '<div style="display:grid;grid-template-columns:1fr auto;gap:2px 8px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.06);">' +
+                        '<span style="font-weight:700;color:' + amtColor + ';">$' + amt.toFixed(2) + '</span>' +
+                        '<span style="color:#94a3b8;font-size:11px;text-align:right;">' + escapeHtml(statusText) + '</span>' +
+                        '<span style="color:#64748b;font-size:11px;">' + escapeHtml(date) + '</span>' +
+                        '<span style="color:#64748b;font-size:11px;text-align:right;">' + (t.auth_code ? 'Auth: ' + escapeHtml(t.auth_code) : '') + '</span>' +
+                        '</div>';
+                }).join('');
+            } catch(e) {
+                el.innerHTML = '<div class="inventory-empty">Error loading charges.</div>';
+            }
+        }
+
+        async function loadInventorySummary(jobNum) {
+            const listEl = document.getElementById('inventorySummary');
+            if (!jobNum || !listEl) return;
+            listEl.innerHTML = '<div class=\"inventory-empty\">Loading inventory…</div>';
+            try {
+                let url = SUPABASE_URL + '/rest/v1/inventory_submissions?select=items,total_volume,updated_at&job_number=eq.' + encodeURIComponent(jobNum) + '&order=updated_at.desc&limit=1';
+                const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+                if (!res.ok) {
+                    console.warn('Inventory summary load failed with status', res.status);
+                    renderInventorySummary([], null, null);
+                    return;
+                }
+                const data = await res.json();
+                if (!data || data.length === 0) {
+                    renderInventorySummary([], null, null);
+                    return;
+                }
+                const row = data[0];
+                const items = row.items || [];
+                renderInventorySummary(items, row.total_volume, row.updated_at);
+            } catch (e) {
+                console.warn('Inventory summary error:', e);
+                renderInventorySummary([], null, null);
+            }
+        }
+
+        function openInventoryForJob() {
+            if (!currentJobData) {
+                window.open('inventory.html', '_blank');
+                return;
+            }
+            const job = currentJobData.job_number || '';
+            const id = currentJobData.id != null ? String(currentJobData.id) : '';
+            let url = 'inventory.html';
+            const params = [];
+            if (job) params.push('job=' + encodeURIComponent(job));
+            if (id) params.push('id=' + encodeURIComponent(id));
+            if (params.length) url += '?' + params.join('&');
+            window.open(url, '_blank');
+        }
+
+        async function loadLead() {
+            const params = new URLSearchParams(window.location.search);
+            const id = params.get('id');
+            const job = params.get('job');
+            if (!id && !job) { document.getElementById('profileError').textContent = 'No lead specified. Use ?id=123 or ?job=A2325462'; document.getElementById('profileError').style.display = 'block'; return; }
+            document.getElementById('profileLoading').style.display = 'block';
+            document.getElementById('profileMain').style.display = 'none';
+            document.getElementById('profileError').style.display = 'none';
+            try {
+                let url = SUPABASE_URL + '/rest/v1/job_submissions?select=*';
+                if (id) url += '&id=eq.' + id; else url += '&job_number=eq.' + encodeURIComponent(job);
+                url += '&limit=1';
+                const res = await fetch(url, { headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY } });
+                if (!res.ok) throw new Error('Failed to load lead');
+                const data = await res.json();
+                if (!data || data.length === 0) { document.getElementById('profileError').textContent = 'Lead not found'; document.getElementById('profileError').style.display = 'block'; return; }
+                const d = data[0];
+                currentJobData = d;
+                document.getElementById('editCustomerName').value = d.customer_name || '';
+                document.getElementById('editMovingFrom').value = (d.moving_from || d.moving_from_address || d.address_from || '').toString();
+                document.getElementById('editMovingTo').value = (d.moving_to || d.moving_to_address || d.address_to || '').toString();
+                document.getElementById('editPhone').value = d.phone || '';
+                document.getElementById('editEmail').value = d.email || '';
+                document.getElementById('editCubes').value = d.cubes != null ? String(d.cubes) : '';
+                document.getElementById('editDistance').value = d.distance != null ? String(d.distance) : '';
+                if (!d.distance && (d.moving_from || d.moving_to)) setTimeout(calculateDistance, 600);
+                const callBtn = document.getElementById('callBtn');
+                if (callBtn) {
+                    callBtn.style.display = d.phone ? 'inline-block' : 'none';
+                    callBtn.dataset.ph = d.phone ? btoa(d.phone) : '';
+                    callBtn.dataset.n = d.customer_name ? btoa(d.customer_name) : '';
+                }
+                updateMapLinks();
+                document.getElementById('jobNo').textContent = d.job_number || '-';
+                document.getElementById('jobStatus').textContent = d.status || '-';
+                document.getElementById('represent').textContent = d.user_name || d.chrome_profile_name || '-';
+                document.getElementById('userField').textContent = d.user_name || '-';
+                document.getElementById('agentField').textContent = d.assigned_to || d.transferred_to || '-';
+                document.getElementById('refNo').value = (d.click_id || d.ref_id || '').toString();
+                document.getElementById('reference').textContent = (d.click_id || d.ref_id || d.source || '-').toString();
+                document.getElementById('locationType').textContent = d.location_type || 'Residential';
+                document.getElementById('distance').textContent = d.distance ? d.distance + ' mi' : '-';
+                document.getElementById('openDate').textContent = d.submitted_at ? new Date(d.submitted_at).toLocaleString() : '-';
+                const cf = parseFloat(d.cubes) || 0;
+                document.getElementById('initialCf').value = cf;
+                const perCf = d.per_cf != null ? Number(d.per_cf) : 14;
+                document.getElementById('initialPerCf').value = perCf;
+                if (d.fuel_surcharge_pct != null) document.getElementById('fuelSurcharge').value = Number(d.fuel_surcharge_pct);
+                if (d.discount_amount != null) document.getElementById('discount').value = Number(d.discount_amount);
+                if (d.deposit_amount != null) document.getElementById('depositAmount').value = Number(d.deposit_amount).toFixed(2);
+                document.getElementById('pricingBreakdown1').textContent = cf ? cf + ' cf @ $' + perCf + '/cf' : '-';
+                document.getElementById('pricingBreakdown2').textContent = cf ? Math.round(cf * 7) + ' lbs @ $2/lb' : '-';
+                if (d.pickup_date) { const pd = new Date(d.pickup_date); if (!isNaN(pd)) document.getElementById('pickupDate').value = pd.toISOString().slice(0,10); }
+                if (d.callback_date) document.getElementById('followUpDate').value = d.callback_date;
+                if (d.callback_time) document.getElementById('followUpTime').value = d.callback_time;
+                document.getElementById('priority').textContent = d.priority_level ? 'Level-' + d.priority_level : 'Level-1';
+
+                let _chargeSaveTimer = null;
+                function recalc() {
+                    var cf = parseFloat(document.getElementById('initialCf').value) || 0;
+                    var perCf = parseFloat(document.getElementById('initialPerCf').value) || 0;
+                    var fuel = parseFloat(document.getElementById('fuelSurcharge').value) || 0;
+                    var discount = parseFloat(document.getElementById('discount').value) || 0;
+                    var initial = cf * perCf;
+                    var fuelAmt = initial * (fuel/100);
+                    var subtotal = initial + fuelAmt;
+                    var total = Math.max(0, subtotal - discount);
+                    document.getElementById('initialCalc').textContent = initial.toFixed(2);
+                    document.getElementById('fuelCalc').textContent = '$' + fuelAmt.toFixed(2);
+                    document.getElementById('subtotal1').textContent = '$' + subtotal.toFixed(2);
+                    document.getElementById('discountDisplay').textContent = discount > 0 ? '-$' + discount.toFixed(2) : '$0.00';
+                    document.getElementById('totalEstimate').textContent = '$' + total.toFixed(2);
+                    var deposit = parseFloat(document.getElementById('depositAmount').value) || 0;
+                    var remaining = Math.max(0, total - deposit);
+                    var split = remaining / 2;
+                    document.getElementById('depositDisplay').textContent = '$' + deposit.toFixed(2);
+                    document.getElementById('pickUpDisplay').textContent = '$' + split.toFixed(2);
+                    document.getElementById('dropOffDisplay').textContent = '$' + split.toFixed(2);
+                    // Auto-save with debounce
+                    clearTimeout(_chargeSaveTimer);
+                    const statusEl = document.getElementById('chargeSaveStatus');
+                    if (statusEl) { statusEl.textContent = 'Saving...'; statusEl.style.color = '#94a3b8'; }
+                    _chargeSaveTimer = setTimeout(() => saveCharges(cf, perCf, fuel, discount, deposit, total), 800);
+                }
+                async function saveCharges(cf, perCf, fuel, discount, deposit, total) {
+                    const statusEl = document.getElementById('chargeSaveStatus');
+                    try {
+                        const res = await fetch(SUPABASE_URL + '/rest/v1/job_submissions?id=eq.' + currentJobData.id, {
+                            method: 'PATCH',
+                            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                cubes: cf || null,
+                                per_cf: perCf || null,
+                                fuel_surcharge_pct: fuel,
+                                discount_amount: discount,
+                                deposit_amount: deposit || null,
+                                total_estimate: total || null,
+                                updated_at: new Date().toISOString()
+                            })
+                        });
+                        if (res.ok) {
+                            if (statusEl) { statusEl.textContent = 'Saved'; statusEl.style.color = '#16a34a'; }
+                            setTimeout(() => { if (statusEl && statusEl.textContent === 'Saved') statusEl.textContent = ''; }, 2000);
+                        } else {
+                            const err = await res.json().catch(() => null);
+                            if (statusEl) { statusEl.textContent = 'Error saving'; statusEl.style.color = '#dc2626'; }
+                            console.error('Charge save error:', err);
+                        }
+                    } catch (e) {
+                        if (statusEl) { statusEl.textContent = 'Error saving'; statusEl.style.color = '#dc2626'; }
+                        console.error('Charge save error:', e);
+                    }
+                }
+                document.getElementById('initialCf').addEventListener('input', recalc);
+                document.getElementById('initialPerCf').addEventListener('input', recalc);
+                document.getElementById('fuelSurcharge').addEventListener('input', recalc);
+                document.getElementById('discount').addEventListener('input', recalc);
+                document.getElementById('depositAmount').addEventListener('input', recalc);
+                recalc();
+                // Clear the initial auto-save (don't save on page load)
+                clearTimeout(_chargeSaveTimer);
+                document.getElementById('chargeSaveStatus').textContent = '';
+
+                // Pricing matrix auto-suggest
+                const _miles = parseInt(d.distance) || 0;
+                const _cubes = parseInt(d.cubes) || 0;
+                if (_miles > 0 && _cubes > 0 && pricingMatrix.length) {
+                    const matchedTier = findPricingTier(_miles, _cubes);
+                    if (matchedTier) {
+                        const pricedByAdmin = d.per_cf != null && Number(d.per_cf) > 0;
+                        if (!pricedByAdmin) {
+                            applyPricingTier(matchedTier);
+                            clearTimeout(_chargeSaveTimer);
+                            document.getElementById('chargeSaveStatus').textContent = '';
+                        } else {
+                            showPricingHint(matchedTier, false);
+                        }
+                    }
+                }
+                // Hint bar buttons
+                document.getElementById('pricingHintApply').onclick = () => {
+                    const mi = parseInt(currentJobData.distance) || 0;
+                    const cu = parseInt(currentJobData.cubes) || 0;
+                    const t = findPricingTier(mi, cu);
+                    if (t) applyPricingTier(t);
+                };
+                document.getElementById('pricingHintDismiss').onclick = () => {
+                    document.getElementById('pricingHintBar').style.display = 'none';
+                    pricingHintDismissed = true;
+                };
+                // Re-check matrix when distance or cubes change
+                document.getElementById('initialCf').addEventListener('change', () => {
+                    const mi = parseInt(currentJobData.distance) || 0;
+                    const cu = parseInt(document.getElementById('initialCf').value) || 0;
+                    const t = findPricingTier(mi, cu);
+                    if (t) showPricingHint(t, false);
+                });
+
+                // Notes sidebar
+                const notesJobLabel = document.getElementById('notesJobLabel');
+                if (notesJobLabel && d.job_number) {
+                    notesJobLabel.textContent = 'Job: ' + d.job_number;
+                }
+                await loadJobNotes(d.id);
+
+                // Inventory sidebar
+                await loadInventorySummary(d.job_number);
+
+                document.getElementById('profileLoading').style.display = 'none';
+                document.getElementById('profileMain').style.display = 'grid';
+
+                // Initialize editing state (read-only until Edit is clicked)
+                setProfileEditing(false);
+                
+                // Load sent agreements and email logs for this job
+                loadAgreements(currentJobData.id);
+                loadEmailLogs(currentJobData.id);
+
+                // Load linked Elavon charges
+                loadLinkedCharges(currentJobData.id);
+                
+                // Add event listeners
+                document.getElementById('sendAgreementBtn').addEventListener('click', sendAgreement);
+                document.getElementById('saveProfileBtn').addEventListener('click', saveProfile);
+                document.getElementById('saveSchedulingBtn').addEventListener('click', saveScheduling);
+                document.getElementById('editMovingFrom').addEventListener('input', () => { updateMapLinks(); lookupCityState('editMovingFrom', 'cityStateFrom'); });
+                document.getElementById('editMovingTo').addEventListener('input', () => { updateMapLinks(); lookupCityState('editMovingTo', 'cityStateTo'); });
+                document.getElementById('editMovingFrom').addEventListener('blur', calculateDistance);
+                document.getElementById('editMovingTo').addEventListener('blur', calculateDistance);
+                // Lookup city/state on initial load
+                lookupCityState('editMovingFrom', 'cityStateFrom');
+                lookupCityState('editMovingTo', 'cityStateTo');
+                const editToggle = document.getElementById('editProfileToggleBtn');
+                if (editToggle) {
+                    editToggle.addEventListener('click', function() {
+                        if (!isEditingProfile) {
+                            // Enter edit mode
+                            setProfileEditing(true);
+                        } else {
+                            // In edit mode: act as a Save button
+                            saveProfile();
+                        }
+                    });
+                }
+
+                // Notes add handlers
+                const addNoteBtn = document.getElementById('addNoteBtn');
+                const noteInput = document.getElementById('noteInput');
+                if (addNoteBtn) {
+                    addNoteBtn.addEventListener('click', addJobNote);
+                }
+                if (noteInput) {
+                    noteInput.addEventListener('keydown', function(e) {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                            e.preventDefault();
+                            addJobNote();
+                        }
+                    });
+                }
+            } catch (err) {
+                document.getElementById('profileError').textContent = err.message || 'Failed to load lead';
+                document.getElementById('profileError').style.display = 'block';
+                document.getElementById('profileLoading').style.display = 'none';
+            }
+        }
+        window.refreshInventoryPanel = function() {
+            if (currentJobData && currentJobData.job_number) loadInventorySummary(currentJobData.job_number);
+        };
+
+        document.addEventListener('DOMContentLoaded', loadLead);
+
+        // Hide Dialerr placeholder if extension is already installed
+        (function checkDialerr() {
+            function hide() {
+                var el = document.getElementById('dialerrPlaceholder');
+                if (el) el.style.display = 'none';
+            }
+            if (document.getElementById('dialerr-toolbar-iframe')) { hide(); return; }
+            setTimeout(function() {
+                if (document.getElementById('dialerr-toolbar-iframe')) hide();
+            }, 2000);
+        })();
+    </script>
+</body>
+</html>

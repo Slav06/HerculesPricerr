@@ -1,0 +1,138 @@
+warning: in the working copy of 'closer-extension/content.js', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'dashboard.html', LF will be replaced by CRLF the next time Git touches it
+[1mdiff --git a/closer-extension/content.js b/closer-extension/content.js[m
+[1mindex 80b5acc..de3632e 100644[m
+[1m--- a/closer-extension/content.js[m
+[1m+++ b/closer-extension/content.js[m
+[36m@@ -14,6 +14,15 @@[m [mconst statusButtons = [[m
+     { id: 'hung-up', text: 'Hung Up', emoji: '📴', color: '#e83e8c', status: 'hung_up' }[m
+ ];[m
+ [m
+[32m+[m[32mfunction normalizeJobNumber(rawValue) {[m
+[32m+[m[32m    if (rawValue === undefined || rawValue === null) {[m
+[32m+[m[32m        return null;[m
+[32m+[m[32m    }[m
+[32m+[m
+[32m+[m[32m    const cleaned = String(rawValue).trim().toUpperCase();[m
+[32m+[m[32m    return cleaned.length ? cleaned : null;[m
+[32m+[m[32m}[m
+[32m+[m
+ // Slack Integration Configuration[m
+ const SLACK_CONFIG = {[m
+     webhookUrl: process.env.SLACK_WEBHOOK_URL,[m
+[36m@@ -99,8 +108,15 @@[m [masync function submitJobToDashboard(status, extractedData) {[m
+         console.log('🏷️ User name:', userName);[m
+         console.log('📋 Chrome profile name:', chromeProfileName);[m
+ [m
+[32m+[m[32m        const normalizedJobNumber = normalizeJobNumber(extractedData.jobNumber);[m
+[32m+[m
+[32m+[m[32m        if (!normalizedJobNumber && status === 'booked') {[m
+[32m+[m[32m            alert('Unable to capture payment: job number not detected on this page. Please verify the job header is visible and try again.');[m
+[32m+[m[32m            console.warn('⚠️ Aborting submission because job number could not be normalized for payment capture.', extractedData);[m
+[32m+[m[32m            return false;[m
+[32m+[m[32m        }[m
+         const submissionData = {[m
+[31m-            job_number: extractedData.jobNumber || 'Unknown',[m
+[32m+[m[32m            job_number: normalizedJobNumber || 'Unknown',[m
+             customer_name: extractedData.customerName || 'Unknown',[m
+             moving_from: extractedData.movingFrom?.address || 'Unknown',[m
+             moving_to: extractedData.movingTo?.address || 'Unknown',[m
+[36m@@ -123,32 +139,97 @@[m [masync function submitJobToDashboard(status, extractedData) {[m
+ [m
+         console.log('📋 Submission data being sent:', submissionData);[m
+ [m
+[31m-        const response = await fetch(`${SUPABASE_URL}/rest/v1/job_submissions`, {[m
+[31m-            method: 'POST',[m
+[31m-            headers: {[m
+[31m-                'Content-Type': 'application/json',[m
+[31m-                'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,[m
+[31m-                'apikey': SUPABASE_ANON_KEY,[m
+[31m-                'Prefer': 'return=minimal'[m
+[31m-            },[m
+[31m-            body: JSON.stringify(submissionData)[m
+[31m-        });[m
+[32m+[m[32m        let existingSubmission = null;[m
+ [m
+[31m-        if (response.ok) {[m
+[31m-            console.log('✅ Job submitted successfully to dashboard');[m
+[31m-            [m
+[31m-            // Send Slack notification for new job submission[m
+[31m-            await sendSlackNotification([m
+[31m-                `🎯 New job submitted by CLOSER: ${submissionData.job_number}`,[m
+[31m-                {[m
+[31m-                    'Customer': submissionData.customer_name,[m
+[31m-                    'From': submissionData.moving_from,[m
+[31m-                    'To': submissionData.moving_to,[m
+[31m-                    'Status': status,[m
+[31m-                    'Submitted By': 'Closer Extension'[m
+[32m+[m[32m        if (submissionData.job_number && submissionData.job_number !== 'Unknown') {[m
+[32m+[m[32m            try {[m
+[32m+[m[32m                const lookupUrl = `${SUPABASE_URL}/rest/v1/job_submissions?job_number=eq.${encodeURIComponent(submissionData.job_number)}&select=id,job_number,status,payment_amount,payment_status,updated_at&limit=1`;[m
+[32m+[m[32m                console.log('🔎 Checking for existing job submission at:', lookupUrl);[m
+[32m+[m
+[32m+[m[32m                const checkResponse = await fetch(lookupUrl, {[m
+[32m+[m[32m                    method: 'GET',[m
+[32m+[m[32m                    headers: {[m
+[32m+[m[32m                        'Content-Type': 'application/json',[m
+[32m+[m[32m                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,[m
+[32m+[m[32m                        'apikey': SUPABASE_ANON_KEY,[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                });[m
+[32m+[m
+[32m+[m[32m                if (checkResponse.ok) {[m
+[32m+[m[32m                    const matches = await checkResponse.json();[m
+[32m+[m[32m                    if (Array.isArray(matches) && matches.length > 0) {[m
+[32m+[m[32m                        existingSubmission = matches[0];[m
+[32m+[m[32m                        console.log('🔁 Existing submission found for job:', submissionData.job_number, existingSubmission);[m
+[32m+[m[32m                    } else {[m
+[32m+[m[32m                        console.log('ℹ️ No existing submission found for job:', submissionData.job_number);[m
+[32m+[m[32m                    }[m
+[32m+[m[32m                } else {[m
+[32m+[m[32m                    console.warn('⚠️ Unable to verify existing submission:', checkResponse.status, await checkResponse.text());[m
+                 }[m
+[31m-            );[m
+[31m-            [m
+[32m+[m[32m            } catch (error) {[m
+[32m+[m[32m                console.error('❌ Error checking existing submission:', error);[m
+[32m+[m[32m            }[m
+[32m+[m[32m        }[m
+[32m+[m
+[32m+[m[32m        const commonHeaders = {[m
+[32m+[m[32m            'Content-Type': 'application/json',[m
+[32m+[m[32m            'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,[m
+[32m+[m[32m            'apikey': SUPABASE_ANON_KEY,[m
+[32m+[m[32m            'Prefer': 'return=minimal'[m
+[32m+[m[32m        };[m
+[32m+[m
+[32m+[m[32m        let response;[m
+[32m+[m
+[32m+[m[32m        if (existingSubmission) {[m
+[32m+[m[32m            const updatePayload = {[m
+[32m+[m[32m                status: status,[m
+[32m+[m[32m                customer_name: submissionData.customer_name,[m
+[32m+[m[32m                moving_from: submissionData.moving_from,[m
+[32m+[m[32m                moving_to: submissionData.moving_to,[m
+[32m+[m[32m                cubes: submissionData.cubes,[m
+[32m+[m[32m                distance: submissionData.distance,[m
+[32m+[m[32m                pickup_date: submissionData.pickup_date,[m
+[32m+[m[32m                page_url: submissionData.page_url,[m
+[32m+[m[32m                user_name: submissionData.user_name,[m
+[32m+[m[32m                chrome_profile_name: submissionData.chrome_profile_name,[m
+[32m+[m[32m                assigned_to: submissionData.assigned_to,[m
+[32m+[m[32m                payment_amount: submissionData.payment_amount,[m
+[32m+[m[32m                payment_method: submissionData.payment_method,[m
+[32m+[m[32m                payment_status: submissionData.payment_status,[m
+[32m+[m[32m                updated_at: new Date().toISOString()[m
+[32m+[m[32m            };[m
+[32m+[m
+[32m+[m[32m            console.log('📝 Updating existing job submission with payload:', updatePayload);[m
+[32m+[m
+[32m+[m[32m            response = await fetch(`${SUPABASE_URL}/rest/v1/job_submissions?job_number=eq.${encodeURIComponent(submissionData.job_number)}`, {[m
+[32m+[m[32m                method: 'PATCH',[m
+[32m+[m[32m                headers: commonHeaders,[m
+[32m+[m[32m                body: JSON.stringify(updatePayload)[m
+[32m+[m[32m            });[m
+[32m+[m[32m        } else {[m
+[32m+[m[32m            response = await fetch(`${SUPABASE_URL}/rest/v1/job_submissions`, {[m
+[32m+[m[32m                method: 'POST',[m
+[32m+[m[32m    

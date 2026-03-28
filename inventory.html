@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inventory - Profile Moving Estimate</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            color: #333;
+        }
+        .top-nav {
+            display: flex;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+        }
+        .top-nav .nav-tab {
+            padding: 12px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+            color: #555;
+            font-size: 14px;
+            white-space: nowrap;
+        }
+        .top-nav .nav-tab:hover { color: #333; background: #f5f5f5; }
+        .top-nav .nav-tab.active {
+            color: #FFA23F;
+            font-weight: 600;
+            border-bottom-color: #FFA23F;
+        }
+        .header-bar {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            padding: 10px 16px;
+            background: #fff;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .header-bar .search-wrap { flex: 1; min-width: 140px; }
+        .header-bar .search-wrap input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .header-bar .view-toggle { display: none; }
+        .header-bar .btn-submit {
+            background: #475569;
+            color: #fff;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .header-bar .btn-submit:hover { background: #334155; }
+        .save-indicator { font-size: 12px; color: #555; margin-left: 10px; }
+        .header-bar .job-info { font-size: 14px; color: #555; }
+        .header-bar .job-info strong { color: #333; }
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr 280px;
+            min-height: calc(100vh - 100px);
+            background: #fff;
+            margin: 0 auto;
+            max-width: 1600px;
+        }
+        .header-bar .view-toggle { font-size: 13px; color: #555; }
+        .header-bar .view-toggle button {
+            margin-left: 8px;
+            padding: 4px 10px;
+            border: 1px solid #dee2e6;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .header-bar .view-toggle button.active { background: #FFA23F; color: #fff; border-color: #FFA23F; }
+        .header-bar .view-toggle .btn-clear { background: #dc3545; color: #fff; border-color: #dc3545; }
+        .header-bar .view-toggle .btn-clear:hover { background: #c82333; }
+        .room-selector-wrap {
+            padding: 6px 12px 8px;
+            background: #f0f4ff;
+            border-bottom: 1px solid #dee2e6;
+            flex-shrink: 0;
+        }
+        .room-selector-wrap .room-label { font-size: 11px; font-weight: 600; color: #495057; margin-bottom: 4px; }
+        .room-selector {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 6px;
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 2px;
+        }
+        .room-selector::-webkit-scrollbar { height: 4px; }
+        .room-btn {
+            flex-shrink: 0;
+            padding: 6px 12px;
+            border: 2px solid #dee2e6;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 500;
+            color: #495057;
+            white-space: nowrap;
+        }
+        .room-btn:hover { border-color: #FFA23F; color: #FFA23F; background: #f8faff; }
+        .room-btn.active { background: #FFA23F; color: #fff; border-color: #FFA23F; }
+        .selected-by-room { margin-top: 16px; }
+        .selected-by-room h3 { font-size: 13px; color: #495057; margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid #e0e0e0; }
+        .room-group { margin-bottom: 14px; }
+        .room-group-title { font-size: 12px; font-weight: 600; color: #FFA23F; margin-bottom: 4px; }
+        .room-group-items { font-size: 12px; color: #333; list-style: none; padding-left: 0; }
+        .room-group-items li { padding: 2px 0; }
+        .inventory-center {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .inventory-table-wrap {
+            flex: 1;
+            overflow: auto;
+        }
+        .inventory-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+        .inventory-table th {
+            background: #f8f9fa;
+            padding: 10px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #dee2e6;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .inventory-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
+        .inventory-table tr:hover td { background: #f8f9fa; }
+        .inventory-table .col-num { width: 40px; text-align: right; }
+        .inventory-table .col-item { min-width: 220px; }
+        .inventory-table .col-volume { width: 70px; text-align: right; }
+        .inventory-table .col-controls { width: 260px; min-width: 260px; }
+        .inventory-table .col-qty { width: 70px; }
+        .qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .qty-controls button {
+            width: 48px;
+            height: 44px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            color: #495057;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .qty-controls button:hover { background: #e9ecef; }
+        .qty-controls button:active { background: #dee2e6; }
+        .qty-controls button.remove { color: #dc3545; font-size: 18px; }
+        .qty-controls button.remove:hover { background: #f8d7da; }
+        .qty-controls input.qty-input {
+            width: 56px;
+            padding: 10px 8px;
+            text-align: center;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        .right-panel {
+            border-left: 1px solid #e0e0e0;
+            padding: 16px;
+            background: #fafafa;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .right-panel h3 {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .search-box {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+        .search-box:focus {
+            outline: none;
+            border-color: #FFA23F;
+            box-shadow: 0 0 0 2px rgba(5,150,105,0.2);
+        }
+        .search-option {
+            margin-top: 8px;
+            font-size: 12px;
+            color: #666;
+        }
+        .search-option input { margin-right: 6px; }
+        .add-new-form .form-row {
+            margin-bottom: 10px;
+        }
+        .add-new-form label {
+            display: block;
+            font-size: 12px;
+            color: #555;
+            margin-bottom: 4px;
+        }
+        .add-new-form input {
+            width: 100%;
+            padding: 8px 10px;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        .add-new-form .btn-add {
+            width: 100%;
+            padding: 10px;
+            background: #FFA23F;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .add-new-form .btn-add:hover { background: #e8891f; }
+        .total-volume-box {
+            background: #fff;
+            border: 2px solid #FFA23F;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+        .total-volume-box .label { font-size: 12px; color: #666; text-transform: uppercase; margin-bottom: 4px; }
+        .total-volume-box .value { font-size: 28px; font-weight: 700; color: #FFA23F; }
+        .total-volume-box .value span { font-size: 16px; font-weight: 500; color: #666; }
+        .row-added { background: #e8f5e9 !important; }
+
+        /* ── Grid layout for items ── */
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1px;
+            padding: 2px;
+            background: #f0f2f5;
+        }
+        .item-card {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 8px;
+            background: #fff;
+            font-size: 12px;
+            min-height: 36px;
+            cursor: default;
+        }
+        .item-card:hover { background: #f8f9fa; }
+        .item-card.has-qty { background: #e8f5e9; }
+        .item-card.has-qty:hover { background: #c8e6c9; }
+        .item-card.is-custom { border-left: 3px solid #FFA23F; }
+        .item-card .item-name {
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 12px;
+            color: #333;
+        }
+        .item-card .item-vol {
+            font-size: 10px;
+            color: #888;
+            white-space: nowrap;
+            margin-right: 2px;
+        }
+        .item-card .grid-qty-controls {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            flex-shrink: 0;
+        }
+        .item-card .grid-qty-controls button {
+            width: 26px;
+            height: 26px;
+            border: 1px solid #ced4da;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            color: #495057;
+            padding: 0;
+            line-height: 1;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .item-card .grid-qty-controls button:hover { background: #e9ecef; }
+        .item-card .grid-qty-controls button:active { background: #dee2e6; }
+        .item-card .grid-qty-controls input.grid-qty-input {
+            width: 34px;
+            height: 26px;
+            text-align: center;
+            border: 1px solid #ced4da;
+            border-radius: 4px;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 0;
+        }
+        .item-card .grid-qty-controls .qty-badge {
+            display: inline-block;
+            min-width: 22px;
+            height: 22px;
+            line-height: 22px;
+            text-align: center;
+            background: #FFA23F;
+            color: #fff;
+            border-radius: 11px;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 0 5px;
+        }
+        .items-grid-empty {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 40px;
+            color: #888;
+            font-size: 14px;
+        }
+
+        /* ── Floating "Added Items" button ── */
+        .added-items-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 90;
+            background: #FFA23F;
+            color: #fff;
+            border: none;
+            border-radius: 28px;
+            padding: 12px 22px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 16px rgba(29,78,216,0.35);
+            display: none;
+            align-items: center;
+            gap: 8px;
+            transition: transform 0.15s, box-shadow 0.15s;
+        }
+        .added-items-fab:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(29,78,216,0.45); }
+        .added-items-fab.visible { display: flex; }
+        .added-items-fab .fab-count {
+            background: #fff;
+            color: #FFA23F;
+            border-radius: 12px;
+            min-width: 24px;
+            height: 24px;
+            line-height: 24px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: 700;
+            padding: 0 6px;
+        }
+
+        /* ── Added Items slide-out panel ── */
+        .panel-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 199;
+            background: rgba(0,0,0,0.4);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.25s;
+        }
+        .panel-overlay.open { opacity: 1; visibility: visible; }
+        .added-items-panel {
+            position: fixed;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            width: 420px;
+            max-width: 100vw;
+            z-index: 200;
+            background: #fff;
+            box-shadow: -4px 0 24px rgba(0,0,0,0.15);
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .added-items-panel.open { transform: translateX(0); }
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .panel-header h3 { font-size: 16px; font-weight: 600; color: #333; margin: 0; }
+        .panel-close {
+            width: 32px; height: 32px;
+            border: none; background: #f0f2f5;
+            border-radius: 6px; font-size: 18px;
+            cursor: pointer; color: #555;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .panel-close:hover { background: #e0e0e0; }
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px 20px;
+        }
+        .panel-room-group { margin-bottom: 16px; }
+        .panel-room-title {
+            font-size: 12px; font-weight: 700; color: #FFA23F;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            margin-bottom: 6px; padding-bottom: 4px;
+            border-bottom: 1px solid #e8ecf4;
+        }
+        .panel-item-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 0;
+            font-size: 13px;
+            border-bottom: 1px solid #f0f2f5;
+        }
+        .panel-item-row .panel-item-name { flex: 1; color: #333; }
+        .panel-item-row .panel-item-vol { color: #888; font-size: 12px; white-space: nowrap; }
+        .panel-item-row .panel-qty-controls {
+            display: flex; align-items: center; gap: 4px;
+        }
+        .panel-item-row .panel-qty-controls button {
+            width: 28px; height: 28px;
+            border: 1px solid #ced4da; background: #fff;
+            border-radius: 4px; cursor: pointer;
+            font-size: 15px; font-weight: 600; color: #495057;
+            padding: 0;
+        }
+        .panel-item-row .panel-qty-controls button:hover { background: #e9ecef; }
+        .panel-item-row .panel-qty-controls input {
+            width: 40px; height: 28px;
+            text-align: center; border: 1px solid #ced4da;
+            border-radius: 4px; font-size: 13px; font-weight: 600;
+        }
+        .panel-item-row .panel-qty-controls .panel-remove {
+            color: #dc3545; border-color: #f5c6cb;
+        }
+        .panel-item-row .panel-qty-controls .panel-remove:hover { background: #f8d7da; }
+        .panel-footer {
+            padding: 16px 20px;
+            border-top: 2px solid #FFA23F;
+            background: #f8faff;
+            flex-shrink: 0;
+        }
+        .panel-footer .panel-total {
+            font-size: 22px; font-weight: 700; color: #FFA23F;
+            text-align: center;
+        }
+        .panel-footer .panel-total-label {
+            font-size: 11px; color: #666; text-transform: uppercase;
+            text-align: center; margin-bottom: 2px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout { grid-template-columns: 1fr; }
+            .right-panel { border-left: none; border-top: 1px solid #e0e0e0; }
+            .items-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        @media (max-width: 768px) {
+            .items-grid { grid-template-columns: repeat(2, 1fr); }
+            .added-items-fab { bottom: 96px; right: 16px; padding: 10px 16px; font-size: 13px; }
+            .added-items-panel { width: 100vw; }
+        }
+        @media (max-width: 480px) {
+            .items-grid { grid-template-columns: 1fr; }
+        }
+        /* Mobile: fixed bottom bar + swipe-up sheet for Selected by room */
+        .mobile-bottom-bar {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            background: #fff;
+            border-top: 2px solid #FFA23F;
+            padding: 12px 16px;
+            padding-bottom: max(12px, env(safe-area-inset-bottom));
+            box-shadow: 0 -2px 12px rgba(0,0,0,0.1);
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .mobile-bottom-bar .mobile-total {
+            font-size: 11px; color: #666; text-transform: uppercase;
+        }
+        .mobile-bottom-bar .mobile-total-value { font-size: 22px; font-weight: 700; color: #FFA23F; }
+        .mobile-bottom-bar .mobile-selected-label { font-size: 14px; font-weight: 600; color: #333; }
+        .mobile-bottom-bar .mobile-selected-hint { font-size: 11px; color: #888; }
+        @media (max-width: 768px) {
+            .mobile-bottom-bar { display: flex; }
+            .main-layout { padding-bottom: 88px; }
+            .right-panel .total-volume-box,
+            .right-panel .selected-by-room { display: none; }
+        }
+        .mobile-sheet {
+            position: fixed;
+            inset: 0;
+            z-index: 101;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .mobile-sheet.open {
+            visibility: visible;
+            pointer-events: auto;
+        }
+        .mobile-sheet-backdrop {
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.4);
+            opacity: 0;
+            transition: opacity 0.25s ease;
+        }
+        .mobile-sheet.open .mobile-sheet-backdrop { opacity: 1; }
+        .mobile-sheet-panel {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            max-height: 70vh;
+            background: #fff;
+            border-radius: 16px 16px 0 0;
+            box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        .mobile-sheet.open .mobile-sheet-panel { transform: translateY(0); }
+        .mobile-sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .mobile-sheet-header h3 { font-size: 16px; font-weight: 600; color: #333; margin: 0; }
+        .mobile-sheet-close {
+            padding: 8px 16px;
+            background: #f0f2f5;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            color: #333;
+        }
+        .mobile-sheet-body {
+            overflow-y: auto;
+            padding: 16px;
+            -webkit-overflow-scrolling: touch;
+        }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <img src="/logo.svg" alt="Hercules Moving Solutions" style="height: 32px; margin: 8px 16px 8px 12px; flex-shrink: 0;">
+        <div class="nav-tab active">Inventory</div>
+    </nav>
+    <div class="header-bar">
+        <button type="button" class="btn-submit" id="backBtn">← Back</button>
+        <span class="save-indicator" id="saveIndicator"></span>
+        <span class="job-info">Job Number: <strong id="jobNumber">—</strong></span>
+        <span class="job-info">Customer: <strong id="customerName">—</strong></span>
+        <span class="search-wrap"><input type="text" id="searchInput" placeholder="Search items…"></span>
+        <span class="view-toggle" style="margin-left: auto;">
+            <span style="margin-right: 4px;">Show:</span>
+            <button type="button" id="filterAllBtn" data-filter="all" class="active">All Items</button>
+            <button type="button" id="filterSelectedBtn" data-filter="selected">Selected</button>
+            <button type="button" id="filterAddedBtn" data-filter="added">Added New</button>
+            <button type="button" class="btn-clear" id="headerClearBtn">Clear All</button>
+        </span>
+    </div>
+    <div class="main-layout">
+        <section class="inventory-center">
+            <div class="room-selector-wrap">
+                <div class="room-label">Choose room for items below:</div>
+                <div class="room-selector" id="roomSelector"></div>
+            </div>
+            <div class="inventory-table-wrap">
+                <div class="items-grid" id="inventoryGrid"></div>
+            </div>
+        </section>
+        <aside class="right-panel">
+            <div>
+                <h3>Add New Items</h3>
+                <form class="add-new-form" id="addNewForm">
+                    <div class="form-row">
+                        <label>Item</label>
+                        <input type="text" id="newItemName" placeholder="Item name">
+                    </div>
+                    <div class="form-row">
+                        <label>Volume (cf)</label>
+                        <input type="number" id="newItemVolume" placeholder="0" min="0" step="0.1">
+                    </div>
+                    <div class="form-row">
+                        <label>Qty</label>
+                        <input type="number" id="newItemQty" value="1" min="1">
+                    </div>
+                    <button type="submit" class="btn-add">Add New Item</button>
+                </form>
+            </div>
+            <div class="total-volume-box">
+                <div class="label">Total Volume</div>
+                <div class="value" id="totalVolume">0 <span>cf</span></div>
+            </div>
+            <div class="selected-by-room">
+                <h3>Selected by room</h3>
+                <div id="selectedByRoomList"></div>
+            </div>
+        </aside>
+    </div>
+    <!-- Floating "Added Items" button -->
+    <button type="button" class="added-items-fab" id="addedItemsFab">
+        <span class="fab-count" id="fabCount">0</span>
+        <span>Items Added</span>
+    </button>
+    <!-- Added Items slide-out panel -->
+    <div class="panel-overlay" id="panelOverlay"></div>
+    <div class="added-items-panel" id="addedItemsPanel">
+        <div class="panel-header">
+            <h3>Added Items</h3>
+            <button type="button" class="panel-close" id="panelClose">&times;</button>
+        </div>
+        <div class="panel-body" id="panelBody"></div>
+        <div class="panel-footer">
+            <div class="panel-total-label">Total Volume</div>
+            <div class="panel-total" id="panelTotalVol">0 cf</div>
+        </div>
+    </div>
+    <!-- Mobile: fixed bottom bar + swipe-up sheet -->
+    <div class="mobile-bottom-bar" id="mobileBottomBar" aria-label="Selected by room - tap to expand">
+        <div>
+            <div class="mobile-total">Total Volume</div>
+            <div class="mobile-total-value" id="mobileTotalVolume">0 cf</div>
+        </div>
+        <div style="text-align: right;">
+            <div class="mobile-selected-label">Selected by room</div>
+            <div class="mobile-selected-hint">Tap to view</div>
+        </div>
+    </div>
+    <div class="mobile-sheet" id="mobileSheet">
+        <div class="mobile-sheet-backdrop" id="mobileSheetBackdrop"></div>
+        <div class="mobile-sheet-panel">
+            <div class="mobile-sheet-header">
+                <h3>Selected by room</h3>
+                <button type="button" class="mobile-sheet-close" id="mobileSheetClose">Close</button>
+            </div>
+            <div class="mobile-sheet-body" id="mobileSelectedByRoomList"></div>
+        </div>
+    </div>
+    <script src="inventory-data.js"></script>
+    <script>
+        (function() {
+            const SUPABASE_URL = 'process.env.SUPABASE_URL';
+            const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+            const urlParams = new URLSearchParams(window.location.search);
+            const jobNumberParam = urlParams.get('job') || '';
+            const jobSubmissionId = urlParams.get('id') || '';
+
+            const CATEGORIES = ['all','Bedroom','Living Room','Dining Room','Kitchen','Appliances','Office','Garage','Patio Furniture','Boxes','Miscellaneous','Nursery','Attic','Basement','Play Room','Military'];
+            const ROOMS = ['Bedroom','Living Room','Dining Room','Kitchen','Bathroom','Office','Garage','Patio','Basement','Attic','Nursery','Play Room','Other'];
+            let state = {
+                category: 'all',
+                filter: 'all',
+                search: '',
+                searchWithin: true,
+                currentRoom: ROOMS[0],
+                items: [],
+                customItems: []
+            };
+
+            function initItems() {
+                state.items = INVENTORY_ITEMS.map((it, i) => ({
+                    id: 'std-' + i,
+                    name: it.name,
+                    volume: it.volume,
+                    category: getCategory(it.name),
+                    qty: 0,
+                    room: null,
+                    custom: false
+                }));
+                state.customItems = [];
+            }
+
+            function allItems() {
+                return [...state.items, ...state.customItems];
+            }
+
+            function filteredRows() {
+                let rows = allItems();
+                if (state.search) {
+                    const s = state.search.toUpperCase();
+                    rows = rows.filter(r => state.searchWithin
+                        ? r.name.toUpperCase().includes(s)
+                        : r.name.toUpperCase().startsWith(s));
+                }
+                if (state.filter === 'selected')
+                    rows = rows.filter(r => r.qty > 0);
+                else if (state.filter === 'added')
+                    rows = rows.filter(r => r.custom);
+                return rows;
+            }
+
+            function totalVolume() {
+                return allItems().reduce((sum, r) => sum + r.volume * (r.qty || 0), 0);
+            }
+
+            function renderTable() {
+                const rows = filteredRows();
+                const grid = document.getElementById('inventoryGrid');
+                if (rows.length === 0) {
+                    grid.innerHTML = '<div class="items-grid-empty">No items match your search</div>';
+                } else {
+                    grid.innerHTML = rows.map(row => {
+                        const qty = row.qty || 0;
+                        const classes = ['item-card'];
+                        if (qty > 0) classes.push('has-qty');
+                        if (row.custom) classes.push('is-custom');
+                        return '<div class="' + classes.join(' ') + '" data-id="' + row.id + '">' +
+                            '<span class="item-name" title="' + escapeHtml(row.name) + '">' + escapeHtml(row.name) + '</span>' +
+                            '<span class="item-vol">' + row.volume + '</span>' +
+                            '<span class="grid-qty-controls">' +
+                            '<button type="button" data-action="-1">&minus;</button>' +
+                            '<input type="number" class="grid-qty-input" min="0" value="' + qty + '" data-action="input">' +
+                            '<button type="button" data-action="+1">+</button>' +
+                            '</span>' +
+                            '</div>';
+                    }).join('');
+                }
+                var volText = Math.round(totalVolume()) + ' cf';
+                var tv = document.getElementById('totalVolume');
+                if (tv) tv.textContent = volText;
+                var mtv = document.getElementById('mobileTotalVolume');
+                if (mtv) mtv.textContent = volText;
+                renderSelectedByRoom();
+                updateFab();
+            }
+
+            function escapeHtml(s) {
+                const div = document.createElement('div');
+                div.textContent = s;
+                return div.innerHTML;
+            }
+
+            function findRow(id) {
+                const all = allItems();
+                return all.find(r => r.id === id);
+            }
+
+            function setQty(id, delta) {
+                const row = findRow(id);
+                if (!row) return;
+                if (delta === 'clear') { row.qty = 0; }
+                else if (delta === '+10') row.qty = (row.qty || 0) + 10;
+                else row.qty = Math.max(0, (row.qty || 0) + delta);
+                if (row.qty > 0 && !row.room) row.room = state.currentRoom;
+                renderTable();
+                scheduleSave();
+            }
+
+            function setCurrentRoom(room) {
+                state.currentRoom = room;
+                const sel = document.getElementById('roomSelector');
+                if (sel) sel.querySelectorAll('.room-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.room === room);
+                });
+            }
+
+            function renderRoomSelector() {
+                const el = document.getElementById('roomSelector');
+                if (!el) return;
+                el.innerHTML = ROOMS.map(r => '<button type="button" class="room-btn' + (r === state.currentRoom ? ' active' : '') + '" data-room="' + escapeHtml(r) + '">' + escapeHtml(r) + '</button>').join('');
+                el.querySelectorAll('.room-btn').forEach(btn => {
+                    btn.addEventListener('click', () => setCurrentRoom(btn.dataset.room));
+                });
+            }
+
+            function selectedItems() {
+                return allItems().filter(r => (r.qty || 0) > 0);
+            }
+
+            function renderSelectedByRoom() {
+                const items = selectedItems();
+                const byRoom = {};
+                items.forEach(r => {
+                    const room = r.room || 'Other';
+                    if (!byRoom[room]) byRoom[room] = [];
+                    byRoom[room].push(r);
+                });
+                const roomOrder = [...ROOMS, 'Other'];
+                const sortedRooms = Object.keys(byRoom).sort((a, b) => {
+                    const ia = roomOrder.indexOf(a);
+                    const ib = roomOrder.indexOf(b);
+                    if (ia === -1 && ib === -1) return a.localeCompare(b);
+                    if (ia === -1) return 1;
+                    if (ib === -1) return -1;
+                    return ia - ib;
+                });
+                const html = sortedRooms.length === 0 ? '<p style="font-size:12px;color:#888;">No items selected</p>' : sortedRooms.map(room => {
+                    const list = byRoom[room];
+                    const lines = list.map(r => escapeHtml(r.name) + (r.qty > 1 ? ' × ' + r.qty : '') + ' (' + (r.volume * (r.qty || 0)) + ' cf)');
+                    return '<div class="room-group"><div class="room-group-title">' + escapeHtml(room) + '</div><ul class="room-group-items">' + lines.map(l => '<li>' + l + '</li>').join('') + '</ul></div>';
+                }).join('');
+                const el = document.getElementById('selectedByRoomList');
+                if (el) el.innerHTML = html;
+                const mobileEl = document.getElementById('mobileSelectedByRoomList');
+                if (mobileEl) mobileEl.innerHTML = html;
+            }
+
+            function setFilter(filter) {
+                state.filter = filter;
+                document.querySelectorAll('.view-toggle button[data-filter]').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.filter === filter);
+                });
+                renderTable();
+            }
+
+            function clearAll() {
+                allItems().forEach(r => { r.qty = 0; r.room = null; });
+                state.customItems = [];
+                renderTable();
+                scheduleSave();
+            }
+
+            document.getElementById('filterAllBtn').addEventListener('click', () => setFilter('all'));
+            document.getElementById('filterSelectedBtn').addEventListener('click', () => setFilter('selected'));
+            document.getElementById('filterAddedBtn').addEventListener('click', () => setFilter('added'));
+            document.getElementById('headerClearBtn').addEventListener('click', clearAll);
+            var searchEl = document.getElementById('searchInput');
+            if (searchEl) searchEl.addEventListener('input', function() {
+                state.search = this.value.trim();
+                renderTable();
+            });
+            document.getElementById('addNewForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                const name = document.getElementById('newItemName').value.trim();
+                const vol = parseFloat(document.getElementById('newItemVolume').value) || 0;
+                const qty = parseInt(document.getElementById('newItemQty').value, 10) || 1;
+                if (!name) return;
+                state.customItems.push({
+                    id: 'custom-' + Date.now(),
+                    name: name,
+                    volume: vol,
+                    category: 'Miscellaneous',
+                    qty: qty,
+                    room: state.currentRoom,
+                    custom: true
+                });
+                document.getElementById('newItemName').value = '';
+                document.getElementById('newItemVolume').value = '';
+                document.getElementById('newItemQty').value = '1';
+                renderTable();
+                scheduleSave();
+            });
+
+            // Bind qty controls ONCE (delegated) so we don't stack listeners on every render
+            const gridEl = document.getElementById('inventoryGrid');
+            gridEl.addEventListener('click', function(e) {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                e.preventDefault();
+                const card = e.target.closest('.item-card');
+                if (!card) return;
+                const id = card.dataset.id;
+                const action = btn.dataset.action;
+                if (action === 'clear') setQty(id, 'clear');
+                else if (action === '-1') setQty(id, -1);
+                else if (action === '+1') setQty(id, 1);
+                else if (action === '+10') setQty(id, '+10');
+            });
+            gridEl.addEventListener('input', function(e) {
+                const input = e.target;
+                if (input.classList.contains('grid-qty-input')) {
+                    const card = input.closest('.item-card');
+                    const row = findRow(card.dataset.id);
+                    if (row) {
+                        const v = parseInt(input.value, 10);
+                        row.qty = isNaN(v) || v < 0 ? 0 : v;
+                        if (row.qty > 0 && !row.room) row.room = state.currentRoom;
+                        card.classList.toggle('has-qty', row.qty > 0);
+                        const volText = Math.round(totalVolume()) + ' cf';
+                        const tv = document.getElementById('totalVolume');
+                        if (tv) tv.textContent = volText;
+                        const mtv = document.getElementById('mobileTotalVolume');
+                        if (mtv) mtv.textContent = volText;
+                        renderSelectedByRoom();
+                        updateFab();
+                        scheduleSave();
+                    }
+                }
+            });
+
+            (function setupMobileSheet() {
+                const bar = document.getElementById('mobileBottomBar');
+                const sheet = document.getElementById('mobileSheet');
+                const backdrop = document.getElementById('mobileSheetBackdrop');
+                const closeBtn = document.getElementById('mobileSheetClose');
+                function openSheet() { if (sheet) sheet.classList.add('open'); }
+                function closeSheet() { if (sheet) sheet.classList.remove('open'); }
+                if (bar) bar.addEventListener('click', openSheet);
+                if (backdrop) backdrop.addEventListener('click', closeSheet);
+                if (closeBtn) closeBtn.addEventListener('click', closeSheet);
+            })();
+
+            // ── Floating "Added Items" button + panel ─────────────────
+            function updateFab() {
+                const items = selectedItems();
+                const fab = document.getElementById('addedItemsFab');
+                const count = items.length;
+                if (fab) {
+                    fab.classList.toggle('visible', count > 0);
+                    document.getElementById('fabCount').textContent = count;
+                }
+            }
+
+            function renderPanel() {
+                const items = selectedItems();
+                const byRoom = {};
+                items.forEach(r => {
+                    const room = r.room || 'Other';
+                    if (!byRoom[room]) byRoom[room] = [];
+                    byRoom[room].push(r);
+                });
+                const roomOrder = [...ROOMS, 'Other'];
+                const sortedRooms = Object.keys(byRoom).sort((a, b) => {
+                    const ia = roomOrder.indexOf(a);
+                    const ib = roomOrder.indexOf(b);
+                    if (ia === -1 && ib === -1) return a.localeCompare(b);
+                    if (ia === -1) return 1;
+                    if (ib === -1) return -1;
+                    return ia - ib;
+                });
+                const body = document.getElementById('panelBody');
+                if (sortedRooms.length === 0) {
+                    body.innerHTML = '<p style="color:#888;text-align:center;padding:40px 0;">No items added yet</p>';
+                } else {
+                    body.innerHTML = sortedRooms.map(room => {
+                        const list = byRoom[room];
+                        const rows = list.map(r =>
+                            '<div class="panel-item-row" data-id="' + r.id + '">' +
+                            '<span class="panel-item-name">' + escapeHtml(r.name) + '</span>' +
+                            '<span class="panel-item-vol">' + (r.volume * r.qty) + ' cf</span>' +
+                            '<span class="panel-qty-controls">' +
+                            '<button type="button" class="panel-remove" data-action="clear" title="Remove">&times;</button>' +
+                            '<button type="button" data-action="-1">&minus;</button>' +
+                            '<input type="number" min="0" value="' + r.qty + '" data-action="input">' +
+                            '<button type="button" data-action="+1">+</button>' +
+                            '</span></div>'
+                        ).join('');
+                        return '<div class="panel-room-group"><div class="panel-room-title">' + escapeHtml(room) + '</div>' + rows + '</div>';
+                    }).join('');
+                }
+                document.getElementById('panelTotalVol').textContent = Math.round(totalVolume()) + ' cf';
+            }
+
+            function openPanel() {
+                renderPanel();
+                document.getElementById('addedItemsPanel').classList.add('open');
+                document.getElementById('panelOverlay').classList.add('open');
+            }
+            function closePanel() {
+                document.getElementById('addedItemsPanel').classList.remove('open');
+                document.getElementById('panelOverlay').classList.remove('open');
+            }
+
+            document.getElementById('addedItemsFab').addEventListener('click', openPanel);
+            document.getElementById('panelClose').addEventListener('click', closePanel);
+            document.getElementById('panelOverlay').addEventListener('click', closePanel);
+
+            // Panel qty controls (delegated)
+            document.getElementById('panelBody').addEventListener('click', function(e) {
+                const btn = e.target.closest('button[data-action]');
+                if (!btn) return;
+                e.preventDefault();
+                const row = e.target.closest('.panel-item-row');
+                if (!row) return;
+                const id = row.dataset.id;
+                const action = btn.dataset.action;
+                if (action === 'clear') setQty(id, 'clear');
+                else if (action === '-1') setQty(id, -1);
+                else if (action === '+1') setQty(id, 1);
+                renderPanel();
+            });
+            document.getElementById('panelBody').addEventListener('input', function(e) {
+                const input = e.target;
+                if (input.dataset.action === 'input') {
+                    const row = input.closest('.panel-item-row');
+                    const item = findRow(row.dataset.id);
+                    if (item) {
+                        const v = parseInt(input.value, 10);
+                        item.qty = isNaN(v) || v < 0 ? 0 : v;
+                        if (item.qty > 0 && !item.room) item.room = state.currentRoom;
+                        renderTable();
+                        scheduleSave();
+                        // Update panel vol display without full re-render
+                        document.getElementById('panelTotalVol').textContent = Math.round(totalVolume()) + ' cf';
+                        const volRow = row.querySelector('.panel-item-vol');
+                        if (volRow) volRow.textContent = (item.volume * item.qty) + ' cf';
+                    }
+                }
+            });
+
+            // ── Autosave ────────────────────────────────────────────────
+            let saveTimer = null;
+            function scheduleSave() {
+                if (!jobNumberParam) return;
+                clearTimeout(saveTimer);
+                const ind = document.getElementById('saveIndicator');
+                if (ind) ind.textContent = 'Saving…';
+                saveTimer = setTimeout(doSave, 1200);
+            }
+
+            async function doSave() {
+                if (!jobNumberParam) return;
+                const ind = document.getElementById('saveIndicator');
+                try {
+                    const items = allItems().filter(r => r.qty > 0).map(r => ({ name: r.name, volume: r.volume, qty: r.qty, room: r.room, custom: r.custom || false }));
+                    const totalVol = Math.round(totalVolume());
+                    const checkRes = await fetch(SUPABASE_URL + '/rest/v1/inventory_submissions?select=id&job_number=eq.' + encodeURIComponent(jobNumberParam) + '&limit=1', {
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+                    });
+                    const existing = checkRes.ok ? await checkRes.json() : [];
+                    const payload = { items: items, total_volume: totalVol, updated_at: new Date().toISOString() };
+                    let saveOk = false;
+                    if (existing && existing.length > 0) {
+                        const patchRes = await fetch(SUPABASE_URL + '/rest/v1/inventory_submissions?job_number=eq.' + encodeURIComponent(jobNumberParam), {
+                            method: 'PATCH',
+                            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                            body: JSON.stringify(payload)
+                        });
+                        saveOk = patchRes.ok;
+                    } else {
+                        const postRes = await fetch(SUPABASE_URL + '/rest/v1/inventory_submissions', {
+                            method: 'POST',
+                            headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+                            body: JSON.stringify({ job_number: jobNumberParam, items: items, total_volume: totalVol, updated_at: new Date().toISOString() })
+                        });
+                        saveOk = postRes.ok;
+                        if (!saveOk) {
+                            const errText = await postRes.text();
+                            console.error('Inventory save failed:', postRes.status, errText);
+                        }
+                    }
+                    if (ind) {
+                        if (saveOk) { ind.textContent = '✓ Saved'; setTimeout(() => { if (ind) ind.textContent = ''; }, 2000); }
+                        else { ind.textContent = '⚠ Save failed'; }
+                    }
+                    if (saveOk && window.opener && window.opener.refreshInventoryPanel) window.opener.refreshInventoryPanel();
+                } catch (e) {
+                    console.error('doSave error:', e);
+                    if (ind) ind.textContent = '⚠ Save failed';
+                }
+            }
+
+            // ── Load existing inventory ──────────────────────────────────
+            async function loadExisting() {
+                if (!jobNumberParam) return;
+                try {
+                    const res = await fetch(SUPABASE_URL + '/rest/v1/inventory_submissions?select=items&job_number=eq.' + encodeURIComponent(jobNumberParam) + '&order=updated_at.desc&limit=1', {
+                        headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY }
+                    });
+                    if (!res.ok) return;
+                    const data = await res.json();
+                    if (!data || data.length === 0) return;
+                    const saved = data[0].items || [];
+                    saved.forEach(s => {
+                        const match = state.items.find(r => r.name === s.name);
+                        if (match) { match.qty = s.qty || 0; match.room = s.room || null; }
+                        else { state.customItems.push({ id: 'custom-' + Date.now() + '-' + Math.random(), name: s.name, volume: s.volume || 0, category: 'Miscellaneous', qty: s.qty || 0, room: s.room || null, custom: true }); }
+                    });
+                    renderTable();
+                } catch (e) { console.warn('Failed to load inventory:', e); }
+            }
+
+            // ── Back button ──────────────────────────────────────────────
+            const backBtn = document.getElementById('backBtn');
+            if (backBtn) backBtn.addEventListener('click', function() {
+                window.close();
+                if (!window.closed) history.back();
+            });
+
+            // ── Init ─────────────────────────────────────────────────────
+            const jobNumEl = document.getElementById('jobNumber');
+            if (jobNumEl && jobNumberParam) jobNumEl.textContent = jobNumberParam;
+
+            initItems();
+            renderRoomSelector();
+            renderTable();
+            loadExisting();
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Client Portal - My Documents</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f0f2f5; color: #333; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: linear-gradient(135deg, #FFA23F 0%, #e8891f 100%); color: white; padding: 20px; border-radius: 8px 8px 0 0; }
+        .header h1 { font-size: 24px; margin-bottom: 8px; }
+        .header .subtitle { opacity: 0.9; font-size: 14px; }
+        .content { background: white; padding: 24px; border-radius: 0 0 8px 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        
+        /* Login Form */
+        #loginView { max-width: 400px; margin: 60px auto; }
+        .login-card { background: white; padding: 32px; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 20px; }
+        .form-group label { display: block; font-weight: 600; margin-bottom: 8px; color: #374151; }
+        .form-group input { width: 100%; padding: 10px 12px; border: 1px solid #cbd5e1; border-radius: 6px; font-size: 14px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 6px; font-weight: 600; cursor: pointer; font-size: 14px; transition: all 0.2s; }
+        .btn-primary { background: #FFA23F; color: white; width: 100%; }
+        .btn-primary:hover { background: #e8891f; }
+        .btn-secondary { background: #64748b; color: white; }
+        .btn-link { background: none; color: #2563eb; text-decoration: underline; padding: 0; }
+        .alert { padding: 12px; border-radius: 6px; margin-bottom: 16px; }
+        .alert-error { background: #fef2f2; color: #dc2626; border: 1px solid #f87171; }
+        .alert-success { background: #f0fdf4; color: #16a34a; border: 1px solid #22c55e; }
+        .alert-info { background: #eff6ff; color: #e8891f; border: 1px solid #3b82f6; }
+        .toggle-form { text-align: center; margin-top: 16px; font-size: 14px; color: #64748b; }
+        
+        /* Dashboard */
+        #dashboardView { display: none; }
+        .dashboard-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 2px solid #e2e8f0; }
+        .user-info { font-size: 14px; color: #64748b; }
+        .user-info strong { color: #1e293b; }
+        .logout-btn { background: #dc2626; color: white; padding: 8px 16px; }
+        
+        .agreements-list { display: grid; gap: 16px; }
+        .agreement-card { border: 1px solid #e2e8f0; border-radius: 8px; padding: 20px; transition: all 0.2s; }
+        .agreement-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); border-color: #FFA23F; }
+        .agreement-header { display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px; }
+        .agreement-title { font-size: 18px; font-weight: 600; color: #1e293b; }
+        .agreement-status { padding: 4px 12px; border-radius: 12px; font-size: 12px; font-weight: 600; }
+        .status-pending { background: #fef3c7; color: #92400e; }
+        .status-signed { background: #d1fae5; color: #065f46; }
+        .agreement-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-top: 12px; font-size: 13px; color: #64748b; }
+        .agreement-details strong { color: #374151; }
+        .agreement-actions { margin-top: 16px; display: flex; gap: 8px; }
+        .btn-view { background: #2563eb; color: white; }
+        .btn-view:hover { background: #FFA23F; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #64748b; }
+        .empty-state-icon { font-size: 48px; margin-bottom: 16px; }
+        
+        .loading { text-align: center; padding: 40px; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Login/Register View -->
+        <div id="loginView">
+            <div class="login-card">
+                <h2 style="margin-bottom: 24px; color: #1e293b;">Client Portal</h2>
+                <div id="loginAlert"></div>
+                
+                <!-- Login Form -->
+                <div id="loginForm">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="loginEmail" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Enter your password" required>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleLogin()">Sign In</button>
+                    <div class="toggle-form">
+                        Don't have an account? <a href="#" onclick="showRegister(); return false;" class="btn-link">Create Account</a>
+                    </div>
+                </div>
+                
+                <!-- Register Form -->
+                <div id="registerForm" style="display: none;">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" id="registerName" placeholder="John Doe" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" id="registerEmail" placeholder="your@email.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Phone Number</label>
+                        <input type="tel" id="registerPhone" placeholder="(555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="registerPassword" placeholder="Minimum 8 characters" required minlength="8">
+                    </div>
+                    <div class="form-group">
+                        <label>Confirm Password</label>
+                        <input type="password" id="registerPasswordConfirm" placeholder="Re-enter password" required>
+                    </div>
+                    <button class="btn btn-primary" onclick="handleRegister()">Create Account</button>
+                    <div class="toggle-form">
+                        Already have an account? <a href="#" onclick="showLogin(); return false;" class="btn-link">Sign In</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Dashboard View -->
+        <div id="dashboardView">
+            <div class="header">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <img src="/logo.svg" alt="Hercules Moving Solutions" style="height: 40px; width: auto;">
+                    <div>
+                        <h1>My Documents</h1>
+                        <div class="subtitle">View and track your signed agreements – Hercules Moving Solutions</div>
+                    </div>
+                </div>
+            </div>
+            <div class="content">
+                <div class="dashboard-header">
+                    <div class="user-info">
+                        Signed in as: <strong id="userEmailDisplay">-</strong>
+                    </div>
+                    <button class="btn logout-btn" onclick="handleLogout()">Logout</button>
+                </div>
+                
+                <div id="loadingState" class="loading">Loading your documents...</div>
+                <div id="agreementsContainer" class="agreements-list" style="display: none;"></div>
+                <div id="emptyState" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">📄</div>
+                    <h3>No Documents Yet</h3>
+                    <p>When agreements are sent to your email, they will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const SUPABASE_URL = 'process.env.SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+        
+        // Check if user is already logged in
+        function checkAuth() {
+            const token = localStorage.getItem('clientAuthToken');
+            const userEmail = localStorage.getItem('clientUserEmail');
+            if (token && userEmail) {
+                showDashboard(userEmail);
+                loadAgreements(userEmail);
+            }
+        }
+        
+        function showLogin() {
+            document.getElementById('loginForm').style.display = 'block';
+            document.getElementById('registerForm').style.display = 'none';
+            document.getElementById('loginAlert').innerHTML = '';
+        }
+        
+        function showRegister() {
+            document.getElementById('loginForm').style.display = 'none';
+            document.getElementById('registerForm').style.display = 'block';
+            document.getElementById('loginAlert').innerHTML = '';
+        }
+        
+        async function handleLogin() {
+            const email = document.getElementById('loginEmail').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            
+            if (!email || !password) {
+                showAlert('Please enter email and password', 'error');
+                return;
+            }
+            
+            try {
+                const baseUrl = window.location.origin;
+                const res = await fetch(`${baseUrl}/api/client-login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                
+                const data = await res.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Login failed');
+                }
+                
+                // Store auth token
+                localStorage.setItem('clientAuthToken', data.token);
+                localStorage.setItem('clientUserEmail', email);
+                localStorage.setItem('clientUserId', data.userId);
+                
+                showDashboard(email);
+                loadAgreements(email);
+            } catch (err) {
+                showAlert(err.message || 'Login failed. Please check your credentials.', 'error');
+            }
+        }
+        
+        async function handleRegister() {
+            const name = document.getElementById('registerName').value.trim();
+            const email = document.getElementById('registerEmail').value.trim();
+            const phone = document.getElementById('registerPhone').value.trim();
+            const password = document.getElementById('registerPassword').value;
+            const passwordConfirm = document.getElementById('registerPasswordConfirm').value;
+            
+            if (!name || !email || !password) {
+                showAlert('Please fill in all required fields', 'error');
+                return;
+            }
+            
+            if (password.length < 8) {
+                showAlert('Password must be at least 8 characters', 'error');
+                return;
+            }
+            
+            if (password !== passwordConfirm) {
+                showAlert('Passwords do not match', 'error');
+                return;
+            }
+            
+            try {
+                const baseUrl = window.location.origin;
+                const res = await fetch(`${baseUrl}/api/client-register`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, fullName: name, phone })
+                });
+                
+                const data = await res.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+                
+                showAlert('Account created successfully! Please sign in.', 'success');
+                setTimeout(() => {
+                    showLogin();
+                    document.getElementById('loginEmail').value = email;
+                }, 1500);
+            } catch (err) {
+                showAlert(err.message || 'Registration failed', 'error');
+            }
+        }
+        
+        function handleLogout() {
+            localStorage.removeItem('clientAuthToken');
+            localStorage.removeItem('clientUserEmail');
+            localStorage.removeItem('clientUserId');
+            document.getElementById('loginView').style.display = 'block';
+            document.getElementById('dashboardView').style.display = 'none';
+            document.getElementById('loginEmail').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+        
+        function showDashboard(email) {
+            document.getElementById('loginView').style.display = 'none';
+            document.getElementById('dashboardView').style.display = 'block';
+            document.getElementById('userEmailDisplay').textContent = email;
+        }
+        
+        async function loadAgreements(email) {
+            document.getElementById('loadingState').style.display = 'block';
+            document.getElementById('agreementsContainer').style.display = 'none';
+            document.getElementById('emptyState').style.display = 'none';
+            
+            try {
+                const baseUrl = window.location.origin;
+                const token = localStorage.getItem('clientAuthToken');
+                
+                const res = await fetch(`${baseUrl}/api/client-agreements?email=${encodeURIComponent(email)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                
+                const data = await res.json();
+                
+                if (!data.success) {
+                    throw new Error(data.error || 'Failed to load agreements');
+                }
+                
+                const agreements = data.agreements || [];
+                
+                document.getElementById('loadingState').style.display = 'none';
+                
+                if (agreements.length === 0) {
+                    document.getElementById('emptyState').style.display = 'block';
+                } else {
+                    displayAgreements(agreements);
+                    document.getElementById('agreementsContainer').style.display = 'grid';
+                }
+            } catch (err) {
+                console.error('Load agreements error:', err);
+                document.getElementById('loadingState').innerHTML = `<div class="alert alert-error">Error loading documents: ${err.message}</div>`;
+            }
+        }
+        
+        function displayAgreements(agreements) {
+            const container = document.getElementById('agreementsContainer');
+            container.innerHTML = agreements.map(agreement => {
+                const statusClass = agreement.status === 'signed' ? 'status-signed' : 'status-pending';
+                const statusText = agreement.status === 'signed' ? '✓ Signed' : '⏳ Pending';
+                const signedDate = agreement.signed_at ? new Date(agreement.signed_at).toLocaleDateString() : '-';
+                const createdDate = new Date(agreement.created_at).toLocaleDateString();
+                
+                return `
+                    <div class="agreement-card">
+                        <div class="agreement-header">
+                            <div class="agreement-title">${agreement.agreement_title || 'Moving Agreement'}</div>
+                            <span class="agreement-status ${statusClass}">${statusText}</span>
+                        </div>
+                        <div class="agreement-details">
+                            <div><strong>Job Number:</strong> ${agreement.job_number || '-'}</div>
+                            <div><strong>Created:</strong> ${createdDate}</div>
+                            ${agreement.status === 'signed' ? `<div><strong>Signed:</strong> ${signedDate}</div>` : ''}
+                            ${agreement.signer_name ? `<div><strong>Signed By:</strong> ${agreement.signer_name}</div>` : ''}
+                        </div>
+                        <div class="agreement-actions">
+                            <a href="/agreement?t=${agreement.token}" target="_blank" class="btn btn-view">View Agreement</a>
+                            ${agreement.status === 'signed' ? '<span style="color: #16a34a; font-size: 12px;">✓ Completed</span>' : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        function showAlert(message, type) {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${type}`;
+            alertDiv.textContent = message;
+            document.getElementById('loginAlert').innerHTML = '';
+            document.getElementById('loginAlert').appendChild(alertDiv);
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        // Initialize
+        document.addEventListener('DOMContentLoaded', checkAuth);
+    </script>
+</body>
+</html>

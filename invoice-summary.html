@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Summary — HMS</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f8f9fb; color: #1e293b; min-height: 100vh; }
+        .container { max-width: 1100px; margin: 0 auto; padding: 20px; }
+
+        .app-bar {
+            background: #fff; border-radius: 12px; margin-bottom: 16px;
+            border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+            overflow: hidden; position: relative;
+        }
+        .app-bar::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%); }
+        .app-bar-content { display: flex; align-items: center; justify-content: space-between; padding: 14px 20px; flex-wrap: wrap; gap: 12px; }
+        .app-bar-left { display: flex; align-items: center; gap: 16px; }
+        .app-bar-title { font-size: 18px; font-weight: 800; color: #1e293b; }
+        .back-link { color: #2563eb; text-decoration: none; font-size: 13px; opacity: 0.8; }
+        .back-link:hover { opacity: 1; }
+
+        .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 20px; }
+        .stat-card {
+            background: #fff; border-radius: 10px; padding: 16px 20px;
+            border: 1px solid #e2e8f0; text-align: center;
+        }
+        .stat-label { font-size: 11px; text-transform: uppercase; color: #94a3b8; font-weight: 600; letter-spacing: 0.5px; margin-bottom: 4px; }
+        .stat-value { font-size: 22px; font-weight: 800; }
+        .stat-value.green { color: #16a34a; }
+        .stat-value.blue { color: #2563eb; }
+        .stat-value.amber { color: #d97706; }
+        .stat-value.red { color: #dc2626; }
+
+        .table-card {
+            background: #fff; border-radius: 12px; border: 1px solid #e2e8f0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.08); overflow: hidden;
+        }
+        .table-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 14px 20px; border-bottom: 1px solid #e2e8f0; flex-wrap: wrap; gap: 10px;
+        }
+        .table-header h2 { font-size: 15px; font-weight: 700; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        thead th {
+            background: #f8fafc; padding: 10px 16px; text-align: left;
+            font-weight: 700; color: #475569; border-bottom: 2px solid #e2e8f0;
+            font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
+            position: sticky; top: 0; z-index: 1; white-space: nowrap;
+        }
+        thead th.right { text-align: right; }
+        tbody td { padding: 12px 16px; border-bottom: 1px solid #f1f5f9; }
+        tbody td.right { text-align: right; font-variant-numeric: tabular-nums; }
+        tbody td.bold { font-weight: 700; }
+        tbody tr:hover td { background: #f8fafc; }
+        tbody tr.overdue td { background: #fef2f2; }
+        tbody tr td.green { color: #16a34a; }
+        tbody tr td.red { color: #dc2626; font-weight: 700; }
+        tbody tr td.zero { color: #94a3b8; }
+        .week-link { color: #2563eb; text-decoration: none; font-weight: 600; }
+        .week-link:hover { text-decoration: underline; }
+        .badge { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 600; }
+        .badge-paid { background: #dcfce7; color: #16a34a; }
+        .badge-partial { background: #fef9c3; color: #a16207; }
+        .badge-unpaid { background: #fee2e2; color: #dc2626; }
+        .deals-count { color: #64748b; font-size: 12px; }
+        .spinner { display: inline-block; width: 18px; height: 18px; border: 2px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .loading-row td { text-align: center; padding: 40px; color: #94a3b8; }
+        .totals-row td { background: #f0f4ff !important; font-weight: 800; border-top: 2px solid #2563eb; }
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            table { font-size: 12px; }
+            thead th, tbody td { padding: 8px 10px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="app-bar">
+        <div class="app-bar-content">
+            <div class="app-bar-left">
+                <span class="app-bar-title">Invoice Summary</span>
+                <a href="/dashboard" class="back-link">Dashboard</a>
+                <a href="/sales-invoice" class="back-link">Single Week View</a>
+            </div>
+            <div style="font-size:12px;color:#64748b;">Since Jan 6, 2025</div>
+        </div>
+    </div>
+
+    <div class="stats-row">
+        <div class="stat-card"><div class="stat-label">Total Owed</div><div class="stat-value blue" id="grandOwed">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Paid</div><div class="stat-value green" id="grandPaid">—</div></div>
+        <div class="stat-card"><div class="stat-label">Balance Remaining</div><div class="stat-value red" id="grandBalance">—</div></div>
+        <div class="stat-card"><div class="stat-label">Total Deals</div><div class="stat-value" id="grandDeals" style="color:#475569;">—</div></div>
+    </div>
+
+    <div class="table-card">
+        <div class="table-header">
+            <h2>Weekly Sales Invoices</h2>
+            <span id="tableStatus" style="font-size:12px;color:#94a3b8;"></span>
+        </div>
+        <div style="overflow-x:auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Week</th>
+                        <th class="right">Deals</th>
+                        <th class="right">Total Sales</th>
+                        <th class="right">35% Floor Owed</th>
+                        <th class="right">Paid</th>
+                        <th class="right">Balance</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="invoiceBody">
+                    <tr class="loading-row"><td colspan="7"><div class="spinner"></div> Loading invoices...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script src="config.js"></script>
+<script>
+(function() {
+    'use strict';
+    try {
+        const raw = localStorage.getItem('dashboardUser');
+        if (!raw) { window.location.replace('/dashboard'); return; }
+        const s = JSON.parse(raw);
+        const hrs = (Date.now() - new Date(s.loginTime)) / 3600000;
+        if (hrs > 24 || s.role !== 'admin') { window.location.replace('/dashboard'); }
+    } catch(e) { window.location.replace('/dashboard'); return; }
+
+    const SUPABASE_URL = CONFIG.SUPABASE.URL;
+    const SUPABASE_KEY = CONFIG.SUPABASE.ANON_KEY;
+
+    async function supaGet(path) {
+        const res = await fetch(SUPABASE_URL + path, {
+            headers: { apikey: SUPABASE_KEY, Authorization: 'Bearer ' + SUPABASE_KEY }
+        });
+        return res.ok ? await res.json() : [];
+    }
+
+    function getMonday(d) {
+        const date = new Date(d);
+        const day = date.getDay();
+        const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+        date.setDate(diff);
+        date.setHours(0, 0, 0, 0);
+        return date;
+    }
+
+    function isoDate(d) {
+        return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    }
+
+    function fmtMoney(n) {
+        return '$' + Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function fmtWeek(mon) {
+        const sun = new Date(mon);
+        sun.setDate(sun.getDate() + 6);
+        return mon.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) + ' - ' +
+               sun.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    }
+
+    async function loadAll() {
+        const body = document.getElementById('invoiceBody');
+        const status = document.getElementById('tableStatus');
+        body.innerHTML = '<tr class="loading-row"><td colspan="7"><div class="spinner"></div> Loading invoices...</td></tr>';
+
+        // Build all weeks from Jan 6 2025 to last completed week
+        const FIRST_MONDAY = new Date(2025, 0, 6); // Jan 6, 2025
+        const thisMonday = getMonday(new Date());
+        const weeks = [];
+        let mon = new Date(thisMonday);
+        mon.setDate(mon.getDate() - 7); // start from last completed week
+        while (mon >= FIRST_MONDAY) {
+            weeks.push(new Date(mon));
+            mon.setDate(mon.getDate() - 7);
+        }
+
+        const globalStart = isoDate(FIRST_MONDAY);
+        const globalEndDate = new Date(thisMonday);
+        const globalEnd = isoDate(globalEndDate);
+
+        // Fetch all transactions and floor payments in range at once
+        const [txns, payments] = await Promise.all([
+            supaGet('/rest/v1/transactions?processed_at=gte.' + globalStart +
+                '&processed_at=lt.' + globalEnd +
+                '&commission_complete=eq.true' +
+                '&select=processed_at,amount,transaction_type'),
+            supaGet('/rest/v1/floor_payments?week_start=gte.' + globalStart +
+                '&week_start=lte.' + isoDate(weeks[0]) +
+                '&select=week_start,amount')
+        ]);
+
+        // Group transactions by week
+        const weekData = weeks.map(mon => {
+            const ws = isoDate(mon);
+            const endDate = new Date(mon);
+            endDate.setDate(endDate.getDate() + 7);
+            const we = isoDate(endDate);
+
+            const weekTxns = txns.filter(t => t.processed_at >= ws && t.processed_at < we);
+            const sales = weekTxns.filter(t => {
+                const tt = (t.transaction_type || '').toUpperCase();
+                return tt === 'SALE' || tt === 'AUTH_CAPTURE' || tt === 'CAPTURE';
+            });
+            const totalSales = sales.reduce((s, t) => s + (parseFloat(t.amount) || 0), 0);
+            const floorOwed = totalSales * 0.35;
+
+            const weekPayments = payments.filter(p => p.week_start === ws);
+            const totalPaid = weekPayments.reduce((s, p) => s + (parseFloat(p.amount) || 0), 0);
+
+            return {
+                monday: mon,
+                weekStart: ws,
+                deals: sales.length,
+                totalSales,
+                floorOwed,
+                totalPaid,
+                balance: floorOwed - totalPaid
+            };
+        });
+
+        // Remove weeks with no sales and no payments
+        const weekData2 = weekData.filter(w => w.deals > 0 || w.totalPaid > 0);
+
+        // Grand totals
+        let grandOwed = 0, grandPaid = 0, grandDeals = 0;
+        weekData2.forEach(w => { grandOwed += w.floorOwed; grandPaid += w.totalPaid; grandDeals += w.deals; });
+        const grandBalance = grandOwed - grandPaid;
+
+        document.getElementById('grandOwed').textContent = fmtMoney(grandOwed);
+        document.getElementById('grandPaid').textContent = fmtMoney(grandPaid);
+        document.getElementById('grandBalance').textContent = fmtMoney(grandBalance);
+        document.getElementById('grandDeals').textContent = grandDeals;
+
+        if (grandBalance > 0) document.getElementById('grandBalance').classList.add('red');
+        else document.getElementById('grandBalance').classList.remove('red');
+
+        // Render rows
+        body.innerHTML = weekData2.map(w => {
+            const bal = w.balance;
+            const statusBadge = bal <= 0
+                ? '<span class="badge badge-paid">Paid</span>'
+                : w.totalPaid > 0
+                    ? '<span class="badge badge-partial">Partial</span>'
+                    : w.deals === 0
+                        ? '<span class="badge" style="background:#f1f5f9;color:#94a3b8;">No Sales</span>'
+                        : '<span class="badge badge-unpaid">Unpaid</span>';
+            const balClass = bal <= 0 ? 'zero' : 'red';
+            const overdueClass = bal > 0 && w.totalPaid === 0 && w.deals > 0 ? ' overdue' : '';
+            const invoiceUrl = '/sales-invoice?week=' + w.weekStart;
+            return '<tr class="' + overdueClass + '">' +
+                '<td><a class="week-link" href="' + invoiceUrl + '">' + fmtWeek(w.monday) + '</a></td>' +
+                '<td class="right">' + (w.deals || '<span class="deals-count">0</span>') + '</td>' +
+                '<td class="right bold">' + fmtMoney(w.totalSales) + '</td>' +
+                '<td class="right bold">' + fmtMoney(w.floorOwed) + '</td>' +
+                '<td class="right green">' + fmtMoney(w.totalPaid) + '</td>' +
+                '<td class="right ' + balClass + '">' + (bal <= 0 ? '$0.00' : fmtMoney(bal)) + '</td>' +
+                '<td>' + statusBadge + '</td></tr>';
+        }).join('') +
+        '<tr class="totals-row">' +
+            '<td>TOTAL</td>' +
+            '<td class="right">' + grandDeals + '</td>' +
+            '<td class="right">' + fmtMoney(weekData2.reduce((s,w) => s + w.totalSales, 0)) + '</td>' +
+            '<td class="right">' + fmtMoney(grandOwed) + '</td>' +
+            '<td class="right green">' + fmtMoney(grandPaid) + '</td>' +
+            '<td class="right ' + (grandBalance > 0 ? 'red' : 'zero') + '">' + (grandBalance <= 0 ? '$0.00' : fmtMoney(grandBalance)) + '</td>' +
+            '<td></td></tr>';
+
+        status.textContent = weekData2.length + ' weeks loaded';
+    }
+
+    loadAll();
+})();
+</script>
+</body>
+</html>

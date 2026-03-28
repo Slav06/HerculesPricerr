@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email Template Builder – Hercules</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFA23F 0%, #e8891f 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        .app {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            display: grid;
+            grid-template-columns: 260px 1fr 340px;
+            grid-template-rows: auto 1fr;
+            gap: 20px;
+            min-height: 100vh;
+        }
+        .header {
+            grid-column: 1 / -1;
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            padding: 16px 24px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .header h1 { font-size: 22px; color: #FFA23F; }
+        .header-actions { display: flex; gap: 10px; align-items: center; }
+        .btn {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #FFA23F; color: white; }
+        .btn-primary:hover { background: #e8891f; }
+        .btn-secondary { background: #e9ecef; color: #333; }
+        .btn-secondary:hover { background: #dee2e6; }
+        .btn-danger { background: #dc3545; color: white; }
+        .btn-danger:hover { background: #c82333; }
+        .btn-sm { padding: 6px 12px; font-size: 12px; }
+
+        .panel {
+            background: rgba(255,255,255,0.95);
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .panel-title {
+            padding: 14px 18px;
+            font-weight: 700;
+            font-size: 14px;
+            color: #495057;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .template-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+        .template-item {
+            padding: 12px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+        }
+        .template-item:hover { background: #f1f3f5; }
+        .template-item.active { background: #e7ebff; border-color: #667eea; color: #667eea; }
+        .template-item-name { font-weight: 600; font-size: 14px; }
+        .template-item-meta { font-size: 12px; color: #6c757d; margin-top: 2px; }
+        .template-item-badge {
+            display: inline-block;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            margin-left: 6px;
+            background: #FFA23F;
+            color: white;
+        }
+
+        .editor-area { padding: 20px; overflow-y: auto; }
+        .form-group { margin-bottom: 18px; }
+        .form-group label {
+            display: block;
+            font-weight: 600;
+            font-size: 13px;
+            color: #495057;
+            margin-bottom: 6px;
+        }
+        .form-group input[type="text"],
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .form-group textarea { min-height: 200px; resize: vertical; }
+        .form-group textarea.body-editor { min-height: 280px; font-family: 'Consolas', 'Monaco', monospace; font-size: 13px; }
+
+        .variables-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .var-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            background: #e9ecef;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .var-btn:hover { background: #FFA23F; color: white; border-color: #667eea; }
+        .signature-block-btn {
+            background: #0d6efd;
+            color: white;
+            border-color: #0d6efd;
+        }
+        .signature-block-btn:hover { background: #0b5ed7; }
+
+        .preview-area { padding: 18px; overflow-y: auto; }
+        .preview-box {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            min-height: 200px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        .preview-box h3 { font-size: 16px; margin-bottom: 10px; color: #333; }
+        .preview-box p { margin-bottom: 8px; }
+        .preview-box .signature-line { border-bottom: 1px solid #333; margin-top: 24px; width: 240px; }
+        .preview-box .signature-label { font-size: 12px; color: #6c757d; margin-top: 4px; }
+        .preview-box a { color: #FFA23F; }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6c757d;
+        }
+        .empty-state p { margin-bottom: 12px; }
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 20px;
+            border-radius: 8px;
+            background: #333;
+            color: white;
+            font-size: 14px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            animation: fadeIn 0.3s;
+        }
+        .toast.success { background: #198754; }
+        .toast.error { background: #dc3545; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        @media (max-width: 1024px) {
+            .app { grid-template-columns: 1fr; grid-template-rows: auto auto 1fr; }
+            .template-list { max-height: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="header">
+            <img src="/logo.svg" alt="Hercules Moving Solutions" style="height: 36px; margin-right: 12px; vertical-align: middle;">
+            <h1 style="display: inline; vertical-align: middle;">Email Template Builder</h1>
+            <div class="header-actions">
+                <button type="button" class="btn btn-secondary" id="btnNew">+ New template</button>
+                <button type="button" class="btn btn-primary" id="btnSave">Save</button>
+            </div>
+        </header>
+
+        <aside class="panel">
+            <div class="panel-title">Templates</div>
+            <div class="template-list" id="templateList"></div>
+        </aside>
+
+        <main class="panel">
+            <div class="panel-title">Edit</div>
+            <div class="editor-area" id="editorArea">
+                <div class="empty-state" id="emptyState">
+                    <p>Select a template or create a new one.</p>
+                    <button type="button" class="btn btn-primary" id="btnNewFromEmpty">+ New template</button>
+                </div>
+                <div id="editorForm" style="display: none;">
+                    <div class="form-group">
+                        <label>Template name</label>
+                        <input type="text" id="templateName" placeholder="e.g. Quote, Agreement with signature">
+                    </div>
+                    <div class="form-group">
+                        <label>Subject line</label>
+                        <input type="text" id="templateSubject" placeholder="Use {{CUSTOMER_NAME}}, {{JOB_NUMBER}}, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label>Variables — click to insert</label>
+                        <div class="variables-bar">
+                            <button type="button" class="var-btn" data-var="{{CUSTOMER_NAME}}">CUSTOMER_NAME</button>
+                            <button type="button" class="var-btn" data-var="{{JOB_NUMBER}}">JOB_NUMBER</button>
+                            <button type="button" class="var-btn" data-var="{{QUOTE_AMOUNT}}">QUOTE_AMOUNT</button>
+                            <button type="button" class="var-btn" data-var="{{AMOUNT}}">AMOUNT</button>
+                            <button type="button" class="var-btn" data-var="{{PAYMENT_LINK}}">PAYMENT_LINK</button>
+                            <button type="button" class="var-btn" data-var="{{MOVE_DATE}}">MOVE_DATE</button>
+                            <button type="button" class="var-btn" data-var="{{VALID_UNTIL}}">VALID_UNTIL</button>
+                            <button type="button" class="var-btn" data-var="{{COMPANY_NAME}}">COMPANY_NAME</button>
+                            <button type="button" class="var-btn signature-block-btn" id="btnInsertSignature">+ Signature block</button>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Body (HTML)</label>
+                        <textarea id="templateBody" class="body-editor" placeholder="<p>Hi {{CUSTOMER_NAME}},</p><p>Your job #{{JOB_NUMBER}}...</p>"></textarea>
+                    </div>
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-secondary btn-sm" id="btnDuplicate">Duplicate</button>
+                        <button type="button" class="btn btn-danger btn-sm" id="btnDelete">Delete</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <aside class="panel">
+            <div class="panel-title">Preview</div>
+            <div class="preview-area">
+                <div class="preview-box" id="previewBox">
+                    <p class="text-muted">Preview will appear here with sample data.</p>
+                </div>
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'hercules_email_templates';
+        const SAMPLE_DATA = {
+            CUSTOMER_NAME: 'Jane Smith',
+            JOB_NUMBER: '12345',
+            QUOTE_AMOUNT: '$1,250.00',
+            AMOUNT: '$500.00',
+            PAYMENT_LINK: 'https://yoursite.com/pay/12345',
+            MOVE_DATE: 'March 15, 2025',
+            VALID_UNTIL: 'March 1, 2025',
+            COMPANY_NAME: 'Your Moving Co',
+            SIGNATURE_LINK: 'https://yoursite.com/sign/abc123',
+            AGREEMENT_LINK: 'https://yoursite.com/agreement?t=abc123',
+        };
+
+        const SIGNATURE_BLOCK_HTML = `
+<div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #eee;">
+  <p style="margin-bottom: 8px;">If you agree, please sign below. You can also sign online:</p>
+  <p style="margin-bottom: 16px;"><a href="{{SIGNATURE_LINK}}">Sign online here</a></p>
+  <p style="margin-bottom: 4px;">Signature: _________________________</p>
+  <p style="font-size: 12px; color: #666;">Date: _________________________</p>
+</div>`.trim();
+
+        function loadTemplates() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                return raw ? JSON.parse(raw) : getDefaultTemplates();
+            } catch (e) {
+                return getDefaultTemplates();
+            }
+        }
+
+        function getDefaultTemplates() {
+            return [
+                {
+                    id: 'default-quote',
+                    name: 'Quote',
+                    subject: 'Your quote for job #{{JOB_NUMBER}}',
+                    body: `<p>Hi {{CUSTOMER_NAME}},</p>
+<p>Here is your quote for job #{{JOB_NUMBER}}.</p>
+<p><strong>Amount: {{QUOTE_AMOUNT}}</strong></p>
+<p>Valid until {{VALID_UNTIL}}.</p>
+<p>Best regards,<br>{{COMPANY_NAME}}</p>`,
+                    hasSignature: false,
+                },
+                {
+                    id: 'default-agreement-signature',
+                    name: 'Agreement (with signature)',
+                    subject: 'Please sign: Agreement for job #{{JOB_NUMBER}}',
+                    body: `<p>Hi {{CUSTOMER_NAME}},</p>
+<p>Please review and sign the agreement for job #{{JOB_NUMBER}}.</p>
+<p>Summary: {{QUOTE_AMOUNT}} — Move date: {{MOVE_DATE}}.</p>
+<div style="margin-top: 32px; padding-top: 24px; border-top: 1px solid #eee;">
+  <p style="margin-bottom: 8px;">If you agree, please sign below. You can also sign online:</p>
+  <p style="margin-bottom: 16px;"><a href="{{SIGNATURE_LINK}}">Sign online here</a></p>
+  <p style="margin-bottom: 4px;">Signature: _________________________</p>
+  <p style="font-size: 12px; color: #666;">Date: _________________________</p>
+</div>
+<p style="margin-top: 24px;">Thank you,<br>{{COMPANY_NAME}}</p>`,
+                    hasSignature: true,
+                },
+            ];
+        }
+
+        function saveTemplates(templates) {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(templates));
+        }
+
+        function generateId() {
+            return 'tpl_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9);
+        }
+
+        let templates = loadTemplates();
+        let currentId = null;
+
+        const templateListEl = document.getElementById('templateList');
+        const emptyStateEl = document.getElementById('emptyState');
+        const editorFormEl = document.getElementById('editorForm');
+        const templateNameEl = document.getElementById('templateName');
+        const templateSubjectEl = document.getElementById('templateSubject');
+        const templateBodyEl = document.getElementById('templateBody');
+        const previewBoxEl = document.getElementById('previewBox');
+
+        function renderList() {
+            templateListEl.innerHTML = templates.map(t => `
+                <div class="template-item ${t.id === currentId ? 'active' : ''}" data-id="${t.id}">
+                    <span class="template-item-name">${escapeHtml(t.name)}</span>
+                    ${t.hasSignature ? '<span class="template-item-badge">Sign</span>' : ''}
+                    <div class="template-item-meta">${escapeHtml((t.subject || '').slice(0, 40))}${(t.subject || '').length > 40 ? '…' : ''}</div>
+                </div>
+            `).join('');
+            templateListEl.querySelectorAll('.template-item').forEach(el => {
+                el.addEventListener('click', () => selectTemplate(el.dataset.id));
+            });
+        }
+
+        function escapeHtml(s) {
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        function selectTemplate(id) {
+            currentId = id;
+            const t = templates.find(x => x.id === id);
+            if (!t) return;
+            emptyStateEl.style.display = 'none';
+            editorFormEl.style.display = 'block';
+            templateNameEl.value = t.name;
+            templateSubjectEl.value = t.subject || '';
+            templateBodyEl.value = t.body || '';
+            renderList();
+            updatePreview();
+        }
+
+        function updatePreview() {
+            const subj = (templateSubjectEl && templateSubjectEl.value) || '';
+            const body = (templateBodyEl && templateBodyEl.value) || '';
+            let html = body;
+            Object.keys(SAMPLE_DATA).forEach(k => {
+                html = html.replace(new RegExp(escapeRegex('{{' + k + '}}'), 'g'), SAMPLE_DATA[k]);
+            });
+            const subjPreview = subj.replace(/\{\{([A-Z_]+)\}\}/g, (_, key) => SAMPLE_DATA[key] || '{{' + key + '}}');
+            previewBoxEl.innerHTML = '<h3>' + escapeHtml(subjPreview) + '</h3>' + html;
+        }
+
+        function escapeRegex(s) {
+            return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        function getEditorData() {
+            return {
+                name: templateNameEl.value.trim() || 'Untitled',
+                subject: templateSubjectEl.value.trim() || '',
+                body: templateBodyEl.value.trim() || '',
+            };
+        }
+
+        function saveCurrent() {
+            if (!currentId) return;
+            const data = getEditorData();
+            const t = templates.find(x => x.id === currentId);
+            if (t) {
+                t.name = data.name;
+                t.subject = data.subject;
+                t.body = data.body;
+                saveTemplates(templates);
+                renderList();
+                toast('Saved', 'success');
+            }
+        }
+
+        function newTemplate() {
+            const newTpl = {
+                id: generateId(),
+                name: 'New template',
+                subject: '',
+                body: '<p>Hi {{CUSTOMER_NAME}},</p>\n\n<p></p>',
+                hasSignature: false,
+            };
+            templates.push(newTpl);
+            saveTemplates(templates);
+            currentId = newTpl.id;
+            selectTemplate(newTpl.id);
+            renderList();
+            toast('New template created', 'success');
+        }
+
+        function duplicateCurrent() {
+            if (!currentId) return;
+            const src = templates.find(x => x.id === currentId);
+            if (!src) return;
+            const data = getEditorData();
+            const newTpl = {
+                id: generateId(),
+                name: (data.name || src.name) + ' (copy)',
+                subject: data.subject || src.subject,
+                body: data.body || src.body,
+                hasSignature: src.hasSignature,
+            };
+            templates.push(newTpl);
+            saveTemplates(templates);
+            currentId = newTpl.id;
+            selectTemplate(newTpl.id);
+            renderList();
+            toast('Template duplicated', 'success');
+        }
+
+        function deleteCurrent() {
+            if (!currentId || !confirm('Delete this template?')) return;
+            templates = templates.filter(x => x.id !== currentId);
+            saveTemplates(templates);
+            currentId = templates[0]?.id || null;
+            if (currentId) selectTemplate(currentId);
+            else {
+                emptyStateEl.style.display = 'block';
+                editorFormEl.style.display = 'none';
+            }
+            renderList();
+            toast('Deleted', 'success');
+        }
+
+        function insertVariable(varStr) {
+            if (!templateBodyEl) return;
+            const start = templateBodyEl.selectionStart;
+            const end = templateBodyEl.selectionEnd;
+            const before = templateBodyEl.value.slice(0, start);
+            const after = templateBodyEl.value.slice(end);
+            templateBodyEl.value = before + varStr + after;
+            templateBodyEl.focus();
+            templateBodyEl.selectionStart = templateBodyEl.selectionEnd = start + varStr.length;
+            updatePreview();
+        }
+
+        function insertSignatureBlock() {
+            if (!templateBodyEl) return;
+            const start = templateBodyEl.selectionStart;
+            const before = templateBodyEl.value.slice(0, start);
+            const after = templateBodyEl.value.slice(start);
+            templateBodyEl.value = before + '\n\n' + SIGNATURE_BLOCK_HTML + '\n\n' + after;
+            templateBodyEl.focus();
+            const t = templates.find(x => x.id === currentId);
+            if (t) t.hasSignature = true;
+            updatePreview();
+        }
+
+        function toast(message, type = '') {
+            const el = document.createElement('div');
+            el.className = 'toast ' + (type === 'success' ? 'success' : type === 'error' ? 'error' : '');
+            el.textContent = message;
+            document.body.appendChild(el);
+            setTimeout(() => el.remove(), 3000);
+        }
+
+        document.getElementById('btnNew').addEventListener('click', newTemplate);
+        document.getElementById('btnNewFromEmpty').addEventListener('click', newTemplate);
+        document.getElementById('btnSave').addEventListener('click', saveCurrent);
+        document.getElementById('btnDuplicate').addEventListener('click', duplicateCurrent);
+        document.getElementById('btnDelete').addEventListener('click', deleteCurrent);
+        document.getElementById('btnInsertSignature').addEventListener('click', insertSignatureBlock);
+
+        document.querySelectorAll('.variables-bar .var-btn').forEach(btn => {
+            if (btn.dataset.var) btn.addEventListener('click', () => insertVariable(btn.dataset.var));
+        });
+
+        templateNameEl.addEventListener('input', updatePreview);
+        templateSubjectEl.addEventListener('input', updatePreview);
+        templateBodyEl.addEventListener('input', updatePreview);
+
+        if (templates.length > 0 && !currentId) {
+            selectTemplate(templates[0].id);
+        } else if (currentId && templates.some(t => t.id === currentId)) {
+            selectTemplate(currentId);
+        }
+        renderList();
+    </script>
+</body>
+</html>

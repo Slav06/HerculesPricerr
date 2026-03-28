@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Schedule — Hercules Moving Solutions</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFA23F 0%, #e8891f 50%, #d4780a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            padding: 0 0 40px 0;
+        }
+
+        header {
+            background: rgba(0,0,0,0.25);
+            backdrop-filter: blur(12px);
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            position: sticky;
+            top: 0;
+            z-index: 50;
+        }
+        header h1 {
+            font-size: 1.35rem;
+            font-weight: 600;
+            color: #fff;
+        }
+        header h1 span { color: #7dd3fc; }
+        header p {
+            font-size: 0.82rem;
+            color: rgba(255,255,255,0.55);
+            margin-top: 2px;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+
+        /* Section titles */
+        .section-title {
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #93c5fd;
+            margin: 28px 0 12px 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-title:first-child { margin-top: 0; }
+        .section-title .icon { font-size: 1.15rem; }
+
+        /* Shift cards */
+        .shift-card {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+            transition: border-color 0.2s;
+        }
+        .shift-card:hover { border-color: rgba(148, 163, 184, 0.25); }
+
+        .shift-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .shift-date {
+            font-weight: 600;
+            font-size: 1rem;
+            color: #fff;
+        }
+        .shift-time {
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.6);
+            margin-top: 3px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 11px;
+            border-radius: 20px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            white-space: nowrap;
+        }
+        .badge-scheduled { background: rgba(234, 179, 8, 0.2); color: #fbbf24; border: 1px solid rgba(234, 179, 8, 0.3); }
+        .badge-confirmed { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.3); }
+        .badge-callout { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+        .badge-swapped { background: rgba(168, 85, 247, 0.2); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+
+        .shift-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 8px 16px;
+            border-radius: 9px;
+            border: none;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        .btn:active { transform: scale(0.96); }
+        .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+        .btn-confirm {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+        .btn-confirm:hover:not(:disabled) { background: rgba(34, 197, 94, 0.35); }
+
+        .btn-callout {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .btn-callout:hover:not(:disabled) { background: rgba(239, 68, 68, 0.3); }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #6366f1);
+            color: #fff;
+            border: none;
+        }
+        .btn-primary:hover:not(:disabled) { filter: brightness(1.15); }
+
+        .btn-accept {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.35);
+        }
+        .btn-accept:hover:not(:disabled) { background: rgba(34, 197, 94, 0.35); }
+
+        .btn-decline {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+        .btn-decline:hover:not(:disabled) { background: rgba(239, 68, 68, 0.3); }
+
+        /* Swap request form */
+        .form-card {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 14px;
+            padding: 20px 18px;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+        .form-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: rgba(255,255,255,0.55);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        select, textarea {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 9px;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            background: rgba(0, 0, 0, 0.3);
+            color: #e2e8f0;
+            font-size: 0.9rem;
+            font-family: inherit;
+            transition: border-color 0.2s;
+            -webkit-appearance: none;
+            appearance: none;
+        }
+        select {
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%2394a3b8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            padding-right: 32px;
+        }
+        select:focus, textarea:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+        textarea { resize: vertical; min-height: 60px; }
+
+        /* Pending swaps */
+        .swap-card {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 14px;
+            padding: 16px 18px;
+            margin-bottom: 10px;
+        }
+        .swap-info {
+            font-size: 0.88rem;
+            color: rgba(255,255,255,0.75);
+            line-height: 1.5;
+        }
+        .swap-info strong { color: #fff; }
+        .swap-direction {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+        .swap-direction.incoming { color: #7dd3fc; }
+        .swap-direction.outgoing { color: #c084fc; }
+        .swap-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .swap-status-pending { color: #fbbf24; font-size: 0.8rem; font-weight: 600; margin-top: 8px; }
+        .swap-status-accepted { color: #4ade80; font-size: 0.8rem; font-weight: 600; margin-top: 8px; }
+        .swap-status-declined { color: #f87171; font-size: 0.8rem; font-weight: 600; margin-top: 8px; }
+
+        /* Mini calendar */
+        .calendar-wrap {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 14px;
+            padding: 18px;
+        }
+        .cal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .cal-header span {
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: #fff;
+        }
+        .cal-nav {
+            background: none;
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #93c5fd;
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            font-size: 1rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+        .cal-nav:hover { background: rgba(255,255,255,0.08); }
+
+        .cal-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 3px;
+            text-align: center;
+        }
+        .cal-dow {
+            font-size: 0.68rem;
+            color: rgba(255,255,255,0.4);
+            font-weight: 600;
+            text-transform: uppercase;
+            padding: 4px 0;
+        }
+        .cal-day {
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.78rem;
+            border-radius: 8px;
+            color: rgba(255,255,255,0.5);
+            position: relative;
+        }
+        .cal-day.today {
+            border: 1px solid #3b82f6;
+            color: #fff;
+            font-weight: 700;
+        }
+        .cal-day.work {
+            background: rgba(34, 197, 94, 0.25);
+            color: #4ade80;
+            font-weight: 600;
+        }
+        .cal-day.callout-day {
+            background: rgba(239, 68, 68, 0.25);
+            color: #f87171;
+            font-weight: 600;
+        }
+        .cal-day.off { color: rgba(255,255,255,0.2); }
+        .cal-day.empty { visibility: hidden; }
+
+        /* Legend */
+        .cal-legend {
+            display: flex;
+            gap: 16px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+        .cal-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.72rem;
+            color: rgba(255,255,255,0.5);
+        }
+        .cal-legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 3px;
+        }
+        .cal-legend-dot.green { background: rgba(34, 197, 94, 0.5); }
+        .cal-legend-dot.gray { background: rgba(255,255,255,0.15); }
+        .cal-legend-dot.red { background: rgba(239, 68, 68, 0.45); }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.65);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .modal-overlay.active { display: flex; }
+
+        .modal {
+            background: linear-gradient(145deg, #1e293b, #0f172a);
+            border: 1px solid rgba(148, 163, 184, 0.15);
+            border-radius: 18px;
+            padding: 28px 24px;
+            width: 100%;
+            max-width: 420px;
+            animation: modalIn 0.25s ease;
+        }
+        @keyframes modalIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.96); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        .modal h3 {
+            font-size: 1.1rem;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .modal p {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.5);
+            margin-bottom: 18px;
+        }
+        .modal-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 18px;
+        }
+        .modal-actions .btn { flex: 1; padding: 10px; }
+        .btn-cancel {
+            background: rgba(255,255,255,0.06);
+            color: rgba(255,255,255,0.6);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .btn-cancel:hover { background: rgba(255,255,255,0.1); }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background: #1e293b;
+            border: 1px solid rgba(148, 163, 184, 0.2);
+            color: #e2e8f0;
+            padding: 12px 22px;
+            border-radius: 12px;
+            font-size: 0.88rem;
+            font-weight: 500;
+            z-index: 200;
+            opacity: 0;
+            transition: all 0.35s ease;
+            pointer-events: none;
+            text-align: center;
+            max-width: 90vw;
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast.success { border-color: rgba(34, 197, 94, 0.4); color: #4ade80; }
+        .toast.error { border-color: rgba(239, 68, 68, 0.4); color: #f87171; }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 30px 20px;
+            color: rgba(255,255,255,0.35);
+            font-size: 0.9rem;
+        }
+
+        /* Loading */
+        .loading {
+            text-align: center;
+            padding: 30px;
+            color: rgba(255,255,255,0.35);
+        }
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid rgba(255,255,255,0.1);
+            border-top-color: #3b82f6;
+            border-radius: 50%;
+            animation: spin 0.7s linear infinite;
+            margin: 0 auto 10px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            header { padding: 16px; }
+            header h1 { font-size: 1.15rem; }
+            .container { padding: 16px 12px; }
+            .shift-card, .swap-card, .form-card, .calendar-wrap { padding: 14px; }
+            .shift-actions { flex-direction: column; }
+            .shift-actions .btn { width: 100%; text-align: center; }
+            .swap-actions { flex-direction: column; }
+            .swap-actions .btn { width: 100%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Hi, <span id="employeeName">...</span>! Here's your schedule</h1>
+    <p id="headerSubtext">Loading your upcoming shifts...</p>
+</header>
+
+<div class="container">
+    <!-- Upcoming Shifts -->
+    <div class="section-title" style="margin-top:0;">
+        <span class="icon">&#128197;</span> Upcoming Shifts
+    </div>
+    <div id="shiftsContainer">
+        <div class="loading"><div class="spinner"></div>Loading shifts...</div>
+    </div>
+
+    <!-- Calendar Mini View -->
+    <div class="section-title">
+        <span class="icon">&#128467;</span> Monthly Overview
+    </div>
+    <div class="calendar-wrap">
+        <div class="cal-header">
+            <button class="cal-nav" onclick="changeMonth(-1)">&#8592;</button>
+            <span id="calMonthLabel">March 2026</span>
+            <button class="cal-nav" onclick="changeMonth(1)">&#8594;</button>
+        </div>
+        <div class="cal-grid" id="calGrid"></div>
+        <div class="cal-legend">
+            <div class="cal-legend-item"><div class="cal-legend-dot green"></div>Scheduled</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot red"></div>Callout</div>
+            <div class="cal-legend-item"><div class="cal-legend-dot gray"></div>Off</div>
+        </div>
+    </div>
+
+    <!-- Swap Request -->
+    <div class="section-title">
+        <span class="icon">&#128260;</span> Request a Swap
+    </div>
+    <div class="form-card">
+        <div class="form-group">
+            <label>Your shift to swap</label>
+            <select id="swapMyShift">
+                <option value="">-- Select one of your shifts --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Swap with</label>
+            <select id="swapTarget">
+                <option value="">-- Select an employee --</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Message (optional)</label>
+            <textarea id="swapMessage" placeholder="Hey, could we swap shifts?"></textarea>
+        </div>
+        <button class="btn btn-primary" style="width:100%;" onclick="submitSwapRequest()">Send Swap Request</button>
+    </div>
+
+    <!-- Pending Swaps -->
+    <div class="section-title">
+        <span class="icon">&#128276;</span> Pending Swaps
+    </div>
+    <div id="swapsContainer">
+        <div class="loading"><div class="spinner"></div>Loading swaps...</div>
+    </div>
+</div>
+
+<!-- Callout Modal -->
+<div class="modal-overlay" id="calloutModal">
+    <div class="modal">
+        <h3>Can't Make It</h3>
+        <p id="calloutShiftInfo">Shift on ...</p>
+        <div class="form-group">
+            <label>Reason</label>
+            <textarea id="calloutReason" placeholder="Let us know why you can't make this shift..."></textarea>
+        </div>
+        <div class="modal-actions">
+            <button class="btn btn-cancel" onclick="closeCalloutModal()">Cancel</button>
+            <button class="btn btn-callout" onclick="submitCallout()">Submit Callout</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API_BASE = '/api/schedule';
+const params = new URLSearchParams(window.location.search);
+const employeeName = params.get('name') || 'Employee';
+
+let allShifts = [];
+let calMonth = new Date().getMonth();
+let calYear = new Date().getFullYear();
+let calloutShift = null;
+
+document.getElementById('employeeName').textContent = employeeName;
+
+// ---- Init ----
+init();
+
+async function init() {
+    await Promise.all([
+        loadShifts(),
+        loadEmployees(),
+        loadSwaps()
+    ]);
+}
+
+// ---- Shifts ----
+async function loadShifts() {
+    const container = document.getElementById('shiftsContainer');
+    const today = new Date();
+    const start = formatDate(today);
+    const end14 = new Date(today);
+    end14.setDate(end14.getDate() + 13);
+    const end = formatDate(end14);
+
+    try {
+        const res = await fetch(`${API_BASE}?action=my-schedule&name=${encodeURIComponent(employeeName)}&start=${start}&end=${end}`);
+        if (!res.ok) throw new Error('Failed to load schedule');
+        const data = await res.json();
+        allShifts = data.shifts || data || [];
+
+        if (!Array.isArray(allShifts) || allShifts.length === 0) {
+            container.innerHTML = '<div class="empty-state">No shifts scheduled for the next 14 days.</div>';
+            document.getElementById('headerSubtext').textContent = 'No upcoming shifts right now.';
+            populateSwapShiftDropdown([]);
+            renderCalendar();
+            return;
+        }
+
+        const upcoming = allShifts.filter(s => s.status !== 'callout');
+        const countText = upcoming.length === 1 ? '1 shift' : `${upcoming.length} shifts`;
+        document.getElementById('headerSubtext').textContent = `You have ${countText} coming up in the next 2 weeks.`;
+
+        container.innerHTML = allShifts.map(s => renderShiftCard(s)).join('');
+        populateSwapShiftDropdown(allShifts.filter(s => s.status === 'scheduled' || s.status === 'confirmed'));
+        renderCalendar();
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="empty-state">Could not load shifts. Please try again later.</div>';
+        document.getElementById('headerSubtext').textContent = 'There was a problem loading your schedule.';
+        renderCalendar();
+    }
+}
+
+function renderShiftCard(s) {
+    const dateStr = friendlyDate(s.schedule_date || s.date);
+    const start = formatTime(s.shift_start || s.start_time);
+    const end = formatTime(s.shift_end || s.end_time);
+    const status = (s.status || 'scheduled').toLowerCase();
+    const badgeClass = 'badge-' + status;
+
+    let actions = '';
+    if (status === 'scheduled') {
+        actions = `
+            <div class="shift-actions">
+                <button class="btn btn-confirm" onclick="confirmShift('${s.id}')">Confirm</button>
+                <button class="btn btn-callout" onclick="openCalloutModal('${s.id}', '${s.schedule_date || s.date}', '${start} - ${end}')">Can't Make It</button>
+            </div>`;
+    } else if (status === 'confirmed') {
+        actions = `
+            <div class="shift-actions">
+                <button class="btn btn-callout" onclick="openCalloutModal('${s.id}', '${s.schedule_date || s.date}', '${start} - ${end}')">Can't Make It</button>
+            </div>`;
+    }
+
+    return `
+        <div class="shift-card" id="shift-${s.id}">
+            <div class="shift-top">
+                <div>
+                    <div class="shift-date">${dateStr}</div>
+                    <div class="shift-time">${start} - ${end}</div>
+                </div>
+                <span class="badge ${badgeClass}">${status}</span>
+            </div>
+            ${actions}
+        </div>`;
+}
+
+// ---- Confirm ----
+async function confirmShift(id) {
+    try {
+        const res = await fetch(API_BASE + '?action=confirm', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id })
+        });
+        if (!res.ok) throw new Error('Confirm failed');
+        showToast('Shift confirmed!', 'success');
+        await loadShifts();
+    } catch (err) {
+        console.error(err);
+        showToast('Could not confirm shift. Try again.', 'error');
+    }
+}
+
+// ---- Callout Modal ----
+function openCalloutModal(id, date, timeRange) {
+    calloutShift = { id, date };
+    document.getElementById('calloutShiftInfo').textContent = `Shift on ${friendlyDate(date)}, ${timeRange}`;
+    document.getElementById('calloutReason').value = '';
+    document.getElementById('calloutModal').classList.add('active');
+}
+
+function closeCalloutModal() {
+    document.getElementById('calloutModal').classList.remove('active');
+    calloutShift = null;
+}
+
+async function submitCallout() {
+    if (!calloutShift) return;
+    const reason = document.getElementById('calloutReason').value.trim();
+    if (!reason) {
+        showToast('Please provide a reason.', 'error');
+        return;
+    }
+    try {
+        const res = await fetch(API_BASE + '?action=callout', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                id: calloutShift.id,
+                employee_name: employeeName,
+                reason,
+                schedule_date: calloutShift.date
+            })
+        });
+        if (!res.ok) throw new Error('Callout failed');
+        showToast('Callout submitted.', 'success');
+        closeCalloutModal();
+        await loadShifts();
+    } catch (err) {
+        console.error(err);
+        showToast('Could not submit callout. Try again.', 'error');
+    }
+}
+
+// Close modal on overlay click
+document.getElementById('calloutModal').addEventListener('click', function(e) {
+    if (e.target === this) closeCalloutModal();
+});
+
+// ---- Employees dropdown ----
+async function loadEmployees() {
+    try {
+        const res = await fetch(API_BASE + '?action=employees');
+        if (!res.ok) throw new Error('Failed to load employees');
+        const data = await res.json();
+        const employees = data.employees || data || [];
+        const select = document.getElementById('swapTarget');
+        select.innerHTML = '<option value="">-- Select an employee --</option>';
+        employees
+            .filter(e => {
+                const name = typeof e === 'string' ? e : (e.name || e.employee_name);
+                return name && name.toLowerCase() !== employeeName.toLowerCase();
+            })
+            .forEach(e => {
+                const name = typeof e === 'string' ? e : (e.name || e.employee_name);
+                const opt = document.createElement('option');
+                opt.value = name;
+                opt.textContent = name;
+                select.appendChild(opt);
+            });
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// ---- Swap shift dropdown ----
+function populateSwapShiftDropdown(shifts) {
+    const select = document.getElementById('swapMyShift');
+    select.innerHTML = '<option value="">-- Select one of your shifts --</option>';
+    shifts.forEach(s => {
+        const dateStr = friendlyDate(s.schedule_date || s.date);
+        const start = formatTime(s.shift_start || s.start_time);
+        const end = formatTime(s.shift_end || s.end_time);
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = `${dateStr} (${start} - ${end})`;
+        opt.dataset.date = s.schedule_date || s.date;
+        opt.dataset.start = s.shift_start || s.start_time;
+        opt.dataset.end = s.shift_end || s.end_time;
+        select.appendChild(opt);
+    });
+}
+
+// ---- Submit swap request ----
+async function submitSwapRequest() {
+    const shiftSelect = document.getElementById('swapMyShift');
+    const targetName = document.getElementById('swapTarget').value;
+    const message = document.getElementById('swapMessage').value.trim();
+
+    if (!shiftSelect.value) {
+        showToast('Please select a shift to swap.', 'error');
+        return;
+    }
+    if (!targetName) {
+        showToast('Please select an employee to swap with.', 'error');
+        return;
+    }
+
+    const selectedOpt = shiftSelect.options[shiftSelect.selectedIndex];
+    const body = {
+        requester_name: employeeName,
+        target_name: targetName,
+        swap_date: selectedOpt.dataset.date,
+        message: message,
+        requester_shift_start: selectedOpt.dataset.start,
+        requester_shift_end: selectedOpt.dataset.end,
+        target_shift_start: '',
+        target_shift_end: ''
+    };
+
+    try {
+        const res = await fetch(API_BASE + '?action=swap-request', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok) throw new Error('Swap request failed');
+        showToast('Swap request sent!', 'success');
+        document.getElementById('swapMessage').value = '';
+        shiftSelect.value = '';
+        document.getElementById('swapTarget').value = '';
+        await loadSwaps();
+    } catch (err) {
+        console.error(err);
+        showToast('Could not send swap request. Try again.', 'error');
+    }
+}
+
+// ---- Pending swaps ----
+async function loadSwaps() {
+    const container = document.getElementById('swapsContainer');
+    try {
+        const res = await fetch(`${API_BASE}?action=swaps&name=${encodeURIComponent(employeeName)}`);
+        if (!res.ok) throw new Error('Failed to load swaps');
+        const data = await res.json();
+        const swaps = data.swaps || data || [];
+
+        if (!Array.isArray(swaps) || swaps.length === 0) {
+            container.innerHTML = '<div class="empty-state">No pending swap requests.</div>';
+            return;
+        }
+
+        container.innerHTML = swaps.map(sw => renderSwapCard(sw)).join('');
+    } catch (err) {
+        console.error(err);
+        container.innerHTML = '<div class="empty-state">Could not load swap requests.</div>';
+    }
+}
+
+function renderSwapCard(sw) {
+    const isIncoming = (sw.target_name || '').toLowerCase() === employeeName.toLowerCase();
+    const otherName = isIncoming ? sw.requester_name : sw.target_name;
+    const status = (sw.status || 'pending').toLowerCase();
+    const dateStr = friendlyDate(sw.swap_date);
+
+    let directionLabel, directionClass;
+    if (isIncoming) {
+        directionLabel = 'INCOMING REQUEST';
+        directionClass = 'incoming';
+    } else {
+        directionLabel = 'YOUR REQUEST';
+        directionClass = 'outgoing';
+    }
+
+    let actions = '';
+    if (status === 'pending') {
+        if (isIncoming) {
+            actions = `
+                <div class="swap-actions">
+                    <button class="btn btn-accept" onclick="respondSwap('${sw.id}', true)">Accept</button>
+                    <button class="btn btn-decline" onclick="respondSwap('${sw.id}', false)">Decline</button>
+                </div>`;
+        } else {
+            actions = `<div class="swap-status-pending">Awaiting response...</div>`;
+        }
+    } else if (status === 'accepted') {
+        actions = `<div class="swap-status-accepted">Accepted</div>`;
+    } else if (status === 'declined') {
+        actions = `<div class="swap-status-declined">Declined</div>`;
+    }
+
+    const messageSnippet = sw.message ? `<br><em style="color:rgba(255,255,255,0.4); font-size:0.82rem;">"${sw.message}"</em>` : '';
+
+    return `
+        <div class="swap-card">
+            <div class="swap-direction ${directionClass}">${directionLabel}</div>
+            <div class="swap-info">
+                <strong>${otherName}</strong> &mdash; ${dateStr}${messageSnippet}
+            </div>
+            ${actions}
+        </div>`;
+}
+
+async function respondSwap(id, accepted) {
+    try {
+        const res = await fetch(API_BASE + '?action=swap-respond', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ id, accepted })
+        });
+        if (!res.ok) throw new Error('Swap respond failed');
+        showToast(accepted ? 'Swap accepted!' : 'Swap declined.', accepted ? 'success' : 'error');
+        await Promise.all([loadSwaps(), loadShifts()]);
+    } catch (err) {
+        console.error(err);
+        showToast('Could not respond to swap. Try again.', 'error');
+    }
+}
+
+// ---- Mini Calendar ----
+function renderCalendar() {
+    const grid = document.getElementById('calGrid');
+    const label = document.getElementById('calMonthLabel');
+    const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    label.textContent = `${months[calMonth]} ${calYear}`;
+
+    const dows = ['Su','Mo','Tu','We','Th','Fr','Sa'];
+    let html = dows.map(d => `<div class="cal-dow">${d}</div>`).join('');
+
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const today = new Date();
+    const todayStr = formatDate(today);
+
+    // Build a lookup of shifts for this month
+    const shiftDays = {};
+    allShifts.forEach(s => {
+        const d = s.schedule_date || s.date;
+        if (d) shiftDays[d] = (s.status || 'scheduled').toLowerCase();
+    });
+
+    // Also load full month data if needed — for now we use what we have
+    for (let i = 0; i < firstDay; i++) {
+        html += '<div class="cal-day empty"></div>';
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        let cls = 'cal-day';
+        if (dateStr === todayStr) cls += ' today';
+
+        if (shiftDays[dateStr]) {
+            if (shiftDays[dateStr] === 'callout') {
+                cls += ' callout-day';
+            } else {
+                cls += ' work';
+            }
+        } else {
+            cls += ' off';
+        }
+
+        html += `<div class="${cls}">${d}</div>`;
+    }
+
+    grid.innerHTML = html;
+}
+
+function changeMonth(delta) {
+    calMonth += delta;
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    // Reload shifts for the calendar month to get full data
+    loadMonthShifts().then(() => renderCalendar());
+}
+
+async function loadMonthShifts() {
+    const start = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-01`;
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const end = `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(daysInMonth).padStart(2, '0')}`;
+
+    try {
+        const res = await fetch(`${API_BASE}?action=my-schedule&name=${encodeURIComponent(employeeName)}&start=${start}&end=${end}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        const monthShifts = data.shifts || data || [];
+        // Merge into allShifts (avoiding duplicates by id)
+        const existingIds = new Set(allShifts.map(s => s.id));
+        monthShifts.forEach(s => {
+            if (!existingIds.has(s.id)) {
+                allShifts.push(s);
+            } else {
+                // Update existing
+                const idx = allShifts.findIndex(x => x.id === s.id);
+                if (idx !== -1) allShifts[idx] = s;
+            }
+        });
+    } catch (err) {
+        console.error('Could not load month shifts:', err);
+    }
+}
+
+// ---- Helpers ----
+function formatDate(d) {
+    if (typeof d === 'string') return d;
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+}
+
+function friendlyDate(dateStr) {
+    if (!dateStr) return '';
+    const parts = dateStr.split('-');
+    const d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+    const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    return `${days[d.getDay()]}, ${months[d.getMonth()]} ${d.getDate()}`;
+}
+
+function formatTime(t) {
+    if (!t) return '';
+    // If already formatted (e.g. "8:00 AM"), return as-is
+    if (t.includes('AM') || t.includes('PM')) return t;
+    // Convert HH:MM or HH:MM:SS to 12h format
+    const parts = t.split(':');
+    let h = parseInt(parts[0]);
+    const m = parts[1] || '00';
+    const ampm = h >= 12 ? 'PM' : 'AM';
+    if (h === 0) h = 12;
+    else if (h > 12) h -= 12;
+    return `${h}:${m} ${ampm}`;
+}
+
+function showToast(msg, type) {
+    const toast = document.getElementById('toast');
+    toast.textContent = msg;
+    toast.className = 'toast ' + (type || '');
+    // Force reflow
+    void toast.offsetWidth;
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>

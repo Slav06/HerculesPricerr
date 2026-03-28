@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transactions — HMS Admin</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f8f9fb;
+    color: #1e293b;
+    min-height: 100vh;
+  }
+
+  .container { max-width: 1500px; margin: 0 auto; padding: 20px; }
+
+  /* ── App Bar ──────────────────────────────────── */
+  .app-bar {
+    background: #ffffff; border-bottom: 1px solid #e2e8f0;
+    backdrop-filter: blur(16px);
+    border-radius: 12px;
+    margin-bottom: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    overflow: hidden;
+    position: relative;
+  }
+  .app-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+  }
+  .app-bar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .app-bar-left { display: flex; align-items: center; gap: 16px; }
+  .app-bar-title {
+    font-size: 18px;
+    font-weight: 800;
+    background: linear-gradient(90deg, #e2e8f0 30%, #94a3b8 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .back-link { color: #2563eb; text-decoration: none; font-size: 13px; opacity: 0.8; }
+  .back-link:hover { opacity: 1; }
+
+  /* ── Buttons ──────────────────────────────────── */
+  .btn {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid #e2e8f0;
+    font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
+    display: inline-flex; align-items: center; gap: 6px; white-space: nowrap;
+  }
+  .btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: #fff; }
+  .btn-primary:hover { background: linear-gradient(135deg, #60a5fa, #3b82f6); transform: translateY(-1px); }
+  .btn-success { background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; }
+  .btn-success:hover { background: linear-gradient(135deg, #4ade80, #22c55e); transform: translateY(-1px); }
+  .btn-ghost { background: #f8fafc; color: #94a3b8; border: 1px solid #e2e8f0; }
+  .btn-ghost:hover { background: #e2e8f0; color: #1e293b; }
+  .btn-orange { background: linear-gradient(135deg, #f59e0b, #d97706); color: #fff; }
+  .btn-orange:hover { background: linear-gradient(135deg, #fbbf24, #f59e0b); transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none !important; }
+
+  /* ── Controls Card ───────────────────────────── */
+  .controls-card {
+    background: #ffffff;
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .controls-card label { font-size: 12px; color: #94a3b8; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+  input[type="date"] {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; color: #1e293b; padding: 7px 12px; font-size: 13px;
+    font-family: inherit;
+  }
+  input[type="date"]:focus { outline: none; border-color: #3b82f6; }
+  .controls-sep { width: 1px; height: 28px; background: #f1f5f9; }
+
+  /* ── Search / Toolbar ────────────────────────── */
+  .toolbar-card {
+    background: #ffffff;
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 12px 20px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .search-input {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; color: #1e293b; padding: 8px 14px; font-size: 13px;
+    width: 320px; font-family: inherit;
+  }
+  .search-input::placeholder { color: #475569; }
+  .search-input:focus { outline: none; border-color: #3b82f6; background: #f1f5f9; }
+  .last-synced { font-size: 11px; color: #475569; margin-left: auto; }
+
+  /* ── Stats Row ───────────────────────────────── */
+  .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+  .stat-card {
+    background: #ffffff;
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    padding: 16px 20px;
+    border: 1px solid #e2e8f0;
+  }
+  .stat-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: #94a3b8; margin-bottom: 4px; }
+  .stat-value {
+    font-size: 26px; font-weight: 800;
+    background: linear-gradient(90deg, #60a5fa, #a78bfa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .stat-value.green { background: linear-gradient(90deg, #4ade80, #22c55e); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .stat-value.red { background: linear-gradient(90deg, #f87171, #ef4444); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+  .stat-value.net { background: linear-gradient(90deg, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+
+  /* ── Category Filter Chips ───────────────────── */
+  .filter-chips {
+    display: none; gap: 8px; padding: 0 0 16px; flex-wrap: wrap; align-items: center;
+  }
+  .filter-chips.visible { display: flex; }
+  .filter-label { font-size: 10px; color: #475569; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; margin-right: 4px; }
+  .fchip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px 4px 9px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; cursor: pointer;
+    border: 1.5px solid transparent;
+    transition: opacity 0.15s, transform 0.1s;
+    user-select: none;
+  }
+  .fchip:hover { opacity: 0.85; transform: translateY(-1px); }
+  .fchip.active { box-shadow: 0 0 0 2px #e2e8f0; }
+  .fchip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .fchip-all { background: #f1f5f9; color: #1e293b; border-color: #e2e8f0; }
+  .fchip-all.active { background: #e2e8f0; }
+
+  /* ── Status Bar ──────────────────────────────── */
+  .status-bar { padding: 8px 0; font-size: 12px; color: #94a3b8; min-height: 30px; display: flex; align-items: center; gap: 8px; }
+  .spinner { width: 14px; height: 14px; border: 2px solid #e2e8f0; border-top-color: #3b82f6; border-radius: 50%; animation: spin 0.7s linear infinite; flex-shrink: 0; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .error-box { margin-bottom: 16px; background: rgba(248,113,113,0.1); border: 1px solid rgba(248,113,113,0.3); border-radius: 10px; padding: 12px 16px; color: #dc2626; font-size: 13px; }
+  .no-data { text-align: center; padding: 80px 24px; color: #475569; font-size: 14px; }
+
+  /* ── Transaction Card ────────────────────────── */
+  .txn-cards { display: flex; flex-direction: column; gap: 10px; }
+
+  .txn-card {
+    background: #ffffff;
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .txn-card:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+  .txn-card.paid-done { opacity: 0.5; }
+  .txn-card-accent {
+    height: 3px; width: 100%;
+  }
+
+  .txn-top {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+
+  .txn-info { display: flex; flex-direction: column; gap: 3px; min-width: 160px; }
+  .txn-date { font-size: 11px; color: #94a3b8; }
+  .txn-name { font-size: 14px; font-weight: 700; color: #1e293b; }
+  .txn-amount { font-size: 20px; font-weight: 800; font-variant-numeric: tabular-nums; min-width: 100px; }
+  .txn-amount.sale { color: #16a34a; }
+  .txn-amount.refund { color: #dc2626; }
+  .txn-amount.cash-amt { color: #b45309; }
+
+  /* Status badges */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.03em; }
+  .badge-stl    { background: rgba(74,222,128,0.12); color: #16a34a; border: 1px solid rgba(74,222,128,0.25); }
+  .badge-return { background: rgba(248,113,113,0.12); color: #dc2626; border: 1px solid rgba(248,113,113,0.25); }
+  .badge-void   { background: rgba(148,163,184,0.12); color: #94a3b8; border: 1px solid rgba(148,163,184,0.25); }
+  .badge-other  { background: rgba(96,165,250,0.12);  color: #2563eb; border: 1px solid rgba(96,165,250,0.25); }
+  .badge-cash   { background: rgba(250,204,21,0.12); color: #facc15; border: 1px solid rgba(250,204,21,0.3); }
+
+  .txn-status-wrap { min-width: 70px; }
+
+  /* ── Rep Grid (2x2) ──────────────────────────── */
+  .rep-grid {
+    display: flex;
+    gap: 4px;
+    flex: 1;
+    min-width: 0;
+  }
+  .rep-slot {
+    border-radius: 6px;
+    padding: 5px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    border: 1px solid #e2e8f0;
+    flex: 1;
+    min-width: 0;
+  }
+  .rep-slot.fronter-bg {
+    background: rgba(59, 130, 246, 0.08);
+    border-color: rgba(59, 130, 246, 0.12);
+  }
+  .rep-slot.closer-bg {
+    background: rgba(139, 92, 246, 0.08);
+    border-color: rgba(139, 92, 246, 0.12);
+  }
+  .rep-slot-label {
+    font-size: 9px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #475569;
+  }
+  .rep-slot-label.fronter-label { color: #2563eb; }
+  .rep-slot-label.closer-label { color: #7c3aed; }
+  .rep-row { display: flex; align-items: center; gap: 4px; }
+  .rep-select {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 6px; color: #1e293b; font-size: 11px; padding: 4px 6px;
+    cursor: pointer; font-family: inherit; flex: 1; min-width: 0;
+  }
+  .rep-select:focus { outline: none; border-color: #3b82f6; }
+  .pct-select {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 6px; color: #1e293b; font-size: 10px; padding: 4px 4px;
+    cursor: pointer; font-family: inherit; width: 52px;
+  }
+  .pct-select:focus { outline: none; border-color: #3b82f6; }
+  .comm-amount { font-size: 10px; color: #16a34a; font-weight: 700; white-space: nowrap; margin-left: auto; }
+
+  /* ── Commission Button ───────────────────────── */
+  .comm-wrap { display: flex; align-items: center; min-width: 90px; justify-content: flex-end; }
+  .comm-paid-badge {
+    font-size: 10px; padding: 4px 10px; border-radius: 8px;
+    background: rgba(34,197,94,0.15); color: #16a34a; font-weight: 700;
+    border: 1px solid rgba(34,197,94,0.25); cursor: pointer;
+  }
+  .comm-paid-badge:hover { background: rgba(34,197,94,0.25); }
+  .comm-mark-btn {
+    background: rgba(251,191,36,0.15); color: #b45309;
+    border: 1px solid rgba(251,191,36,0.25); border-radius: 8px;
+    padding: 4px 10px; font-size: 10px; font-weight: 700;
+    cursor: pointer; white-space: nowrap;
+  }
+  .comm-mark-btn:hover { background: rgba(251,191,36,0.25); }
+  .comm-none { color: #94a3b8; font-size: 10px; }
+
+  /* ── Bottom Detail Section ───────────────────── */
+  .txn-bottom {
+    padding: 8px 18px 12px;
+    border-top: 1px solid rgba(255,255,255,0.04);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    font-size: 11px;
+    color: #475569;
+  }
+  .txn-bottom .detail-item { display: flex; align-items: center; gap: 4px; }
+  .txn-bottom .detail-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8; font-weight: 700; }
+  .txn-bottom .detail-value { color: #94a3b8; font-family: 'Segoe UI', monospace; }
+
+  /* Category chip in card */
+  .cat-chip { display: inline-flex; align-items: center; gap: 4px; padding: 2px 8px; border-radius: 10px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+  .cat-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+
+  /* Category dropdown */
+  .cat-select {
+    background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 6px; color: #1e293b; font-size: 11px; padding: 4px 6px;
+    cursor: pointer; max-width: 140px; font-family: inherit;
+  }
+  .cat-select:focus { outline: none; border-color: #3b82f6; }
+
+  /* Note input */
+  .note-input {
+    background: transparent; border: 1px solid transparent; border-radius: 6px;
+    color: #94a3b8; font-size: 11px; padding: 4px 8px;
+    width: 100%; min-width: 140px; font-family: inherit; resize: none;
+  }
+  .note-input::placeholder { color: #94a3b8; }
+  .note-input:hover { border-color: rgba(255,255,255,0.08); background: #f8fafc; }
+  .note-input:focus { outline: none; border-color: #3b82f6; background: #f8fafc; color: #1e293b; }
+
+  /* Job link cell */
+  .job-link-wrap { position: relative; min-width: 110px; }
+  .job-search-input {
+    background: transparent; border: 1px solid transparent; border-radius: 6px;
+    color: #94a3b8; font-size: 11px; padding: 4px 8px; width: 100%; font-family: inherit;
+  }
+  .job-search-input::placeholder { color: #94a3b8; }
+  .job-search-input:hover { border-color: rgba(255,255,255,0.08); background: #f8fafc; }
+  .job-search-input:focus { outline: none; border-color: #3b82f6; background: #f8fafc; color: #1e293b; }
+  .job-linked-badge { color: #2563eb; font-size: 11px; font-weight: 700; text-decoration: underline; white-space: nowrap; }
+  .job-linked-badge:hover { color: #93c5fd; }
+  .job-unlink-btn { background: none; border: none; color: #475569; cursor: pointer; font-size: 11px; padding: 0 0 0 4px; vertical-align: middle; line-height: 1; }
+  .job-unlink-btn:hover { color: #dc2626; }
+  .job-dropdown {
+    display: none; position: absolute; top: 100%; left: 0; z-index: 1000;
+    background: #ffffff; backdrop-filter: blur(12px);
+    border: 1px solid #3b82f6; border-radius: 8px; min-width: 240px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.1); max-height: 200px; overflow-y: auto;
+  }
+  .job-dropdown.open { display: block; }
+  .job-dd-item { padding: 8px 12px; cursor: pointer; font-size: 12px; color: #475569; display: flex; gap: 8px; align-items: baseline; }
+  .job-dd-item:not(:last-child) { border-bottom: 1px solid #e2e8f0; }
+  .job-dd-item:hover { background: rgba(59,130,246,0.15); }
+  .job-dd-num { font-weight: 700; color: #2563eb; }
+  .job-dd-name { color: #94a3b8; font-size: 11px; }
+  .txn-id { font-family: monospace; font-size: 10px; color: #94a3b8; }
+  .card-num { font-family: monospace; }
+
+  /* ── Categories modal ─────────────────────────── */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.3); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: #ffffff; backdrop-filter: blur(16px);
+    border: 1px solid #e2e8f0; border-radius: 16px;
+    width: 460px; max-width: 95vw; max-height: 90vh;
+    display: flex; flex-direction: column;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  }
+  .modal-header {
+    padding: 18px 22px; border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .modal-title { font-size: 16px; font-weight: 800; color: #1e293b; }
+  .modal-close { background: none; border: none; color: #94a3b8; font-size: 22px; cursor: pointer; line-height: 1; padding: 4px 8px; border-radius: 6px; }
+  .modal-close:hover { color: #1e293b; background: #f1f5f9; }
+  .modal-body { padding: 18px 22px; overflow-y: auto; flex: 1; }
+  .modal-footer { padding: 14px 22px; border-top: 1px solid rgba(255,255,255,0.07); display: flex; gap: 8px; }
+
+  /* Add category form */
+  .cat-form { display: flex; gap: 8px; align-items: center; margin-bottom: 16px; }
+  .cat-form input[type="text"] {
+    flex: 1; background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; color: #1e293b; padding: 8px 12px; font-size: 13px; font-family: inherit;
+  }
+  .cat-form input[type="text"]:focus { outline: none; border-color: #3b82f6; }
+  .cat-form input[type="color"] { width: 38px; height: 36px; border: 1px solid #e2e8f0; border-radius: 8px; background: #f8fafc; cursor: pointer; padding: 3px; }
+
+  /* Category list */
+  .cat-list { display: flex; flex-direction: column; gap: 6px; }
+  .cat-row {
+    display: flex; align-items: center; gap: 10px; padding: 10px 12px;
+    background: #f8fafc; border-radius: 8px;
+    border: 1px solid #e2e8f0;
+  }
+  .cat-row:hover { border-color: rgba(255,255,255,0.1); }
+  .cat-row-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .cat-row-name { flex: 1; font-size: 13px; font-weight: 600; color: #1e293b; }
+  .cat-row-count { font-size: 11px; color: #475569; }
+  .cat-del { background: none; border: none; color: #475569; cursor: pointer; font-size: 14px; padding: 4px 6px; border-radius: 4px; }
+  .cat-del:hover { color: #dc2626; background: rgba(248,113,113,0.1); }
+
+  /* Cash modal form fields */
+  .cash-field { margin-bottom: 14px; }
+  .cash-field label { display: block; font-size: 12px; font-weight: 600; color: #94a3b8; margin-bottom: 5px; }
+  .cash-field input {
+    width: 100%; background: #f8fafc; border: 1px solid #e2e8f0;
+    border-radius: 8px; color: #1e293b; padding: 9px 12px; font-size: 13px; font-family: inherit;
+  }
+  .cash-field input:focus { outline: none; border-color: #3b82f6; }
+  .cash-job-wrap { position: relative; }
+  .cash-job-badge {
+    display: flex; align-items: center; gap: 6px;
+    background: rgba(96,165,250,0.1); border: 1px solid rgba(96,165,250,0.3);
+    border-radius: 8px; padding: 9px 12px; font-size: 13px; color: #2563eb; font-weight: 600;
+  }
+  .cash-job-badge button { background: none; border: none; color: #475569; cursor: pointer; font-size: 13px; margin-left: auto; padding: 0; }
+  .cash-job-badge button:hover { color: #dc2626; }
+
+  /* ── Responsive ──────────────────────────────── */
+  @media (max-width: 900px) {
+    .stats-row { grid-template-columns: repeat(2, 1fr); }
+    .rep-grid { flex-wrap: wrap; min-width: 200px; }
+    .txn-top { gap: 10px; }
+  }
+  @media (max-width: 600px) {
+    .container { padding: 10px; }
+    .stats-row { grid-template-columns: 1fr; }
+    .search-input { width: 100%; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- App Bar -->
+  <div class="app-bar">
+    <div class="app-bar-content">
+      <div class="app-bar-left">
+        <div class="app-bar-title">Credit Card Transactions</div>
+        <a href="/dashboard" class="back-link">&#8592; Dashboard</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Controls Card -->
+  <div class="controls-card">
+    <label>From</label>
+    <input type="date" id="startDate">
+    <label>To</label>
+    <input type="date" id="endDate">
+    <div class="controls-sep"></div>
+    <button class="btn btn-primary" id="loadBtn" onclick="loadTransactions()">Load</button>
+    <button class="btn btn-success" id="syncBtn" onclick="syncNow()">&#x27F3; Sync from Elavon</button>
+    <button class="btn btn-ghost" onclick="openCatModal()">&#x2699; Categories</button>
+    <button class="btn btn-success" onclick="openCashModal()">&#x1F4B5; Add Cash</button>
+  </div>
+
+  <!-- Search / Toolbar -->
+  <div class="toolbar-card">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search name, card, amount, category, note..." oninput="filterTable(this.value)">
+    <button class="btn btn-ghost" id="commFilterBtn" onclick="toggleCommFilter()" style="font-size:11px">Show Unconfirmed</button>
+    <div class="last-synced" id="lastSynced"></div>
+  </div>
+
+  <!-- Category Filter Chips -->
+  <div class="filter-chips" id="filterChips">
+    <span class="filter-label">Filter:</span>
+    <span class="fchip fchip-all active" onclick="setFilter(null, this)">All</span>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row" id="chipsRow" style="display:none;">
+    <div class="stat-card">
+      <div class="stat-label">Total Transactions</div>
+      <div class="stat-value" id="chipCount">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Sales Volume</div>
+      <div class="stat-value green" id="chipVolume">$0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Returns</div>
+      <div class="stat-value red" id="chipReturns">$0.00</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Net</div>
+      <div class="stat-value net" id="chipNet">$0.00</div>
+    </div>
+  </div>
+
+  <!-- Status -->
+  <div class="status-bar" id="statusBar">Select a date range and click Load.</div>
+  <div id="errorBox" class="error-box" style="display:none;"></div>
+
+  <!-- Transaction Cards Container -->
+  <div class="txn-cards" id="txnBody"></div>
+  <div id="noData" class="no-data" style="display:none;">No transactions found. Try syncing from Elavon first.</div>
+
+</div>
+
+<!-- Categories modal -->
+<div class="modal-overlay" id="catModal" onclick="if(event.target===this)closeCatModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">Manage Categories</div>
+      <button class="modal-close" onclick="closeCatModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="cat-form">
+        <input type="text" id="newCatName" placeholder="Category name..." onkeydown="if(event.key==='Enter')addCategory()">
+        <input type="color" id="newCatColor" value="#3b82f6" title="Pick color">
+        <button class="btn btn-primary" onclick="addCategory()">Add</button>
+      </div>
+      <div class="cat-list" id="catList">
+        <div style="font-size:12px;color:#475569;">Loading...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Cash payment modal -->
+<div class="modal-overlay" id="cashModal" onclick="if(event.target===this)closeCashModal()">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">&#x1F4B5; Add Cash Payment</div>
+      <button class="modal-close" onclick="closeCashModal()">&#215;</button>
+    </div>
+    <div class="modal-body">
+      <div class="cash-field">
+        <label>Amount ($) *</label>
+        <input type="number" id="cashAmt" step="0.01" min="0.01" placeholder="e.g. 150.00" onkeydown="if(event.key==='Enter')submitCashPayment()">
+      </div>
+      <div class="cash-field">
+        <label>Customer Name</label>
+        <input type="text" id="cashName" placeholder="e.g. John Smith">
+      </div>
+      <div class="cash-field">
+        <label>Note</label>
+        <input type="text" id="cashNote" placeholder="e.g. Deposit received in office">
+      </div>
+      <div class="cash-field">
+        <label>Link Job (optional)</label>
+        <div class="cash-job-wrap">
+          <div id="cashJobBadge" style="display:none;" class="cash-job-badge">
+            <span id="cashJobLabel"></span>
+            <button onclick="clearCashJob()" title="Remove">&#x2715;</button>
+          </div>
+          <input type="text" id="cashJobSearch" placeholder="Search job # or customer name..."
+            oninput="cashJobDebounce(this)" onblur="hideCashJobDd()" autocomplete="off">
+          <div class="job-dropdown" id="cashJobDd"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-success" onclick="submitCashPayment()" style="flex:1;">&#x1F4B5; Record Cash Payment</button>
+      <button class="btn btn-ghost" onclick="closeCashModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Auth guard: admin only ────────────────────────────────────────
+  (function() {
+    try {
+      const raw = localStorage.getItem('dashboardUser');
+      if (!raw) { window.location.replace('/dashboard'); return; }
+      const s = JSON.parse(raw);
+      const hrs = (Date.now() - new Date(s.loginTime)) / 3600000;
+      if (hrs > 24 || s.role !== 'admin') { window.location.replace('/dashboard'); }
+    } catch(e) { window.location.replace('/dashboard'); }
+  })();
+
+  const SUPABASE_URL = 'process.env.SUPABASE_URL';
+  const SUPABASE_KEY = 'process.env.SUPABASE_ANON_KEY';
+
+  const today = new Date();
+  const thirtyAgo = new Date(); thirtyAgo.setDate(thirtyAgo.getDate() - 30);
+  document.getElementById('startDate').value = isoDate(thirtyAgo);
+  document.getElementById('endDate').value   = isoDate(today);
+
+  let allRows = [];
+  let categories = [];
+  let employees = [];
+  let activeFilter = null; // null = all, string = category_id
+
+  // Load employees for fronter/closer dropdowns
+  async function loadEmployees() {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/employees?is_active=eq.true&order=name`, {
+        headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY }
+      });
+      employees = await res.json();
+      if (!Array.isArray(employees)) employees = [];
+      console.log('Loaded employees:', employees.length, employees.map(e=>e.name));
+    } catch(e) { console.error('Failed to load employees', e); employees = []; }
+  }
+
+  // ── Helpers ──────────────────────────────────────────────────────
+  function isoDate(d) { return d.toISOString().slice(0, 10); }
+  function escHtml(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+  function fmtDate(d) { if (!d) return '—'; try { return new Date(d).toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'}); } catch { return d; } }
+  function elavonDate(s, isEnd) { const [y,m,d]=s.split('-'); return `${m}/${d}/${y} ${isEnd?'23:59:59':'00:00:00'}`; }
+  function setStatus(msg, loading) { document.getElementById('statusBar').innerHTML = loading ? `<div class="spinner"></div>${msg}` : msg; }
+  function showError(msg) { const b=document.getElementById('errorBox'); b.textContent='⚠️ '+msg; b.style.display='block'; }
+  function hideError() { document.getElementById('errorBox').style.display='none'; }
+
+  function catById(id) { return categories.find(c => c.id === id) || null; }
+
+  function hexToRgb(hex) {
+    const r = parseInt(hex.slice(1,3),16), g = parseInt(hex.slice(3,5),16), b = parseInt(hex.slice(5,7),16);
+    return `${r},${g},${b}`;
+  }
+
+  // ── Categories ───────────────────────────────────────────────────
+  async function loadCategories() {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/transaction_categories?order=name.asc`, {
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY }
+    });
+    categories = res.ok ? (await res.json()) : [];
+  }
+
+  function openCatModal() {
+    document.getElementById('catModal').classList.add('open');
+    renderCatList();
+  }
+  function closeCatModal() { document.getElementById('catModal').classList.remove('open'); }
+
+  function renderCatList() {
+    const el = document.getElementById('catList');
+    if (!categories.length) { el.innerHTML = '<div style="font-size:12px;color:#475569;padding:8px 0;">No categories yet. Add one above.</div>'; return; }
+    // Count usages
+    const counts = {};
+    allRows.forEach(r => { if (r.category_id) counts[r.category_id] = (counts[r.category_id]||0)+1; });
+    el.innerHTML = categories.map(c => `
+      <div class="cat-row">
+        <div class="cat-row-dot" style="background:${escHtml(c.color)};"></div>
+        <div class="cat-row-name">${escHtml(c.name)}</div>
+        <div class="cat-row-count">${counts[c.id]||0} txn${(counts[c.id]||0)!==1?'s':''}</div>
+        <button class="cat-del" onclick="deleteCategory('${escHtml(c.id)}')" title="Delete">🗑</button>
+      </div>`).join('');
+  }
+
+  async function addCategory() {
+    const nameEl  = document.getElementById('newCatName');
+    const colorEl = document.getElementById('newCatColor');
+    const name = nameEl.value.trim();
+    if (!name) { nameEl.focus(); return; }
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/transaction_categories`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify({ name, color: colorEl.value })
+    });
+    if (res.ok) {
+      const created = await res.json();
+      categories.push(created[0]);
+      nameEl.value = '';
+      colorEl.value = '#3b82f6';
+      renderCatList();
+      renderRows(allRows); // refresh dropdowns
+      renderFilterChips();
+    }
+  }
+
+  async function deleteCategory(id) {
+    if (!confirm('Delete this category? Transactions using it will be uncategorized.')) return;
+    await fetch(`${SUPABASE_URL}/rest/v1/transaction_categories?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY }
+    });
+    categories = categories.filter(c => c.id !== id);
+    allRows.forEach(r => { if (r.category_id === id) r.category_id = null; });
+    if (activeFilter === id) activeFilter = null;
+    renderCatList();
+    renderRows(allRows);
+    renderFilterChips();
+  }
+
+  // ── Load from Supabase ───────────────────────────────────────────
+  async function loadTransactions() {
+    const startVal = document.getElementById('startDate').value;
+    const endVal   = document.getElementById('endDate').value;
+    if (!startVal || !endVal) return;
+
+    document.getElementById('loadBtn').disabled = true;
+    hideError();
+    document.getElementById('txnBody').innerHTML = '';
+    document.getElementById('noData').style.display = 'none';
+    document.getElementById('chipsRow').style.display = 'none';
+    setStatus('Loading…', true);
+
+    try {
+      await Promise.all([loadCategories(), loadEmployees()]);
+
+      const url = `${SUPABASE_URL}/rest/v1/transactions`
+        + `?processed_at=gte.${startVal}T00:00:00Z`
+        + `&processed_at=lte.${endVal}T23:59:59Z`
+        + `&order=processed_at.desc&limit=2000`
+        + `&select=id,transaction_id,processed_at,first_name,last_name,card_number,card_type,transaction_type,trans_status,amount,refunded_amount,auth_code,user_id,note,category_id,synced_at,job_submission_id,job_number,fronter_name,closer_name,fronter_commission_pct,closer_commission_pct,fronter2_name,closer2_name,fronter2_commission_pct,closer2_commission_pct,commission_complete`;
+
+      const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY } });
+      if (!res.ok) throw new Error('Supabase error: ' + res.status);
+
+      allRows = await res.json();
+      renderRows(allRows);
+      updateChips(allRows);
+      updateLastSynced(allRows);
+      renderFilterChips();
+      setStatus(`${allRows.length} transaction${allRows.length!==1?'s':''} loaded.`);
+    } catch (err) {
+      showError(err.message);
+      setStatus('Failed to load.');
+    } finally {
+      document.getElementById('loadBtn').disabled = false;
+    }
+  }
+
+  // ── Sync from Elavon ─────────────────────────────────────────────
+  async function syncNow() {
+    const startVal = document.getElementById('startDate').value;
+    const endVal   = document.getElementById('endDate').value;
+    const btn = document.getElementById('syncBtn');
+    btn.disabled = true; hideError();
+    setStatus('Syncing from Elavon…', true);
+    try {
+      const res = await fetch('/api/sync-elavon-transactions', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ startDate: elavonDate(startVal,false), endDate: elavonDate(endVal,true) })
+      });
+      const data = await res.json();
+      if (!data.success) throw new Error(data.error || 'Sync failed');
+      setStatus(`Synced ${data.synced} transaction${data.synced!==1?'s':''} from Elavon. Reloading…`);
+      await loadTransactions();
+    } catch (err) { showError(err.message); setStatus('Sync failed.');
+    } finally { btn.disabled = false; }
+  }
+
+  // ── Render cards ──────────────────────────────────────────────────
+  function renderRows(rows) {
+    if (!rows || rows.length === 0) {
+      document.getElementById('txnBody').innerHTML = '';
+      document.getElementById('noData').style.display = 'block';
+      return;
+    }
+    document.getElementById('noData').style.display = 'none';
+
+    const catOptions = `<option value="">— None —</option>` +
+      categories.map(c => `<option value="${escHtml(c.id)}">${escHtml(c.name)}</option>`).join('');
+
+    document.getElementById('txnBody').innerHTML = rows.map(t => {
+      const name = [t.first_name, t.last_name].filter(Boolean).join(' ') || '—';
+      const isReturn = (t.transaction_type||'').toUpperCase() === 'RETURN';
+      const isCash = (t.transaction_type||'').toUpperCase() === 'CASH';
+      const amt = parseFloat(t.amount||0);
+      const amtClass = isCash ? 'cash-amt' : (isReturn ? 'refund' : 'sale');
+      const amtSign = isReturn ? '-' : '';
+      const cat = catById(t.category_id);
+      const accentColor = cat ? cat.color : 'transparent';
+      const paidClass = t.commission_complete ? ' paid-done' : '';
+      const catSel = `<select class="cat-select" data-id="${escHtml(t.id)}" onchange="applyCategory(this)">${catOptions}</select>`;
+
+      return `<div class="txn-card${paidClass}">
+        <div class="txn-card-accent" style="background:${accentColor};"></div>
+        <div class="txn-top">
+          <div class="txn-info">
+            <div class="txn-date">${fmtDate(t.processed_at)}</div>
+            <div class="txn-name">${escHtml(name)}</div>
+          </div>
+          <div class="txn-amount ${amtClass}">${amtSign}$${amt.toFixed(2)}</div>
+          <div class="txn-status-wrap">${statusBadge(t.trans_status, t.transaction_type)}</div>
+          <div class="rep-grid">
+            <div class="rep-slot fronter-bg">
+              <div class="rep-slot-label fronter-label">Fronter 1</div>
+              ${repCell(t, 'fronter')}
+            </div>
+            <div class="rep-slot fronter-bg">
+              <div class="rep-slot-label fronter-label">Fronter 2</div>
+              ${repCell(t, 'fronter2')}
+            </div>
+            <div class="rep-slot closer-bg">
+              <div class="rep-slot-label closer-label">Closer 1</div>
+              ${repCell(t, 'closer')}
+            </div>
+            <div class="rep-slot closer-bg">
+              <div class="rep-slot-label closer-label">Closer 2</div>
+              ${repCell(t, 'closer2')}
+            </div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px;min-width:80px">
+            <span style="font-size:9px;color:#64748b;text-transform:uppercase;font-weight:600">House $</span>
+            <span style="font-size:14px;font-weight:700;color:#7c3aed">${houseMoney(t)}</span>
+          </div>
+          <div class="comm-wrap">${commDoneBtn(t)}</div>
+        </div>
+        <div class="txn-bottom">
+          <div class="detail-item"><span class="detail-label">Card</span> <span class="detail-value card-num">${escHtml(t.card_number||'—')}</span></div>
+          <div class="detail-item"><span class="detail-label">Type</span> <span class="detail-value">${escHtml(t.transaction_type||'—')}</span></div>
+          <div class="detail-item"><span class="detail-label">Auth</span> <span class="detail-value" style="font-family:monospace">${escHtml(t.auth_code||'—')}</span></div>
+          <div class="detail-item"><span class="detail-label">Category</span> ${catSel}</div>
+          <div class="detail-item"><span class="detail-label">Job</span> <div class="job-link-wrap" id="jw-${escHtml(t.id)}">${jobCellHtml(t)}</div></div>
+          <div class="detail-item" style="flex:1;min-width:150px"><span class="detail-label">Note</span> <textarea class="note-input" rows="1" placeholder="Add note..." data-id="${escHtml(t.id)}" onblur="saveNote(this)" oninput="autoResize(this)">${escHtml(t.note||'')}</textarea></div>
+          <div class="detail-item"><span class="txn-id">${escHtml(t.transaction_id||'—')}</span></div>
+        </div>
+      </div>`;
+    }).join('');
+
+    // Set selected category on each dropdown
+    rows.forEach(t => {
+      const sel = document.querySelector(`.cat-select[data-id="${t.id}"]`);
+      if (sel && t.category_id) sel.value = t.category_id;
+    });
+
+    document.querySelectorAll('.note-input').forEach(autoResize);
+  }
+
+  function statusBadge(status, txnType) {
+    const s = (status||'').toUpperCase(), t = (txnType||'').toUpperCase();
+    if (t==='CASH' || s==='CASH') return '<span class="badge badge-cash">Cash</span>';
+    if (t==='RETURN') return '<span class="badge badge-return">Return</span>';
+    if (s==='STL')    return '<span class="badge badge-stl">Settled</span>';
+    if (s==='V')      return '<span class="badge badge-void">Void</span>';
+    return `<span class="badge badge-other">${s||'—'}</span>`;
+  }
+
+  // ── Apply category ───────────────────────────────────────────────
+  async function applyCategory(sel) {
+    const id  = sel.dataset.id;
+    const catId = sel.value || null;
+    // Update local
+    const row = allRows.find(r => r.id === id);
+    if (row) row.category_id = catId;
+    // Update accent stripe on card
+    const card = sel.closest('.txn-card');
+    const cat = catById(catId);
+    const accent = card ? card.querySelector('.txn-card-accent') : null;
+    if (accent) accent.style.background = cat ? cat.color : 'transparent';
+    renderFilterChips();
+    // Save to Supabase
+    await fetch(`${SUPABASE_URL}/rest/v1/transactions?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ category_id: catId })
+    });
+  }
+
+  // ── Save note ─────────────────────────────────────────────────────
+  async function saveNote(el) {
+    const id = el.dataset.id;
+    await fetch(`${SUPABASE_URL}/rest/v1/transactions?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ note: el.value })
+    });
+  }
+
+  function autoResize(el) { el.style.height='auto'; el.style.height=el.scrollHeight+'px'; }
+
+  // ── Rep select & commission ─────────────────────────────────────
+  const DEFAULT_COMMISSION = { fronter: 5, fronter2: 5, closer: 20, closer2: 20 };
+
+  const PCT_OPTIONS = [0, 2.5, 5, 7.5, 10, 12.5, 15, 20, 25, 30];
+
+  function repCell(txn, role) {
+    const nameField = role + '_name';
+    const pctField = role + '_commission_pct';
+    const currentName = txn[nameField] || '';
+    const currentPct = parseFloat(txn[pctField]) || 0;
+    const amt = parseFloat(txn.amount) || 0;
+    const comm = currentName ? (amt * currentPct / 100).toFixed(2) : '';
+
+    const nameOpts = `<option value="">—</option>` + employees.map(e =>
+      `<option value="${escHtml(e.name)}"${currentName===e.name?' selected':''}>${escHtml(e.name)}</option>`
+    ).join('');
+
+    const pctOpts = PCT_OPTIONS.map(p =>
+      `<option value="${p}"${currentPct===p?' selected':''}>${p}%</option>`
+    ).join('') + (PCT_OPTIONS.indexOf(currentPct)===-1 && currentPct ? `<option value="${currentPct}" selected>${currentPct}%</option>` : '');
+
+    if (!currentName) {
+      return `<select class="rep-select" data-id="${txn.id}" data-role="${role}" onchange="saveRepCombo(this)">${nameOpts}</select>`;
+    }
+
+    return `<div>
+      <select class="rep-select" data-id="${txn.id}" data-role="${role}" onchange="saveRepCombo(this)">${nameOpts}</select>
+      <div class="rep-row" style="margin-top:3px">
+        <select class="pct-select" data-id="${txn.id}" data-role="${role}" onchange="savePctCombo(this)">${pctOpts}</select>
+        <span class="comm-amount">$${comm}</span>
+      </div>
+    </div>`;
+  }
+
+  async function saveRepCombo(sel) {
+    const id = sel.dataset.id;
+    const role = sel.dataset.role;
+    const nameField = role + '_name';
+    const pctField = role + '_commission_pct';
+    const name = sel.value || null;
+    const defaultPct = name ? DEFAULT_COMMISSION[role] : 0;
+
+    const row = allRows.find(r => String(r.id) === String(id));
+    if (row) {
+      row[nameField] = name;
+      if (name && !parseFloat(row[pctField])) row[pctField] = defaultPct;
+      if (!name) row[pctField] = 0;
+    }
+
+    const patch = { [nameField]: name };
+    if (name && row && !parseFloat(row[pctField])) patch[pctField] = defaultPct;
+    if (!name) patch[pctField] = 0;
+
+    await fetch(`${SUPABASE_URL}/rest/v1/transactions?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify(patch)
+    });
+
+    applyFilters();
+  }
+
+  async function savePctCombo(sel) {
+    const id = sel.dataset.id;
+    const role = sel.dataset.role;
+    const pctField = role + '_commission_pct';
+    const val = parseFloat(sel.value) || 0;
+
+    const row = allRows.find(r => String(r.id) === String(id));
+    if (row) row[pctField] = val;
+
+    await fetch(`${SUPABASE_URL}/rest/v1/transactions?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ [pctField]: val })
+    });
+
+    applyFilters();
+  }
+
+  let commFilterActive = false;
+
+  function getFilteredRows() {
+    let rows = allRows;
+    if (activeFilter === 'uncategorized') rows = rows.filter(r => !r.category_id);
+    else if (activeFilter === '__none__') rows = rows.filter(r => !r.category_id);
+    else if (activeFilter) rows = rows.filter(r => r.category_id === activeFilter);
+    if (commFilterActive) {
+      const excludeCats = ['09272bb5-8fea-4e2b-8707-507a16370095', '05233929-ed1b-403c-ac01-6a95508fa743']; // Other Sales Team, QA
+      rows = rows.filter(r => !r.commission_complete && !excludeCats.includes(r.category_id) && (r.fronter_name || r.fronter2_name || r.closer_name || r.closer2_name));
+    }
+    return rows;
+  }
+
+  function houseMoney(txn) {
+    var amt = parseFloat(txn.amount) || 0;
+    if (amt <= 0) return '$0.00';
+    var floor = amt * 0.35;
+    var f1 = amt * ((parseFloat(txn.fronter_commission_pct) || 0) / 100);
+    var f2 = amt * ((parseFloat(txn.fronter2_commission_pct) || 0) / 100);
+    var c1 = amt * ((parseFloat(txn.closer_commission_pct) || 0) / 100);
+    var c2 = amt * ((parseFloat(txn.closer2_commission_pct) || 0) / 100);
+    var house = floor - f1 - f2 - c1 - c2;
+    return '$' + house.toFixed(2);
+  }
+
+  function commDoneBtn(txn) {
+    if (txn.commission_complete) {
+      return `<span class="comm-paid-badge" onclick="toggleCommComplete('${txn.id}',false)" title="Click to unconfirm">CONFIRMED</span>`;
+    }
+    const hasRep = txn.fronter_name || txn.fronter2_name || txn.closer_name || txn.closer2_name;
+    if (!hasRep) return '<span class="comm-none">—</span>';
+    return `<button class="comm-mark-btn" onclick="toggleCommComplete('${txn.id}',true)" title="Mark commission as confirmed">Confirm</button>`;
+  }
+
+  async function toggleCommComplete(id, complete) {
+    const row = allRows.find(r => String(r.id) === String(id));
+    if (row) row.commission_complete = complete;
+
+    await fetch(`${SUPABASE_URL}/rest/v1/transactions?id=eq.${id}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer '+SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ commission_complete: complete })
+    });
+
+    applyFilters();
+  }
+
+  function toggleCommFilter() {
+    commFilterActive = !commFilterActive;
+    const btn = document.getElementById('commFilterBtn');
+    if (commFilterActive) {
+      btn.style.background = 'linear-gradient(135deg, #f59e0b, #d97706)';
+      btn.style.color = '#fff';
+      btn.style.borderColor = 'rgba(245,158,11,0.3)';
+      btn.textContent = 'Showing Unconfirmed Only';
+    } else {
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.style.borderColor = '';
+      btn.textContent = 'Show Unconfirmed';
+    }
+    applyFilters();
+  }
+
+  // ── Summary chips ─────────────────────────────────────────────────
+  function updateChips(rows) {
+    const el = document.getElementById('chipsRow');
+    if (!rows||!rows.length) { el.style.display='none'; return; }
+    el.style.display = 'grid';
+    let sales=0, returns=0;
+    rows.forEach(t => {
+      const a = parseFloat(t.amount||0);
+      if ((t.transaction_type||'').toUpperCase()==='RETURN') returns+=a; else sales+=a;
+    });
+    document.getElementById('chipCount').textContent   = rows.length;
+    document.getElementById('chipVolume').textContent  = '$'+sales.toFixed(2);
+    document.getElementById('chipReturns').textContent = '$'+returns.toFixed(2);
+    document.getElementById('chipNet').textContent     = '$'+(sales-returns).toFixed(2);
+  }
+
+  function updateLastSynced(rows) {
+    const el = document.getElementById('lastSynced');
+    if (!rows||!rows.length) { el.textContent=''; return; }
+    const latest = rows.reduce((a,b)=>(a.synced_at>b.synced_at?a:b), rows[0]);
+    if (latest.synced_at) el.textContent = 'Last synced: '+new Date(latest.synced_at).toLocaleString(undefined,{dateStyle:'short',timeStyle:'short'});
+  }
+
+  // ── Filter chips ─────────────────────────────────────────────────
+  function renderFilterChips() {
+    const el = document.getElementById('filterChips');
+    if (!categories.length) { el.classList.remove('visible'); return; }
+    el.classList.add('visible');
+    const counts = {};
+    allRows.forEach(r => { if (r.category_id) counts[r.category_id] = (counts[r.category_id]||0)+1; });
+    const uncatCount = allRows.filter(r => !r.category_id).length;
+    const allActive  = activeFilter === null;
+    const uncatActive = activeFilter === 'uncategorized';
+    el.innerHTML = `<span class="filter-label">Filter:</span>
+      <span class="fchip fchip-all ${allActive?'active':''}" onclick="setFilter(null,this)">All <span style="opacity:.6;font-weight:400;">(${allRows.length})</span></span>` +
+      categories.map(c => {
+        const cnt = counts[c.id] || 0;
+        const rgb = hexToRgb(c.color);
+        const isActive = activeFilter === c.id;
+        return `<span class="fchip ${isActive?'active':''}"
+          style="background:rgba(${rgb},${isActive?'0.25':'0.12'});color:${c.color};border-color:rgba(${rgb},0.4);"
+          onclick="setFilter('${escHtml(c.id)}',this)">
+          <span class="fchip-dot" style="background:${c.color};"></span>
+          ${escHtml(c.name)} <span style="opacity:.6;font-weight:400;">(${cnt})</span>
+        </span>`;
+      }).join('') +
+      `<span class="fchip ${uncatActive?'active':''}"
+        style="background:rgba(100,116,139,${uncatActive?'0.25':'0.12'});color:#94a3b8;border-color:rgba(100,116,139,0.4);"
+        onclick="setFilter('uncategorized',this)">
+        <span class="fchip-dot" style="background:#64748b;"></span>
+        Uncategorized <span style="opacity:.6;font-weight:400;">(${uncatCount})</span>
+      </span>`;
+  }
+
+  function setFilter(catId, el) {
+    activeFilter = catId;
+    applyFilters();
+    renderFilterChips();
+  }
+
+  function applyFilters() {
+    const q = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    let rows = getFilteredRows();
+    if (q) rows = rows.filter(t => {
+      const cat = catById(t.category_id);
+      return JSON.stringify(t).toLowerCase().includes(q) || (cat ? cat.name.toLowerCase().includes(q) : false);
+    });
+    renderRows(rows);
+  }
+
+  // ── Filter ───────────────────────────────────────────────────────
+  function filterTable(q) {
+    applyFilters();
+  }
+
+  // ── Cash payment modal ───────────────────────────────────────────
+  let _cashJob = null; // { id, job_number, customer_name }
+  let _cashJobTimer = null;
+
+  function openCashModal() {
+    _cashJob = null;
+    document.getElementById('cashAmt').value = '';
+    document.getElementById('cashName').value = '';
+    document.getElementById('cashNote').value = '';
+    document.getElementById('cashJobSearch').value = '';
+    document.getElementById('cashJobSearch').style.display = '';
+    document.getElementById('cashJobBadge').style.display = 'none';
+    document.getElementById('cashJobDd').classList.remove('open');
+    document.getElementById('cashModal').classList.add('open');
+    setTimeout(() => document.getElementById('cashAmt').focus(), 50);
+  }
+
+  function closeCashModal() { document.getElementById('cashModal').classList.remove('open'); }
+
+  function cashJobDebounce(el) {
+    clearTimeout(_cashJobTimer);
+    _cashJobTimer = setTimeout(() => cashJobSearch(el.value.trim()), 300);
+  }
+
+  async function cashJobSearch(q) {
+    const dd = document.getElementById('cashJobDd');
+    if (!q) { dd.classList.remove('open'); return; }
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/job_submissions?or=(job_number.ilike.*${encodeURIComponent(q)}*,customer_name.ilike.*${encodeURIComponent(q)}*)&select=id,job_number,customer_name&limit=8&order=created_at.desc`;
+      const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+      const rows = res.ok ? await res.json() : [];
+      if (!rows.length) {
+        dd.innerHTML = '<div class="job-dd-item" style="color:#475569;cursor:default;">No jobs found</div>';
+      } else {
+        dd.innerHTML = rows.map(r =>
+          `<div class="job-dd-item" onmousedown="selectCashJob(${JSON.stringify(r)})">` +
+          `<span class="job-dd-num">${escHtml(r.job_number||'—')}</span>` +
+          `<span class="job-dd-name">${escHtml(r.customer_name||'')}</span></div>`
+        ).join('');
+      }
+      dd.classList.add('open');
+    } catch(e) {}
+  }
+
+  function selectCashJob(r) {
+    _cashJob = r;
+    document.getElementById('cashJobSearch').style.display = 'none';
+    document.getElementById('cashJobDd').classList.remove('open');
+    document.getElementById('cashJobLabel').textContent = (r.job_number || '—') + (r.customer_name ? ' — ' + r.customer_name : '');
+    document.getElementById('cashJobBadge').style.display = 'flex';
+    if (!document.getElementById('cashName').value && r.customer_name) {
+      document.getElementById('cashName').value = r.customer_name;
+    }
+  }
+
+  function clearCashJob() {
+    _cashJob = null;
+    document.getElementById('cashJobBadge').style.display = 'none';
+    document.getElementById('cashJobSearch').style.display = '';
+    document.getElementById('cashJobSearch').value = '';
+  }
+
+  function hideCashJobDd() {
+    setTimeout(() => document.getElementById('cashJobDd').classList.remove('open'), 150);
+  }
+
+  async function submitCashPayment() {
+    const amtEl  = document.getElementById('cashAmt');
+    const amount = parseFloat(amtEl.value);
+    if (!amount || amount <= 0) { amtEl.focus(); return; }
+
+    const fullName = (document.getElementById('cashName').value || '').trim().split(' ');
+    const note     = document.getElementById('cashNote').value.trim();
+    const now      = new Date().toISOString();
+
+    const payload = {
+      transaction_id:   'CASH-' + Date.now(),
+      processed_at:     now,
+      synced_at:        now,
+      transaction_type: 'CASH',
+      trans_status:     'CASH',
+      amount:           amount,
+      first_name:       fullName[0] || null,
+      last_name:        fullName.slice(1).join(' ') || null,
+      note:             note || null,
+      job_submission_id: _cashJob ? _cashJob.id     : null,
+      job_number:        _cashJob ? _cashJob.job_number : null
+    };
+
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/transactions`, {
+      method: 'POST',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+      body: JSON.stringify(payload)
+    });
+
+    if (!res.ok) { alert('Failed to save: ' + await res.text()); return; }
+
+    const [created] = await res.json();
+    allRows.unshift(created);
+    closeCashModal();
+    applyFilters();
+    updateChips(allRows);
+  }
+
+  // ── Job linking ───────────────────────────────────────────────────
+  function jobCellHtml(t) {
+    if (t.job_number && t.job_submission_id) {
+      return `<a href="/lead-profile?id=${escHtml(t.job_submission_id)}" target="_blank" class="job-linked-badge">${escHtml(t.job_number)}</a><button class="job-unlink-btn" onclick="clearJobLink('${escHtml(t.id)}')" title="Unlink">✕</button>`;
+    }
+    return `<input class="job-search-input" type="text" placeholder="Link job…" data-id="${escHtml(t.id)}" oninput="jobInputDebounce(this)" onblur="jobInputBlur(this)" autocomplete="off"><div class="job-dropdown" id="jdd-${escHtml(t.id)}"></div>`;
+  }
+
+  let _jobTimer = null;
+  function jobInputDebounce(el) {
+    clearTimeout(_jobTimer);
+    _jobTimer = setTimeout(() => searchJobsForInput(el), 300);
+  }
+
+  async function searchJobsForInput(el) {
+    const q = el.value.trim();
+    const id = el.dataset.id;
+    const dd = document.getElementById('jdd-' + id);
+    if (!dd) return;
+    if (!q) { dd.classList.remove('open'); return; }
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/job_submissions?or=(job_number.ilike.*${encodeURIComponent(q)}*,customer_name.ilike.*${encodeURIComponent(q)}*)&select=id,job_number,customer_name&limit=8&order=created_at.desc`;
+      const res = await fetch(url, { headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY } });
+      if (!res.ok) return;
+      const rows = await res.json();
+      if (!rows.length) {
+        dd.innerHTML = '<div class="job-dd-item" style="color:#475569;cursor:default;">No jobs found</div>';
+      } else {
+        dd.innerHTML = rows.map(r =>
+          `<div class="job-dd-item" onmousedown="selectJobForTxn('${escHtml(id)}','${escHtml(r.id)}','${escHtml(r.job_number||'')}')">` +
+          `<span class="job-dd-num">${escHtml(r.job_number||'—')}</span>` +
+          `<span class="job-dd-name">${escHtml(r.customer_name||'')}</span></div>`
+        ).join('');
+      }
+      dd.classList.add('open');
+    } catch(e) { /* silently fail */ }
+  }
+
+  function jobInputBlur(el) {
+    setTimeout(() => {
+      const dd = document.getElementById('jdd-' + el.dataset.id);
+      if (dd) dd.classList.remove('open');
+    }, 150);
+  }
+
+  async function selectJobForTxn(txnId, jobSubmissionId, jobNumber) {
+    await fetch(`${SUPABASE_URL}/rest/v1/transactions?id=eq.${txnId}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ job_submission_id: jobSubmissionId, job_number: jobNumber })
+    });
+    const row = allRows.find(r => r.id === txnId);
+    if (row) { row.job_submission_id = jobSubmissionId; row.job_number = jobNumber; }
+    const wrap = document.getElementById('jw-' + txnId);
+    if (wrap && row) wrap.innerHTML = jobCellHtml(row);
+  }
+
+  async function clearJobLink(txnId) {
+    await fetch(`${SUPABASE_URL}/rest/v1/transactions?id=eq.${txnId}`, {
+      method: 'PATCH',
+      headers: { 'apikey': SUPABASE_KEY, 'Authorization': 'Bearer ' + SUPABASE_KEY, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
+      body: JSON.stringify({ job_submission_id: null, job_number: null })
+    });
+    const row = allRows.find(r => r.id === txnId);
+    if (row) { row.job_submission_id = null; row.job_number = null; }
+    const wrap = document.getElementById('jw-' + txnId);
+    if (wrap && row) wrap.innerHTML = jobCellHtml(row);
+  }
+
+  loadTransactions();
+</script>
+</body>
+</html>

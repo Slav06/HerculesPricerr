@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LSA Leads - Hercules Moving Solutions</title>
+    <script src="config.js"></script>
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFA23F 0%, #e8891f 50%, #d4780a 100%);
+            color: #e2e8f0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Top bar ── */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: rgba(8, 12, 28, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.25);
+            z-index: 10;
+        }
+
+        .top-bar h1 {
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .top-bar h1 span.logo-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            border-radius: 8px;
+            font-size: 18px;
+        }
+
+        .top-bar .nav-links {
+            display: flex;
+            gap: 16px;
+        }
+
+        .top-bar .nav-links a {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .top-bar .nav-links a:hover {
+            color: #e2e8f0;
+        }
+
+        /* ── Main container ── */
+        .main-container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+            height: calc(100vh - 58px);
+        }
+
+        /* ── Left panel: Lead list ── */
+        .leads-panel {
+            width: 320px;
+            min-width: 320px;
+            background: rgba(8, 12, 28, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(99, 102, 241, 0.2);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .leads-header {
+            padding: 16px;
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+        }
+
+        .leads-header h2 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .count-badge {
+            background: linear-gradient(135deg, #6366f1, #3b82f6);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 600;
+            padding: 2px 8px;
+            border-radius: 10px;
+            min-width: 22px;
+            text-align: center;
+        }
+
+        /* Type filter row */
+        .type-filters {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+        }
+
+        .type-filter {
+            flex: 1;
+            padding: 5px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 600;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .type-filter:hover { background: rgba(255,255,255,0.1); color: #e2e8f0; }
+        .type-filter.active { background: #3b82f6; color: #fff; border-color: #3b82f6; }
+
+        /* Status filter dropdown */
+        .filter-row {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 8px;
+        }
+
+        .status-dropdown {
+            flex: 1;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+            padding: 7px 10px;
+            color: #e2e8f0;
+            font-size: 12px;
+            outline: none;
+            cursor: pointer;
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 8px center;
+            padding-right: 24px;
+        }
+
+        .status-dropdown option {
+            background: #1e293b;
+            color: #e2e8f0;
+        }
+
+        /* Search */
+        .search-input {
+            width: 100%;
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: #e2e8f0;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input::placeholder { color: #64748b; }
+        .search-input:focus { border-color: #6366f1; }
+
+        /* ── Leads list ── */
+        .leads-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        .leads-list::-webkit-scrollbar { width: 5px; }
+        .leads-list::-webkit-scrollbar-track { background: transparent; }
+        .leads-list::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.3); border-radius: 4px; }
+
+        .lead-card {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .lead-card:hover {
+            background: rgba(30, 41, 59, 0.75);
+            border-color: rgba(99, 102, 241, 0.25);
+        }
+
+        .lead-card.active {
+            background: rgba(99, 102, 241, 0.12);
+            border-color: #6366f1;
+            box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+        }
+
+        .lead-card-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 6px;
+        }
+
+        .lead-name {
+            font-size: 14px;
+            font-weight: 600;
+            color: #f1f5f9;
+            line-height: 1.3;
+        }
+
+        .lead-time {
+            font-size: 11px;
+            color: #64748b;
+            white-space: nowrap;
+            margin-left: 8px;
+            flex-shrink: 0;
+        }
+
+        .lead-badges {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 6px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .badge {
+            font-size: 10px;
+            font-weight: 600;
+            padding: 2px 7px;
+            border-radius: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .badge-message { background: rgba(59, 130, 246, 0.25); color: #93c5fd; }
+        .badge-call { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+        .badge-new { background: rgba(234, 179, 8, 0.2); color: #fde047; }
+        .badge-active { background: rgba(59, 130, 246, 0.25); color: #93c5fd; }
+        .badge-booked { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+        .badge-declined { background: rgba(239, 68, 68, 0.2); color: #fca5a5; }
+        .badge-charged { background: rgba(234, 179, 8, 0.15); color: #fbbf24; font-size: 9px; padding: 1px 5px; }
+        .badge-auto-replied { background: rgba(139, 92, 246, 0.15); color: #c4b5fd; font-size: 9px; padding: 1px 5px; font-weight: 500; text-transform: none; }
+
+        .lead-contact {
+            font-size: 11px;
+            color: #64748b;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .leads-empty {
+            text-align: center;
+            padding: 40px 20px;
+            color: #64748b;
+        }
+
+        .leads-empty svg { margin-bottom: 12px; opacity: 0.4; }
+
+        /* ── Right panel ── */
+        .detail-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: rgba(8, 12, 28, 0.6);
+            backdrop-filter: blur(8px);
+            overflow: hidden;
+        }
+
+        /* Detail header */
+        .detail-header {
+            padding: 14px 20px;
+            background: rgba(8, 12, 28, 0.85);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(99, 102, 241, 0.15);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .detail-header-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .detail-header-back {
+            display: none;
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 6px;
+            transition: color 0.2s;
+        }
+
+        .detail-header-back:hover { color: #e2e8f0; }
+
+        .detail-avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 15px;
+            color: #fff;
+            flex-shrink: 0;
+        }
+
+        .detail-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #f1f5f9;
+        }
+
+        .detail-meta {
+            font-size: 12px;
+            color: #94a3b8;
+            margin-top: 1px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detail-header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        /* ── Scrollable detail body ── */
+        .detail-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .detail-body::-webkit-scrollbar { width: 5px; }
+        .detail-body::-webkit-scrollbar-track { background: transparent; }
+        .detail-body::-webkit-scrollbar-thumb { background: rgba(99, 102, 241, 0.2); border-radius: 4px; }
+
+        /* Sections */
+        .section {
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid rgba(99, 102, 241, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+        }
+
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #94a3b8;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .section-title svg { opacity: 0.6; }
+
+        /* Contact info */
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .contact-item svg { color: #6366f1; flex-shrink: 0; }
+
+        .contact-item a {
+            color: #818cf8;
+            text-decoration: none;
+            font-size: 13px;
+            transition: color 0.2s;
+        }
+
+        .contact-item a:hover { color: #a5b4fc; text-decoration: underline; }
+
+        .contact-item .no-data {
+            color: #475569;
+            font-size: 13px;
+            font-style: italic;
+        }
+
+        /* Internal notes */
+        .note-textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #e2e8f0;
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            outline: none;
+            min-height: 70px;
+            transition: border-color 0.2s;
+        }
+
+        .note-textarea::placeholder { color: #475569; }
+        .note-textarea:focus { border-color: #6366f1; }
+
+        .note-actions {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 8px;
+        }
+
+        /* Conversation timeline */
+        .timeline {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .timeline-event {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .timeline-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+
+        .timeline-dot.consumer { background: #a78bfa; }
+        .timeline-dot.advertiser { background: #3b82f6; }
+
+        .timeline-content {
+            flex: 1;
+        }
+
+        .timeline-text {
+            font-size: 13px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+
+        .timeline-time {
+            font-size: 11px;
+            color: #475569;
+            margin-top: 2px;
+        }
+
+        .timeline-channel {
+            font-size: 10px;
+            color: #64748b;
+            text-transform: capitalize;
+        }
+
+        .timeline-empty {
+            text-align: center;
+            color: #475569;
+            padding: 20px;
+            font-size: 13px;
+        }
+
+        /* Quick reply templates */
+        .template-btns {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .template-btn {
+            background: rgba(99, 102, 241, 0.12);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 8px;
+            padding: 6px 12px;
+            color: #a5b4fc;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .template-btn:hover {
+            background: rgba(99, 102, 241, 0.25);
+            border-color: #6366f1;
+            color: #c7d2fe;
+        }
+
+        .reply-input-row {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        .reply-textarea {
+            flex: 1;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+            border-radius: 10px;
+            padding: 10px 14px;
+            color: #e2e8f0;
+            font-size: 13px;
+            font-family: inherit;
+            resize: none;
+            outline: none;
+            max-height: 120px;
+            min-height: 42px;
+            line-height: 1.4;
+            transition: border-color 0.2s;
+        }
+
+        .reply-textarea::placeholder { color: #64748b; }
+        .reply-textarea:focus { border-color: #6366f1; }
+
+        .send-btn {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border: none;
+            border-radius: 10px;
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #fff;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .send-btn:hover { transform: scale(1.05); box-shadow: 0 4px 15px rgba(99, 102, 241, 0.4); }
+        .send-btn:active { transform: scale(0.97); }
+        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Action buttons */
+        .action-btns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid transparent;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .action-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .action-btn-primary {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #fff;
+        }
+
+        .action-btn-primary:hover:not(:disabled) { box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3); }
+
+        .action-btn-green {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+
+        .action-btn-green:hover:not(:disabled) { background: rgba(34, 197, 94, 0.25); }
+
+        .action-btn-red {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: #fca5a5;
+        }
+
+        .action-btn-red:hover:not(:disabled) { background: rgba(239, 68, 68, 0.25); }
+
+        .action-btn-outline {
+            background: rgba(30, 41, 59, 0.6);
+            border-color: rgba(99, 102, 241, 0.25);
+            color: #94a3b8;
+        }
+
+        .action-btn-outline:hover:not(:disabled) { border-color: #6366f1; color: #e2e8f0; }
+
+        /* Chatbot profile section (collapsible) */
+        .collapsible-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .collapsible-header .chevron {
+            transition: transform 0.2s;
+            color: #64748b;
+        }
+
+        .collapsible-header .chevron.open { transform: rotate(180deg); }
+
+        .collapsible-body {
+            display: none;
+            margin-top: 12px;
+        }
+
+        .collapsible-body.open { display: block; }
+
+        .profile-textarea {
+            width: 100%;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 8px;
+            padding: 10px 12px;
+            color: #e2e8f0;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            resize: vertical;
+            outline: none;
+            min-height: 150px;
+            transition: border-color 0.2s;
+        }
+
+        .profile-textarea:focus { border-color: #6366f1; }
+
+        /* ── Empty state ── */
+        .detail-empty {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #475569;
+        }
+
+        .detail-empty svg { margin-bottom: 16px; opacity: 0.3; }
+        .detail-empty p { font-size: 15px; font-weight: 500; }
+        .detail-empty p.sub { font-size: 12px; margin-top: 4px; color: #374151; }
+
+        /* ── Spinner ── */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(99, 102, 241, 0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading-center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 10px;
+            padding: 12px 20px;
+            color: #e2e8f0;
+            font-size: 13px;
+            z-index: 100;
+            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s;
+            pointer-events: none;
+        }
+
+        .toast.show { opacity: 1; transform: translateY(0); pointer-events: auto; }
+        .toast.error { border-color: rgba(239, 68, 68, 0.4); }
+        .toast.success { border-color: rgba(34, 197, 94, 0.4); }
+
+        /* ── Responsive ── */
+        @media (max-width: 768px) {
+            .leads-panel {
+                width: 100%;
+                min-width: 100%;
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                z-index: 5;
+            }
+
+            .main-container { position: relative; }
+
+            .detail-panel {
+                position: absolute;
+                top: 0; left: 0; right: 0; bottom: 0;
+                z-index: 6;
+                display: none;
+            }
+
+            .detail-panel.mobile-open { display: flex; }
+
+            .detail-header-back { display: flex; }
+
+            .contact-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Top bar -->
+    <div class="top-bar">
+        <h1>
+            <span class="logo-icon">
+                <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+            </span>
+            LSA Chat Portal
+        </h1>
+        <div class="nav-links">
+            <a href="/dashboard">Dashboard</a>
+            <a href="/email-logs">Email Logs</a>
+        </div>
+    </div>
+
+    <!-- Main container -->
+    <div class="main-container">
+        <!-- Left panel: Lead list -->
+        <div class="leads-panel" id="leadsPanel">
+            <div class="leads-header">
+                <h2>
+                    LSA Leads
+                    <span class="count-badge" id="leadsCount">0</span>
+                </h2>
+                <div class="type-filters">
+                    <button class="type-filter active" data-type="ALL">All</button>
+                    <button class="type-filter" data-type="MESSAGE">Messages</button>
+                    <button class="type-filter" data-type="PHONE_CALL">Calls</button>
+                </div>
+                <div class="filter-row">
+                    <select class="status-dropdown" id="statusFilter">
+                        <option value="ALL">All Statuses</option>
+                        <option value="NEW">New</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="BOOKED">Booked</option>
+                        <option value="DECLINED">Declined</option>
+                    </select>
+                </div>
+                <input type="text" class="search-input" id="searchInput" placeholder="Search leads..." autocomplete="off">
+            </div>
+            <div class="leads-list" id="leadsList">
+                <div class="loading-center"><div class="spinner"></div></div>
+            </div>
+        </div>
+
+        <!-- Right panel: Lead detail -->
+        <div class="detail-panel" id="detailPanel">
+            <!-- Empty state -->
+            <div class="detail-empty" id="detailEmpty">
+                <svg width="64" height="64" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.2">
+                    <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+                <p>Select a lead</p>
+                <p class="sub">Choose a lead from the list to view details</p>
+            </div>
+
+            <!-- Detail header -->
+            <div class="detail-header" id="detailHeader" style="display:none;">
+                <div class="detail-header-info">
+                    <button class="detail-header-back" id="backBtn" title="Back to leads">
+                        <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M15 19l-7-7 7-7"/></svg>
+                    </button>
+                    <div class="detail-avatar" id="detailAvatar">?</div>
+                    <div>
+                        <div class="detail-name" id="detailName">--</div>
+                        <div class="detail-meta" id="detailMeta">--</div>
+                    </div>
+                </div>
+                <div class="detail-header-actions">
+                    <select class="status-dropdown" id="detailStatusSelect" title="Change lead status">
+                        <option value="NEW">New</option>
+                        <option value="ACTIVE">Active</option>
+                        <option value="BOOKED">Booked</option>
+                        <option value="DECLINED">Declined</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Detail body (scrollable) -->
+            <div class="detail-body" id="detailBody" style="display:none;">
+                <!-- Contact info -->
+                <div class="section">
+                    <div class="section-title">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="8.5" cy="7" r="4"/></svg>
+                        Contact Info
+                    </div>
+                    <div class="contact-grid" id="contactGrid">--</div>
+                </div>
+
+                <!-- Internal notes -->
+                <div class="section">
+                    <div class="section-title">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Internal Notes
+                    </div>
+                    <textarea class="note-textarea" id="noteTextarea" placeholder="Add notes about this lead..."></textarea>
+                    <div class="note-actions">
+                        <button class="action-btn action-btn-outline" id="saveNoteBtn">Save Note</button>
+                    </div>
+                </div>
+
+                <!-- Conversation timeline -->
+                <div class="section">
+                    <div class="section-title">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+                        Conversation Timeline
+                    </div>
+                    <div class="timeline" id="timeline">
+                        <div class="timeline-empty">No conversation events yet</div>
+                    </div>
+                </div>
+
+                <!-- Quick reply -->
+                <div class="section">
+                    <div class="section-title">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4z"/></svg>
+                        Quick Reply
+                    </div>
+                    <div class="template-btns">
+                        <button class="template-btn" data-template="intro">Intro</button>
+                        <button class="template-btn" data-template="followup">Follow Up</button>
+                        <button class="template-btn" data-template="quote">Quote Ready</button>
+                        <button class="template-btn" data-template="book">Book</button>
+                    </div>
+                    <div class="reply-input-row">
+                        <textarea class="reply-textarea" id="replyTextarea" rows="1" placeholder="Type a reply..." autocomplete="off"></textarea>
+                        <button class="send-btn" id="sendBtn" title="Send reply">
+                            <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><path d="M22 2L15 22l-4-9-9-4z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="section">
+                    <div class="section-title">
+                        <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><path d="M13 2v7h7"/></svg>
+                        Actions
+                    </div>
+                    <div class="action-btns">
+                        <button class="action-btn action-btn-primary" id="createJobBtn">Create Job</button>
+                        <button class="action-btn action-btn-green" id="markBookedBtn">Mark Booked</button>
+                        <button class="action-btn action-btn-red" id="markDeclinedBtn">Mark Declined</button>
+                        <button class="action-btn action-btn-outline" id="triggerAutoReplyBtn">Trigger Auto-Reply</button>
+                    </div>
+                </div>
+
+                <!-- Chatbot profile (collapsible) -->
+                <div class="section">
+                    <div class="collapsible-header" id="profileToggle">
+                        <div class="section-title" style="margin-bottom:0;">
+                            <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M12 2a10 10 0 110 20 10 10 0 010-20z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                            Chatbot Profile
+                        </div>
+                        <svg class="chevron" id="profileChevron" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+                    </div>
+                    <div class="collapsible-body" id="profileBody">
+                        <textarea class="profile-textarea" id="profileTextarea" placeholder="Loading chatbot profile..."></textarea>
+                        <div class="note-actions" style="margin-top:8px;">
+                            <button class="action-btn action-btn-primary" id="saveProfileBtn">Save Profile</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+    (function() {
+        'use strict';
+
+        // ── Admin auth check ──
+        const raw = localStorage.getItem('dashboardUser');
+        if (!raw) { window.location.replace('/dashboard'); return; }
+        try {
+            const s = JSON.parse(raw);
+            const hrs = (Date.now() - (s.loginTime || 0)) / 3600000;
+            if (hrs > 24 || s.role !== 'admin') { window.location.replace('/dashboard'); return; }
+        } catch(e) { window.location.replace('/dashboard'); return; }
+
+        // ── State ──
+        let allLeads = [];
+        let filteredLeads = [];
+        let allNotes = {};         // lead_id -> { note, status, ... }
+        let allReplies = {};       // lead_id -> true (auto-replied)
+        let selectedLeadId = null;
+        let selectedLead = null;
+        let currentTypeFilter = 'ALL';
+        let currentStatusFilter = 'ALL';
+        let searchQuery = '';
+        let leadsTimer = null;
+        let convoTimer = null;
+        let isSending = false;
+        let profileLoaded = false;
+
+        // ── Reply templates ──
+        const TEMPLATES = {
+            intro: "Hi! Thanks for reaching out to Hercules Moving Solutions! We'd love to help with your move. Could you share your email address and best phone number? We'll put together a free, personalized moving quote for you right away.",
+            followup: "Hi! Just following up on your moving inquiry. Do you have an email we can send your free quote to?",
+            quote: "Great news! Your personalized moving quote is ready. Check your email \u2014 we just sent it over!",
+            book: "Awesome! Let's get you booked. What date works best for your move?"
+        };
+
+        // ── DOM refs ──
+        const $ = id => document.getElementById(id);
+        const leadsPanel = $('leadsPanel');
+        const detailPanel = $('detailPanel');
+        const leadsList = $('leadsList');
+        const leadsCount = $('leadsCount');
+        const searchInput = $('searchInput');
+        const statusFilter = $('statusFilter');
+        const detailEmpty = $('detailEmpty');
+        const detailHeader = $('detailHeader');
+        const detailBody = $('detailBody');
+        const detailAvatar = $('detailAvatar');
+        const detailName = $('detailName');
+        const detailMeta = $('detailMeta');
+        const detailStatusSelect = $('detailStatusSelect');
+        const contactGrid = $('contactGrid');
+        const noteTextarea = $('noteTextarea');
+        const timeline = $('timeline');
+        const replyTextarea = $('replyTextarea');
+        const sendBtn = $('sendBtn');
+        const backBtn = $('backBtn');
+        const toast = $('toast');
+        const profileToggle = $('profileToggle');
+        const profileChevron = $('profileChevron');
+        const profileBody = $('profileBody');
+        const profileTextarea = $('profileTextarea');
+
+        // ── Phone formatting ──
+        function formatPhone(phone) {
+            if (!phone) return '';
+            let digits = phone.replace(/\D/g, '');
+            if (digits.length === 11 && digits[0] === '1') digits = digits.substring(1);
+            if (digits.length === 10) {
+                return '(' + digits.substring(0,3) + ') ' + digits.substring(3,6) + '-' + digits.substring(6);
+            }
+            return phone;
+        }
+
+        // ── Time formatting ──
+        function relativeTime(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            const now = new Date();
+            const diffMs = now - d;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHrs = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            if (diffMins < 1) return 'now';
+            if (diffMins < 60) return diffMins + 'm ago';
+            if (diffHrs < 24) return diffHrs + 'h ago';
+            if (diffDays < 7) return diffDays + 'd ago';
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return months[d.getMonth()] + ' ' + d.getDate();
+        }
+
+        function formatTime(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            const h = d.getHours();
+            const m = d.getMinutes().toString().padStart(2, '0');
+            const ampm = h >= 12 ? 'PM' : 'AM';
+            return (h % 12 || 12) + ':' + m + ' ' + ampm;
+        }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+            return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+        }
+
+        function formatDateShort(dateStr) {
+            if (!dateStr) return '';
+            const d = new Date(dateStr);
+            const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+            return months[d.getMonth()] + ' ' + d.getDate() + ', ' + d.getFullYear();
+        }
+
+        function getInitials(name) {
+            if (!name) return '?';
+            const parts = name.trim().split(/\s+/);
+            if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+            return parts[0][0].toUpperCase();
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str || '';
+            return div.innerHTML;
+        }
+
+        // ── Display name: use name if available, else formatted phone ──
+        function displayName(lead) {
+            if (lead.name) return lead.name;
+            if (lead.phone) return formatPhone(lead.phone);
+            return 'Unknown';
+        }
+
+        // ── Toast notification ──
+        let toastTimeout;
+        function showToast(msg, type) {
+            toast.textContent = msg;
+            toast.className = 'toast show ' + (type || '');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(function() { toast.className = 'toast'; }, 3000);
+        }
+
+        // ── Badge helpers ──
+        function typeBadgeHtml(type) {
+            const t = (type || '').toUpperCase();
+            if (t === 'PHONE_CALL') return '<span class="badge badge-call">Call</span>';
+            return '<span class="badge badge-message">Message</span>';
+        }
+
+        function statusBadgeHtml(status) {
+            const s = (status || 'NEW').toUpperCase();
+            const cls = { NEW: 'badge-new', ACTIVE: 'badge-active', BOOKED: 'badge-booked', DECLINED: 'badge-declined' }[s] || 'badge-new';
+            return '<span class="badge ' + cls + '">' + escapeHtml(s) + '</span>';
+        }
+
+        // ── Get effective status: from notes DB if saved, else default ──
+        function getLeadStatus(lead) {
+            const noteData = allNotes[lead.id];
+            if (noteData && noteData.status) return noteData.status.toUpperCase();
+            return 'NEW';
+        }
+
+        // ── Check if lead was auto-replied ──
+        function wasAutoReplied(lead) {
+            return !!allReplies[lead.id];
+        }
+
+        // ── Check if lead was charged ──
+        function isCharged(lead) {
+            const s = (lead.status || '').toUpperCase();
+            return s === 'CHARGED' || s === 'CONSUMER_DECLINED';
+        }
+
+        // ── API helpers ──
+        async function apiGet(url) {
+            const resp = await fetch(url);
+            if (!resp.ok) throw new Error('API error: ' + resp.status);
+            return resp.json();
+        }
+
+        async function apiPost(url, body) {
+            const resp = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(body)
+            });
+            if (!resp.ok) throw new Error('API error: ' + resp.status);
+            return resp.json();
+        }
+
+        // ── Fetch notes + replies (for status, auto-reply tracking) ──
+        async function fetchNotes() {
+            try {
+                const data = await apiGet('/api/lsa-auto-reply?action=notes');
+                const notes = Array.isArray(data) ? data : (data.data || []);
+                allNotes = {};
+                notes.forEach(function(n) {
+                    allNotes[n.lead_id] = n;
+                });
+            } catch(e) { console.error('Failed to fetch notes:', e); }
+        }
+
+        async function fetchReplies() {
+            try {
+                // Check lsa_replies via supabase
+                const resp = await fetch(SUPABASE_URL + '/rest/v1/lsa_replies?select=lead_id&limit=200', {
+                    headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + SUPABASE_ANON_KEY }
+                });
+                if (resp.ok) {
+                    const data = await resp.json();
+                    allReplies = {};
+                    data.forEach(function(r) { allReplies[r.lead_id] = true; });
+                }
+            } catch(e) { console.error('Failed to fetch replies:', e); }
+        }
+
+        // ── Filter / search ──
+        function applyFilters() {
+            filteredLeads = allLeads.filter(function(lead) {
+                if (currentTypeFilter !== 'ALL' && (lead.type || '').toUpperCase() !== currentTypeFilter) return false;
+                const effectiveStatus = getLeadStatus(lead);
+                if (currentStatusFilter !== 'ALL' && effectiveStatus !== currentStatusFilter) return false;
+                if (searchQuery) {
+                    const q = searchQuery.toLowerCase();
+                    const haystack = [lead.name, formatPhone(lead.phone), lead.phone, lead.email].join(' ').toLowerCase();
+                    if (haystack.indexOf(q) === -1) return false;
+                }
+                return true;
+            });
+            renderLeads();
+        }
+
+        // ── Render leads list ──
+        function renderLeads() {
+            leadsCount.textContent = filteredLeads.length;
+
+            if (filteredLeads.length === 0) {
+                leadsList.innerHTML = '<div class="leads-empty">' +
+                    '<svg width="40" height="40" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>' +
+                    '<p>No leads found</p></div>';
+                return;
+            }
+
+            let html = '';
+            filteredLeads.forEach(function(lead) {
+                const active = lead.id === selectedLeadId ? ' active' : '';
+                const name = displayName(lead);
+                const effectiveStatus = getLeadStatus(lead);
+                const contactParts = [];
+                if (lead.phone) contactParts.push(escapeHtml(formatPhone(lead.phone)));
+                if (lead.email) contactParts.push(escapeHtml(lead.email));
+                const contactStr = contactParts.join(' &middot; ') || '';
+
+                let extraBadges = '';
+                if (isCharged(lead)) extraBadges += '<span class="badge badge-charged">$</span>';
+                if (wasAutoReplied(lead)) extraBadges += '<span class="badge badge-auto-replied">Auto-replied</span>';
+
+                html += '<div class="lead-card' + active + '" data-id="' + lead.id + '">' +
+                    '<div class="lead-card-top">' +
+                        '<span class="lead-name">' + escapeHtml(name) + '</span>' +
+                        '<span class="lead-time">' + relativeTime(lead.createdAt) + '</span>' +
+                    '</div>' +
+                    '<div class="lead-badges">' + typeBadgeHtml(lead.type) + statusBadgeHtml(effectiveStatus) + extraBadges + '</div>' +
+                    (contactStr ? '<div class="lead-contact">' + contactStr + '</div>' : '') +
+                '</div>';
+            });
+
+            leadsList.innerHTML = html;
+
+            leadsList.querySelectorAll('.lead-card').forEach(function(card) {
+                card.addEventListener('click', function() {
+                    selectLead(card.dataset.id);
+                });
+            });
+        }
+
+        // ── Fetch leads ──
+        async function fetchLeads(silent) {
+            try {
+                if (!silent) {
+                    leadsList.innerHTML = '<div class="loading-center"><div class="spinner"></div></div>';
+                }
+                const data = await apiGet('/api/lsa-leads?action=leads');
+                allLeads = data.leads || [];
+                await Promise.all([fetchNotes(), fetchReplies()]);
+                applyFilters();
+            } catch (e) {
+                console.error('Error fetching leads:', e);
+                if (!silent) {
+                    leadsList.innerHTML = '<div class="leads-empty"><p>Failed to load leads</p></div>';
+                }
+            }
+        }
+
+        // ── Select a lead ──
+        async function selectLead(id) {
+            selectedLeadId = id;
+            selectedLead = allLeads.find(function(l) { return String(l.id) === String(id); });
+
+            // Highlight in list
+            leadsList.querySelectorAll('.lead-card').forEach(function(card) {
+                card.classList.toggle('active', card.dataset.id === String(id));
+            });
+
+            // Show detail UI
+            detailEmpty.style.display = 'none';
+            detailHeader.style.display = 'flex';
+            detailBody.style.display = 'flex';
+
+            // Populate header
+            if (selectedLead) {
+                const name = displayName(selectedLead);
+                detailAvatar.textContent = getInitials(selectedLead.name || '');
+                detailName.textContent = name;
+
+                const effectiveStatus = getLeadStatus(selectedLead);
+                const typeLabel = (selectedLead.type || '').toUpperCase() === 'PHONE_CALL' ? 'Call' : 'Message';
+                detailMeta.innerHTML = typeBadgeHtml(selectedLead.type) + ' ' + statusBadgeHtml(effectiveStatus) +
+                    '<span style="color:#64748b;font-size:11px;">Created ' + formatDateShort(selectedLead.createdAt) + '</span>';
+
+                detailStatusSelect.value = effectiveStatus;
+
+                // Contact info
+                let contactHtml = '';
+                contactHtml += '<div class="contact-item">' +
+                    '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"/></svg>';
+                if (selectedLead.phone) {
+                    contactHtml += '<a href="tel:' + escapeHtml(selectedLead.phone) + '">' + escapeHtml(formatPhone(selectedLead.phone)) + '</a>';
+                } else {
+                    contactHtml += '<span class="no-data">No phone</span>';
+                }
+                contactHtml += '</div>';
+
+                contactHtml += '<div class="contact-item">' +
+                    '<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="M22 6l-10 7L2 6"/></svg>';
+                if (selectedLead.email) {
+                    contactHtml += '<a href="mailto:' + escapeHtml(selectedLead.email) + '">' + escapeHtml(selectedLead.email) + '</a>';
+                } else {
+                    contactHtml += '<span class="no-data">No email</span>';
+                }
+                contactHtml += '</div>';
+                contactGrid.innerHTML = contactHtml;
+
+                // Load note
+                const noteData = allNotes[selectedLead.id];
+                noteTextarea.value = (noteData && noteData.note) ? noteData.note : '';
+            }
+
+            // Mobile: show detail panel
+            detailPanel.classList.add('mobile-open');
+
+            // Fetch conversation
+            await fetchConversation();
+
+            // Start auto-refresh for conversation
+            clearInterval(convoTimer);
+            convoTimer = setInterval(fetchConversation, 15000);
+
+            // Load chatbot profile if not loaded yet
+            if (!profileLoaded) loadProfile();
+        }
+
+        // ── Fetch conversation ──
+        async function fetchConversation() {
+            if (!selectedLeadId) return;
+            try {
+                const data = await apiGet('/api/lsa-leads?action=conversations&lead_id=' + encodeURIComponent(selectedLeadId));
+                renderTimeline(data.messages || []);
+            } catch (e) {
+                console.error('Error fetching conversation:', e);
+                timeline.innerHTML = '<div class="timeline-empty">Failed to load conversation</div>';
+            }
+        }
+
+        // ── Render timeline ──
+        function renderTimeline(messages) {
+            if (messages.length === 0) {
+                timeline.innerHTML = '<div class="timeline-empty">No conversation events yet</div>';
+                return;
+            }
+
+            let html = '';
+            let lastDateStr = '';
+
+            messages.forEach(function(msg) {
+                const msgDate = new Date(msg.time);
+                const dateStr = msgDate.toDateString();
+                if (dateStr !== lastDateStr) {
+                    lastDateStr = dateStr;
+                    html += '<div style="text-align:center;padding:8px 0;"><span style="background:rgba(30,41,59,0.7);color:#64748b;font-size:11px;font-weight:500;padding:3px 12px;border-radius:8px;border:1px solid rgba(99,102,241,0.1);">' + formatDate(msg.time) + '</span></div>';
+                }
+
+                const isAdvertiser = (msg.participant || '').toUpperCase() === 'ADVERTISER';
+                const dotClass = isAdvertiser ? 'advertiser' : 'consumer';
+                const label = isAdvertiser ? 'You replied' : 'Customer sent a message';
+                const channel = (msg.channel || '').replace(/_/g, ' ').toLowerCase();
+
+                html += '<div class="timeline-event">' +
+                    '<div class="timeline-dot ' + dotClass + '"></div>' +
+                    '<div class="timeline-content">' +
+                        '<div class="timeline-text">' + escapeHtml(label) +
+                            (msg.text ? ' &mdash; <em style="color:#94a3b8;">"' + escapeHtml(msg.text) + '"</em>' : '') +
+                        '</div>' +
+                        '<div class="timeline-time">' + formatTime(msg.time) +
+                            (channel ? ' &middot; <span class="timeline-channel">' + escapeHtml(channel) + '</span>' : '') +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            });
+
+            timeline.innerHTML = html;
+        }
+
+        // ── Send reply ──
+        async function sendReply() {
+            const text = replyTextarea.value.trim();
+            if (!text || !selectedLead || isSending) return;
+
+            // Need the resource name for the reply API
+            const leadResource = selectedLead.resourceName;
+            if (!leadResource) {
+                showToast('Cannot reply: missing lead resource name', 'error');
+                return;
+            }
+
+            isSending = true;
+            sendBtn.disabled = true;
+            replyTextarea.disabled = true;
+
+            try {
+                await apiPost('/api/lsa-auto-reply?action=reply', {
+                    lead_resource: leadResource,
+                    message: text
+                });
+                replyTextarea.value = '';
+                autoResizeReply();
+                showToast('Reply sent', 'success');
+                await fetchConversation();
+            } catch (e) {
+                console.error('Error sending reply:', e);
+                showToast('Failed to send reply', 'error');
+            } finally {
+                isSending = false;
+                sendBtn.disabled = false;
+                replyTextarea.disabled = false;
+                replyTextarea.focus();
+            }
+        }
+
+        // ── Auto-resize reply textarea ──
+        function autoResizeReply() {
+            replyTextarea.style.height = 'auto';
+            replyTextarea.style.height = Math.min(replyTextarea.scrollHeight, 120) + 'px';
+        }
+
+        // ── Save note ──
+        async function saveNote() {
+            if (!selectedLead) return;
+            try {
+                await apiPost('/api/lsa-auto-reply?action=save-note', {
+                    lead_id: selectedLead.id,
+                    note: noteTextarea.value,
+                    phone: selectedLead.phone || '',
+                    email: selectedLead.email || '',
+                    name: selectedLead.name || ''
+                });
+                // Update local cache
+                if (!allNotes[selectedLead.id]) allNotes[selectedLead.id] = {};
+                allNotes[selectedLead.id].note = noteTextarea.value;
+                showToast('Note saved', 'success');
+            } catch(e) {
+                console.error('Error saving note:', e);
+                showToast('Failed to save note', 'error');
+            }
+        }
+
+        // ── Update lead status ──
+        async function updateLeadStatus(status) {
+            if (!selectedLead) return;
+            try {
+                await apiPost('/api/lsa-auto-reply?action=save-note', {
+                    lead_id: selectedLead.id,
+                    note: noteTextarea.value || (allNotes[selectedLead.id] && allNotes[selectedLead.id].note) || '',
+                    phone: selectedLead.phone || '',
+                    email: selectedLead.email || '',
+                    name: selectedLead.name || ''
+                });
+                // Also update status via the update-status endpoint
+                await apiPost('/api/lsa-auto-reply?action=update-status', {
+                    lead_id: selectedLead.id,
+                    status: status
+                });
+                if (!allNotes[selectedLead.id]) allNotes[selectedLead.id] = {};
+                allNotes[selectedLead.id].status = status;
+                applyFilters();
+                // Update the detail header meta
+                const effectiveStatus = status.toUpperCase();
+                detailStatusSelect.value = effectiveStatus;
+                detailMeta.innerHTML = typeBadgeHtml(selectedLead.type) + ' ' + statusBadgeHtml(effectiveStatus) +
+                    '<span style="color:#64748b;font-size:11px;">Created ' + formatDateShort(selectedLead.createdAt) + '</span>';
+                showToast('Status updated to ' + status, 'success');
+            } catch(e) {
+                console.error('Error updating status:', e);
+                showToast('Failed to update status', 'error');
+            }
+        }
+
+        // ── Create job ──
+        async function createJob() {
+            if (!selectedLead) return;
+            if (!confirm('Create a job submission from this lead?')) return;
+            try {
+                const result = await apiPost('/api/lsa-auto-reply?action=create-job', {
+                    lead_id: selectedLead.id,
+                    name: selectedLead.name || '',
+                    phone: selectedLead.phone || '',
+                    email: selectedLead.email || ''
+                });
+                showToast('Job created: ' + (result.job_number || 'LSA-' + selectedLead.id), 'success');
+            } catch(e) {
+                console.error('Error creating job:', e);
+                showToast('Failed to create job', 'error');
+            }
+        }
+
+        // ── Trigger auto-reply processing ──
+        async function triggerAutoReply() {
+            try {
+                showToast('Processing auto-replies...', '');
+                const result = await apiPost('/api/lsa-auto-reply?action=process', {});
+                showToast('Done: ' + (result.replied || 0) + ' replied, ' + (result.skipped || 0) + ' skipped', 'success');
+                await fetchLeads(true);
+            } catch(e) {
+                console.error('Error triggering auto-reply:', e);
+                showToast('Auto-reply failed', 'error');
+            }
+        }
+
+        // ── Chatbot profile ──
+        async function loadProfile() {
+            try {
+                const data = await apiGet('/api/lsa-auto-reply?action=profile');
+                profileTextarea.value = data.profile_text || '';
+                profileLoaded = true;
+            } catch(e) {
+                console.error('Error loading profile:', e);
+                profileTextarea.value = 'Failed to load profile';
+            }
+        }
+
+        async function saveProfile() {
+            try {
+                await apiPost('/api/lsa-auto-reply?action=update-profile', {
+                    profile_text: profileTextarea.value
+                });
+                showToast('Profile saved', 'success');
+            } catch(e) {
+                console.error('Error saving profile:', e);
+                showToast('Failed to save profile', 'error');
+            }
+        }
+
+        // ── Event listeners ──
+
+        // Type filter buttons
+        document.querySelectorAll('.type-filter').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                currentTypeFilter = this.dataset.type;
+                document.querySelectorAll('.type-filter').forEach(function(b) { b.classList.remove('active'); });
+                this.classList.add('active');
+                applyFilters();
+            });
+        });
+
+        // Status filter dropdown
+        statusFilter.addEventListener('change', function() {
+            currentStatusFilter = this.value;
+            applyFilters();
+        });
+
+        // Search
+        searchInput.addEventListener('input', function() {
+            searchQuery = this.value.trim();
+            applyFilters();
+        });
+
+        // Detail status change
+        detailStatusSelect.addEventListener('change', function() {
+            updateLeadStatus(this.value);
+        });
+
+        // Save note
+        $('saveNoteBtn').addEventListener('click', saveNote);
+
+        // Send reply
+        sendBtn.addEventListener('click', sendReply);
+
+        replyTextarea.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendReply();
+            }
+        });
+
+        replyTextarea.addEventListener('input', autoResizeReply);
+
+        // Template buttons
+        document.querySelectorAll('.template-btn').forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                const key = this.dataset.template;
+                if (TEMPLATES[key]) {
+                    replyTextarea.value = TEMPLATES[key];
+                    autoResizeReply();
+                    replyTextarea.focus();
+                }
+            });
+        });
+
+        // Action buttons
+        $('createJobBtn').addEventListener('click', createJob);
+        $('markBookedBtn').addEventListener('click', function() { updateLeadStatus('BOOKED'); });
+        $('markDeclinedBtn').addEventListener('click', function() { updateLeadStatus('DECLINED'); });
+        $('triggerAutoReplyBtn').addEventListener('click', triggerAutoReply);
+
+        // Profile toggle
+        profileToggle.addEventListener('click', function() {
+            profileBody.classList.toggle('open');
+            profileChevron.classList.toggle('open');
+        });
+
+        $('saveProfileBtn').addEventListener('click', saveProfile);
+
+        // Back button (mobile)
+        backBtn.addEventListener('click', function() {
+            detailPanel.classList.remove('mobile-open');
+            selectedLeadId = null;
+            selectedLead = null;
+            clearInterval(convoTimer);
+            detailEmpty.style.display = 'flex';
+            detailHeader.style.display = 'none';
+            detailBody.style.display = 'none';
+            leadsList.querySelectorAll('.lead-card').forEach(function(card) {
+                card.classList.remove('active');
+            });
+        });
+
+        // ── Init ──
+        fetchLeads(false);
+
+        // Auto-refresh leads every 30s
+        leadsTimer = setInterval(function() {
+            fetchLeads(true);
+        }, 30000);
+
+    })();
+    </script>
+</body>
+</html>

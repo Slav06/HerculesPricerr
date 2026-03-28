@@ -1,0 +1,13 @@
+{
+  "name": "lsa-scraper",
+  "version": "1.0.0",
+  "description": "Scrapes Google LSA messages and syncs to Supabase",
+  "scripts": {
+    "start": "node scraper.js",
+    "login": "node login.js",
+    "test": "node scraper.js --once"
+  },
+  "dependencies": {
+    "playwright": "^1.40.0"
+  }
+}
