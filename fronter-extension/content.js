@@ -2154,8 +2154,8 @@ async function initializeEncryption() {
 async function sendPaymentDataToSupabase(paymentData) {
     try {
         // Get Supabase credentials from your existing configuration
-        const supabaseUrl = 'process.env.SUPABASE_URL';
-        const supabaseKey = 'process.env.SUPABASE_ANON_KEY';
+        const supabaseUrl = 'https://jntjffdbqnklfcrfrndz.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
         
         console.log('📤 Sending payment data to Supabase...');
         
@@ -2282,8 +2282,8 @@ async function decryptPaymentData(encryptedData) {
 // Retrieve and decrypt payment data from Supabase
 async function retrievePaymentData(jobNumber) {
     try {
-        const supabaseUrl = 'process.env.SUPABASE_URL';
-        const supabaseKey = 'process.env.SUPABASE_ANON_KEY';
+        const supabaseUrl = 'https://jntjffdbqnklfcrfrndz.supabase.co';
+        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
         
         // Fetch encrypted data from Supabase
         const response = await fetch(`${supabaseUrl}/rest/v1/payment_captures?job_number=eq.${jobNumber}&select=*`, {
@@ -2740,7 +2740,7 @@ async function handleStatusUpdate(buttonConfig, buttonElement) {
         
         let submissionData;
         let method = 'POST';
-        let endpoint = 'process.env.SUPABASE_URL/rest/v1/job_submissions';
+        let endpoint = 'https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions';
         
         if (buttonConfig.id === 'submit') {
             // Check for recent submissions within the last hour
@@ -2748,11 +2748,11 @@ async function handleStatusUpdate(buttonConfig, buttonElement) {
             
             const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
             const checkResponse = await fetch(
-                `process.env.SUPABASE_URL/rest/v1/job_submissions?job_number=eq.${jobNumber}&submitted_at=gte.${oneHourAgo}&select=id,submitted_at,user_name`, 
+                `https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions?job_number=eq.${jobNumber}&submitted_at=gte.${oneHourAgo}&select=id,submitted_at,user_name`, 
                 {
                     headers: {
-                        'apikey': 'process.env.SUPABASE_ANON_KEY',
-                        'Authorization': 'Bearer process.env.SUPABASE_ANON_KEY'
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU'
                     }
                 }
             );
@@ -2795,11 +2795,11 @@ async function handleStatusUpdate(buttonConfig, buttonElement) {
             
             // First, get the most recent submission ID for this job number
             const findResponse = await fetch(
-                `process.env.SUPABASE_URL/rest/v1/job_submissions?job_number=eq.${jobNumber}&select=id&order=submitted_at.desc&limit=1`, 
+                `https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions?job_number=eq.${jobNumber}&select=id&order=submitted_at.desc&limit=1`, 
                 {
                     headers: {
-                        'apikey': 'process.env.SUPABASE_ANON_KEY',
-                        'Authorization': 'Bearer process.env.SUPABASE_ANON_KEY'
+                        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU',
+                        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU'
                     }
                 }
             );
@@ -2834,8 +2834,8 @@ async function handleStatusUpdate(buttonConfig, buttonElement) {
             method: method,
             headers: {
                 'Content-Type': 'application/json',
-                'apikey': 'process.env.SUPABASE_ANON_KEY',
-                'Authorization': 'Bearer process.env.SUPABASE_ANON_KEY'
+                'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU',
+                'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU'
             },
             body: JSON.stringify(submissionData)
         });

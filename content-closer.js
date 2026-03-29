@@ -71,8 +71,8 @@ async function sendSlackNotification(message, data = {}) {
 }
 
 // Supabase Configuration
-const SUPABASE_URL = 'process.env.SUPABASE_URL';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
+const SUPABASE_URL = 'https://jntjffdbqnklfcrfrndz.supabase.co';
+const SUPABASE_ANON_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU;
 
 // Submit job to dashboard
 async function submitJobToDashboard(status, extractedData) {

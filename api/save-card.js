@@ -2,8 +2,8 @@
 // Stores in payment_captures (same table used for extension captures) so dashboard can charge from one place.
 
 // Use same credentials as dashboard (dashboard.html) so add-card works without env var mismatches
-const SUPABASE_URL = 'process.env.SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 function cardTypeFromNumber(num) {
   const n = (num || '').replace(/\D/g, '');

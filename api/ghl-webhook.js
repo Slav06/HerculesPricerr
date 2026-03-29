@@ -1,8 +1,8 @@
 // GoHighLevel Webhook Handler for Analytics Auto-Sync
 // This endpoint receives webhooks from GoHighLevel and automatically syncs data to Supabase
 
-const SUPABASE_URL = 'process.env.SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 module.exports = async function handler(req, res) {
     // Handle CORS preflight

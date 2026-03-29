@@ -4,8 +4,8 @@
 const CONFIG = {
     // Supabase Configuration
     SUPABASE: {
-        URL: 'process.env.SUPABASE_URL',  // ✅ Your Supabase URL
-        ANON_KEY: 'process.env.SUPABASE_ANON_KEY'  // ✅ Your anon key
+        URL: 'https://jntjffdbqnklfcrfrndz.supabase.co',  // ✅ Your Supabase URL
+        ANON_KEY: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU'  // ✅ Your anon key
     },
     
     // Extension Settings

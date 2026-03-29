@@ -1526,8 +1526,8 @@
     
     <script>
         // SUPABASE API CREDENTIALS - CORRECT KEY FROM CONFIG.JS
-        const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
-        const SUPABASE_URL = 'process.env.SUPABASE_URL';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
+        const SUPABASE_URL = 'https://jntjffdbqnklfcrfrndz.supabase.co';
         
         // Test database connection on load
         async function testDatabaseConnection() {
@@ -1744,7 +1744,7 @@
 
             try {
                 // Validate secret key against database
-                const response = await fetch('process.env.SUPABASE_URL/rest/v1/dashboard_users?secretkey=eq.' + encodeURIComponent(key), {
+                const response = await fetch('https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/dashboard_users?secretkey=eq.' + encodeURIComponent(key), {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
@@ -2114,7 +2114,7 @@
                 const filter = (from && to)
                     ? `&submitted_at=gte.${encodeURIComponent(from)}&submitted_at=lte.${encodeURIComponent(to)}`
                     : '';
-                const url = `process.env.SUPABASE_URL/rest/v1/job_submissions?select=*${filter}&order=submitted_at.desc`;
+                const url = `https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions?select=*${filter}&order=submitted_at.desc`;
                 const response = await fetch(url, {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
@@ -2193,7 +2193,7 @@
 
                     // Compute pinned follow-up leads from an unfiltered dataset (ignore date range)
                     try {
-                        const pinnedResp = await fetch('process.env.SUPABASE_URL/rest/v1/job_submissions?select=*&order=submitted_at.desc', {
+                        const pinnedResp = await fetch('https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions?select=*&order=submitted_at.desc', {
                             headers: {
                                 'apikey': SUPABASE_ANON_KEY,
                                 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
@@ -3284,8 +3284,8 @@
             try {
                 showNotification('Checking Supabase for encrypted payment data...', 'info');
                 
-                const SUPABASE_URL = 'process.env.SUPABASE_URL';
-                const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+                const SUPABASE_URL = 'https://jntjffdbqnklfcrfrndz.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
                 
                 // Check if payment data exists in Supabase
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/payment_captures?job_number=eq.${jobNumber}&select=*`, {
@@ -3322,8 +3322,8 @@
             try {
                 showNotification('🔐 Retrieving and decrypting payment data...', 'info');
                 
-                const SUPABASE_URL = 'process.env.SUPABASE_URL';
-                const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+                const SUPABASE_URL = 'https://jntjffdbqnklfcrfrndz.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
                 
                 // Fetch encrypted data
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/payment_captures?job_number=eq.${jobNumber}&select=*`, {
@@ -3696,7 +3696,7 @@
                     updateData.callback_datetime = null;
                 }
                 
-                const response = await fetch(`process.env.SUPABASE_URL/rest/v1/job_submissions?id=eq.${submissionId}`, {
+                const response = await fetch(`https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions?id=eq.${submissionId}`, {
                     method: 'PATCH',
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
@@ -4180,7 +4180,7 @@
                 };
                 
                 
-                const response = await fetch(`process.env.SUPABASE_URL/rest/v1/job_submissions?id=eq.${submissionId}`, {
+                const response = await fetch(`https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions?id=eq.${submissionId}`, {
                     method: 'PATCH',
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
@@ -5764,7 +5764,7 @@
                 const fromISO = thirtyDaysAgo.toISOString();
 
                 // Fetch all rows with booked_at in last 30 days; filter status in JS to handle case variations
-                const url = `process.env.SUPABASE_URL/rest/v1/job_submissions?select=*&booked_at=gte.${encodeURIComponent(fromISO)}&order=booked_at.desc`;
+                const url = `https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions?select=*&booked_at=gte.${encodeURIComponent(fromISO)}&order=booked_at.desc`;
                 const resp = await fetch(url, {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
@@ -6069,7 +6069,7 @@
                 
                 console.log('💾 Saving user to Supabase:', userData);
                 
-                const response = await fetch('process.env.SUPABASE_URL/rest/v1/dashboard_users', {
+                const response = await fetch('https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/dashboard_users', {
                     method: 'POST',
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
@@ -6242,7 +6242,7 @@
         // Update loadUsers to store all users for filtering
         async function loadUsers() {
             try {
-                const response = await fetch('process.env.SUPABASE_URL/rest/v1/dashboard_users?select=*', {
+                const response = await fetch('https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/dashboard_users?select=*', {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
@@ -6294,7 +6294,7 @@
             if (confirm(`Are you sure you want to delete user ${user.name}?`)) {
                 try {
                     // Delete user from database
-                    const response = await fetch(`process.env.SUPABASE_URL/rest/v1/dashboard_users?id=eq.${userId}`, {
+                    const response = await fetch(`https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/dashboard_users?id=eq.${userId}`, {
                         method: 'DELETE',
                         headers: {
                             'apikey': SUPABASE_ANON_KEY,
@@ -6440,8 +6440,8 @@
             try {
                 console.log('🧪 Testing Payment Table Connection...');
                 
-                const SUPABASE_URL = 'process.env.SUPABASE_URL';
-                const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+                const SUPABASE_URL = 'https://jntjffdbqnklfcrfrndz.supabase.co';
+                const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
                 
                 // Test 1: Check if table exists
                 console.log('🔍 Test 1: Checking if payment_captures table exists...');
@@ -6491,7 +6491,7 @@
             console.log('🧪 Testing Supabase connection...');
             try {
                 // Test 1: Simple connection test
-                const testResponse = await fetch('process.env.SUPABASE_URL/rest/v1/dashboard_users?select=count', {
+                const testResponse = await fetch('https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/dashboard_users?select=count', {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY
@@ -6509,7 +6509,7 @@
                 }
                 
                 // Test 2: Check if table exists
-                const tableResponse = await fetch('process.env.SUPABASE_URL/rest/v1/job_submissions?select=id&limit=1', {
+                const tableResponse = await fetch('https://jntjffdbqnklfcrfrndz.supabase.co/rest/v1/job_submissions?select=id&limit=1', {
                     headers: {
                         'apikey': SUPABASE_ANON_KEY,
                         'Authorization': 'Bearer ' + SUPABASE_ANON_KEY

@@ -4,8 +4,8 @@
 const https = require('https');
 const querystring = require('querystring');
 
-const SUPABASE_URL     = 'process.env.SUPABASE_URL';
-const SUPABASE_KEY     = 'process.env.SUPABASE_ANON_KEY';
+const SUPABASE_URL     = process.env.SUPABASE_URL;
+const SUPABASE_KEY     = process.env.SUPABASE_ANON_KEY;
 const MERCHANT_ID      = process.env.ELAVON_MERCHANT_ID || '2346532';
 const PIN              = process.env.ELAVON_PIN        || 'WBBFZRCNP6RUS7GYB0FVW49PRAI5DEVFKVJK5P2937VMWX6XOIPSJSQNMTLD583A';
 const USER_ID          = process.env.ELAVON_USER_ID    || 'apiuser999066';

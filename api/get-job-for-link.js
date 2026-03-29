@@ -1,7 +1,7 @@
 // Return public job info for the add-card link (job number + customer name for display only).
 // Use same credentials as dashboard (dashboard.html) so add-card works without env var mismatches
-const SUPABASE_URL = 'process.env.SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'process.env.SUPABASE_ANON_KEY';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
 
 module.exports = async (req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
