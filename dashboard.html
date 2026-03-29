@@ -10508,13 +10508,53 @@
             }
         }
 
-        // Edit user
+        // Edit user - open modal
         function editUser(userId) {
-            const user = users.find(u => u.id === userId);
-            if (!user) return;
-            
-            // For now, just show the user's secret key
-            showNotification(`User ${user.name} - Secret Key: ${user.secretKey}`, 'success');
+            const user = users.find(u => u.id == userId || u.id === userId);
+            if (!user) { showNotification('User not found', 'error'); return; }
+
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUserName').value = user.name || '';
+            document.getElementById('editUserRole').value = user.role || 'agent';
+            document.getElementById('editUserSecret').value = user.secretKey || '';
+            document.getElementById('editUserActive').checked = user.isActive !== false;
+            document.getElementById('editUserModal').style.display = 'flex';
+        }
+
+        // Save edited user
+        async function saveEditUser() {
+            const id = document.getElementById('editUserId').value;
+            const name = document.getElementById('editUserName').value.trim();
+            const role = document.getElementById('editUserRole').value;
+            const secretkey = document.getElementById('editUserSecret').value.trim();
+            const isactive = document.getElementById('editUserActive').checked;
+
+            if (!name) { showNotification('Name is required', 'error'); return; }
+            if (!secretkey) { showNotification('Secret key is required', 'error'); return; }
+
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/dashboard_users?id=eq.${id}`, {
+                    method: 'PATCH',
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+                        'Content-Type': 'application/json',
+                        'Prefer': 'return=minimal'
+                    },
+                    body: JSON.stringify({ name, role, secretkey, secret_key: secretkey, isactive, is_active: isactive })
+                });
+
+                if (response.ok) {
+                    document.getElementById('editUserModal').style.display = 'none';
+                    showNotification(`User ${name} updated successfully!`, 'success');
+                    loadUsers();
+                } else {
+                    const err = await response.text();
+                    showNotification('Failed to update: ' + err, 'error');
+                }
+            } catch (e) {
+                showNotification('Error: ' + e.message, 'error');
+            }
         }
 
         // Delete user
@@ -12011,5 +12051,38 @@
             }, 2000);
         })();
     </script>
+<!-- Edit User Modal -->
+<div id="editUserModal" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:12px;padding:30px;width:90%;max-width:420px;box-shadow:0 10px 30px rgba(0,0,0,0.2);">
+        <h3 style="margin:0 0 20px;font-size:1.3rem;">Edit User</h3>
+        <input type="hidden" id="editUserId">
+        <div style="margin-bottom:14px;">
+            <label style="display:block;font-weight:600;margin-bottom:4px;font-size:0.9rem;">Name</label>
+            <input id="editUserName" type="text" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="display:block;font-weight:600;margin-bottom:4px;font-size:0.9rem;">Role</label>
+            <select id="editUserRole" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;box-sizing:border-box;">
+                <option value="admin">Admin</option>
+                <option value="closer">Closer</option>
+                <option value="agent">Agent</option>
+                <option value="fronter">Fronter</option>
+                <option value="dispatch">Dispatch</option>
+            </select>
+        </div>
+        <div style="margin-bottom:14px;">
+            <label style="display:block;font-weight:600;margin-bottom:4px;font-size:0.9rem;">Secret Key</label>
+            <input id="editUserSecret" type="text" style="width:100%;padding:10px;border:1px solid #d1d5db;border-radius:8px;font-size:1rem;box-sizing:border-box;">
+        </div>
+        <div style="margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+            <input id="editUserActive" type="checkbox" style="width:18px;height:18px;">
+            <label for="editUserActive" style="font-weight:600;font-size:0.9rem;">Active</label>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;">
+            <button onclick="document.getElementById('editUserModal').style.display='none'" style="padding:10px 20px;border:1px solid #d1d5db;border-radius:8px;background:#fff;cursor:pointer;font-size:0.95rem;">Cancel</button>
+            <button onclick="saveEditUser()" style="padding:10px 20px;border:none;border-radius:8px;background:#FFA23F;color:#fff;cursor:pointer;font-weight:600;font-size:0.95rem;">Save</button>
+        </div>
+    </div>
+</div>
 </body>
 </html>
