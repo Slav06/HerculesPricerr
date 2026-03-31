@@ -19,10 +19,12 @@ module.exports = async function handler(req, res) {
         const event = body.event;
         if (event.bot_id || event.subtype === 'bot_message') return res.status(200).end();
 
-        // Deduplicate Slack retries — ignore if we've already seen this event
+        // Deduplicate Slack retries AND duplicate event types (message + app_mention)
         const eventId = body.event_id;
-        if (eventId && seenEvents.has(eventId)) return res.status(200).end();
+        const dedupeKey = `${event.user}-${event.channel}-${event.ts}`;
+        if ((eventId && seenEvents.has(eventId)) || seenEvents.has(dedupeKey)) return res.status(200).end();
         if (eventId) { seenEvents.add(eventId); setTimeout(() => seenEvents.delete(eventId), 60000); }
+        seenEvents.add(dedupeKey); setTimeout(() => seenEvents.delete(dedupeKey), 60000);
 
         if (event.type === 'message' || event.type === 'app_mention') {
             const text = (event.text || '').replace(/<@[A-Z0-9]+>/gi, '').trim() || 'hi';
