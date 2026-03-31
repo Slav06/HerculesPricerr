@@ -35,8 +35,9 @@ module.exports = async function handler(req, res) {
                 if (response && response.trim().length > 0) await sendSlackMessage(channel, response);
             } catch (e) {
                 const errMsg = e?.message || String(e);
+                const stackLine = (e?.stack || '').split('\n').find(l => l.includes('slack-bot')) || '';
                 console.error('Johnny Boombotz CRASH:', errMsg, e?.stack || '');
-                try { await sendSlackMessage(channel, `Sorry, I hit an error: _${errMsg.substring(0, 100)}_`); } catch(_) {}
+                try { await sendSlackMessage(channel, `Sorry, I hit an error: _${errMsg.substring(0, 100)}_\n\`${stackLine.trim()}\``); } catch(_) {}
             }
             return res.status(200).end();
         }

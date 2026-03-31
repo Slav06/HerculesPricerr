@@ -10,6 +10,10 @@ function getSupabaseEnv() {
 
 async function supabaseGet(path) {
     const { url, anonKey } = getSupabaseEnv();
+    if (!url || !anonKey) {
+        console.error('SUPABASE_URL or SUPABASE_ANON_KEY not set. url:', !!url, 'anonKey:', !!anonKey);
+        return { ok: false, status: 0, data: [] };
+    }
     const res = await fetch(url.replace(/\/$/, '') + path, {
         headers: {
             apikey: anonKey,
