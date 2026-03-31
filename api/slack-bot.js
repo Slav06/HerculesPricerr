@@ -25,7 +25,7 @@ module.exports = async function handler(req, res) {
         if (eventId) { seenEvents.add(eventId); setTimeout(() => seenEvents.delete(eventId), 60000); }
 
         if (event.type === 'message' || event.type === 'app_mention') {
-            const text = (event.text || '').replace(/<@[A-Z0-9]+>/gi, '').trim();
+            const text = (event.text || '').replace(/<@[A-Z0-9]+>/gi, '').trim() || 'hi';
             const userId = event.user;
             const channel = event.channel;
 
