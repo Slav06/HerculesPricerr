@@ -225,8 +225,9 @@ Use this context to understand what people are referring to. If someone says "re
         }
         claudeData = await claudeResp.json();
         if (!claudeResp.ok) {
-            console.error('Claude API error:', claudeResp.status, JSON.stringify(claudeData));
-            return 'Sorry, I hit an error. Try again in a moment.';
+            const errDetail = claudeData?.error?.message || JSON.stringify(claudeData).substring(0, 200);
+            console.error('Claude API error:', claudeResp.status, errDetail);
+            return `Claude API error (${claudeResp.status}): _${errDetail}_`;
         }
         break;
     }
