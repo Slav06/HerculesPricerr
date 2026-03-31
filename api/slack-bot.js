@@ -229,7 +229,11 @@ Use this context to understand what people are referring to. If someone says "re
         }
         break;
     }
-    let response = claudeData?.content?.[0]?.text || "Sorry, I couldn't process that. Try again?";
+    let response = claudeData?.content?.[0]?.text || '';
+    if (!response) {
+        console.error('Claude returned no text. Full response:', JSON.stringify(claudeData));
+        response = "Sorry, I couldn't process that. Try again?";
+    }
 
     // Execute any actions Johnny Boombotz decided to take
     response = await executeActions(response, userName);
@@ -240,6 +244,7 @@ Use this context to understand what people are referring to. If someone says "re
 // ─── Execute Actions from Claude's Response ───
 
 async function executeActions(response, userName) {
+    if (!response || typeof response !== 'string') return response || '';
     if (!userName) return response.replace(/<!--ACTION:.+?-->/g, '').trim();
 
     const encodedName = encodeURIComponent(userName);
