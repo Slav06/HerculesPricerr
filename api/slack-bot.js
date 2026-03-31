@@ -1,4 +1,4 @@
-// Sandy - AI-Powered Schedule Bot (Claude + Slack)
+// Johnny Boombotz - AI-Powered Schedule Bot (Claude + Slack)
 const { supabaseGet, getSupabaseEnv } = require('./_supabase');
 
 const BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
@@ -35,7 +35,7 @@ module.exports = async function handler(req, res) {
                 if (response && response.trim().length > 0) await sendSlackMessage(channel, response);
             } catch (e) {
                 const errMsg = e?.message || String(e);
-                console.error('Sandy CRASH:', errMsg, e?.stack || '');
+                console.error('Johnny Boombotz CRASH:', errMsg, e?.stack || '');
                 try { await sendSlackMessage(channel, `Sorry, I hit an error: _${errMsg.substring(0, 100)}_`); } catch(_) {}
             }
             return res.status(200).end();
@@ -81,7 +81,7 @@ async function processWithClaude(userMessage, userId, channel) {
         pendingHours = Array.isArray(confirmResult.data) ? confirmResult.data : (Array.isArray(confirmResult) ? confirmResult : []);
     }
 
-    // Fetch recent channel messages so Sandy has context
+    // Fetch recent channel messages so Johnny Boombotz has context
     let recentMessages = '';
     try {
         const histResp = await fetch(`https://slack.com/api/conversations.history?channel=${channel}&limit=15`, {
@@ -94,14 +94,14 @@ async function processWithClaude(userMessage, userId, channel) {
                 if (emp.slack_user_id) slackNames[emp.slack_user_id] = emp.name;
             }
             recentMessages = histData.messages.slice().reverse().map(m => {
-                const who = slackNames[m.user] || (m.bot_id ? 'Sandy' : m.user || '?');
+                const who = slackNames[m.user] || (m.bot_id ? 'Johnny Boombotz' : m.user || '?');
                 const txt = (m.text || '').replace(/<@([A-Z0-9]+)>/gi, (_, id) => '@' + (slackNames[id] || id));
                 return `[${who}] ${txt}`;
             }).join('\n');
         }
     } catch (e) { console.warn('Failed to fetch channel history:', e.message); }
 
-    const systemPrompt = `You are Sandy, the friendly and professional schedule manager bot for Hercules Moving Solutions (HMS), a moving company. You communicate on Slack.
+    const systemPrompt = `You are Johnny Boombotz, the friendly and professional schedule manager bot for Hercules Moving Solutions (HMS), a moving company. You communicate on Slack.
 
 CURRENT DATE: ${today} (${dayOfWeek})
 EMPLOYEE MESSAGING YOU: ${userName || 'Unknown (no Slack ID linked)'}
@@ -135,7 +135,7 @@ YOUR CAPABILITIES - Include ACTION blocks in your response to take actions. Use 
 6. RESET SECRET KEY: <!--ACTION:RESET_KEY--> (generates a new login key for the employee and DMs it to them)
 7. SET REMINDER for a team member: <!--ACTION:REMINDER:TARGET_NAMES:DATE:TIME:MESSAGE--> (remind someone to do something, e.g. call back a customer)
 8. REQUEST MANUAL HOURS: <!--ACTION:MANUAL_HOURS:HOURS:MINUTES:DATE:REASON--> (submits a PENDING request — MUST be approved by management before hours are added. Tell the employee their request has been SUBMITTED FOR APPROVAL, never say "added" or "done")
-9. TRACK KEYWORD: <!--ACTION:TRACK:keyword:intel_text--> (teach Sandy to watch for a keyword in conversations)
+9. TRACK KEYWORD: <!--ACTION:TRACK:keyword:intel_text--> (teach Johnny Boombotz to watch for a keyword in conversations)
 10. STOP TRACKING: <!--ACTION:STOP_TRACK:keyword--> (stop tracking a keyword)
 11. LIST RULES: <!--ACTION:LIST_RULES--> (show current custom tracking rules)
 12. DM UNCONFIRMED EMPLOYEES: <!--ACTION:DM_UNCONFIRMED:YYYY-MM-DD:YYYY-MM-DD:optional warning message--> (DM all employees who haven't confirmed their shifts for the given date range)
@@ -161,7 +161,7 @@ CRITICAL: Manual hours are NOT added immediately. They go to management for appr
 RULES:
 - Keep responses SHORT. 1-3 sentences max. This is Slack, not email.
 - No emojis except occasionally. Never use :wave: or :blush: or similar.
-- Be direct and professional, not bubbly. Sandy is sharp, not a cheerful assistant.
+- Be direct and professional, not bubbly. Johnny Boombotz is sharp, not a cheerful assistant.
 - When someone says they can/can't work, take the appropriate action immediately.
 - When someone gives you new hours (like "I can do 3pm to 12am"), UPDATE their shift and confirm.
 - When someone calls out, mark their shift as CALLOUT and ALERT the admin channel.
@@ -218,7 +218,7 @@ Use this context to understand what people are referring to. If someone says "re
         });
         if (claudeResp.status === 429) {
             const wait = Math.min(parseInt(claudeResp.headers.get('retry-after') || '5', 10), 10) * 1000;
-            console.warn('Sandy rate limited, attempt', attempt + 1, '— waiting', wait, 'ms');
+            console.warn('Johnny Boombotz rate limited, attempt', attempt + 1, '— waiting', wait, 'ms');
             if (attempt < 2) { await new Promise(r => setTimeout(r, wait)); continue; }
             return 'I\'m a bit busy right now. Try again in a minute.';
         }
@@ -231,7 +231,7 @@ Use this context to understand what people are referring to. If someone says "re
     }
     let response = claudeData?.content?.[0]?.text || "Sorry, I couldn't process that. Try again?";
 
-    // Execute any actions Sandy decided to take
+    // Execute any actions Johnny Boombotz decided to take
     response = await executeActions(response, userName);
 
     return response;

@@ -1,4 +1,4 @@
-// Monday Weekly Hours Report - Sandy posts verified hours to admin channel
+// Monday Weekly Hours Report - Johnny Boombotz posts verified hours to admin channel
 // Cron: every Monday at 10 AM UTC
 
 const { supabaseGet, supabasePost, getSupabaseEnv } = require('./_supabase');

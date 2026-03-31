@@ -1,4 +1,4 @@
-// Daily Check-In Cron - Sandy checks in with everyone scheduled for tomorrow
+// Daily Check-In Cron - Johnny Boombotz checks in with everyone scheduled for tomorrow
 // Triggered by Vercel cron at 6 PM daily
 
 const { supabaseGet, getSupabaseEnv } = require('./_supabase');

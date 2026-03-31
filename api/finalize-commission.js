@@ -105,7 +105,7 @@ module.exports = async function handler(req, res) {
                 };
             }
 
-            // Send links via Sandy DM to each employee
+            // Send links via Johnny Boombotz DM to each employee
             for (const emp of employees) {
                 if (!emp.slack_user_id || !tokens[emp.name]) continue;
 

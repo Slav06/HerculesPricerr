@@ -99,7 +99,7 @@ function groupIntoChunks(messages, windowMinutes = 10) {
     return chunks;
 }
 
-// ── Sandy's self-improvement — learn from @Sandy instructions in Slack ────────
+// ── Johnny Boombotz's self-improvement — learn from @Johnny Boombotz instructions in Slack ────────
 
 async function loadCustomRules() {
     const result = await supabaseGet(
@@ -110,14 +110,14 @@ async function loadCustomRules() {
 
 async function processSandyInstructions(messages) {
     const instructions = [];
-    // Find messages directed at Sandy: @Sandy, "Sandy,", "sandy ", "hey sandy"
+    // Find messages directed at Johnny Boombotz: @Johnny, "Johnny,", "johnny ", "hey johnny", "boombotz"
     for (const m of messages) {
         const text = m.text || '';
-        const isSandyMention = /(?:@sandy|^sandy[,:\s]|hey sandy)/i.test(text);
+        const isSandyMention = /(?:@johnny|^johnny[,:\s]|hey johnny|boombotz)/i.test(text);
         if (!isSandyMention) continue;
 
         const sender = m.senderName || 'someone';
-        const instruction = text.replace(/(?:@sandy|^sandy)[,:\s]*/i, '').trim();
+        const instruction = text.replace(/(?:@johnny|^johnny)[,:\s]*/i, '').trim();
         if (!instruction || instruction.length < 5) continue;
 
         instructions.push({ sender, instruction, originalText: text, ts: m.ts });
@@ -216,7 +216,7 @@ async function parseAndSaveInstruction(inst) {
         if (listMatch) {
             const rules = await loadCustomRules();
             if (rules.length === 0) {
-                confirmMsg = "I don't have any custom rules yet. Teach me! Say something like:\n- *Sandy, track military discount*\n- *Sandy, when you see 'callback tomorrow', suggest follow up by noon*\n- *Sandy, stop tracking military discount*";
+                confirmMsg = "I don't have any custom rules yet. Teach me! Say something like:\n- *Johnny, track military discount*\n- *Johnny, when you see 'callback tomorrow', suggest follow up by noon*\n- *Johnny, stop tracking military discount*";
             } else {
                 const ruleList = rules.map((r, i) =>
                     `${i + 1}. *${r.keyword}* -> ${r.intel_text}${r.suggestion_text ? ` (suggest: ${r.suggestion_text})` : ''} _(by ${r.created_by})_`
@@ -601,7 +601,7 @@ async function handleManualHoursRequest(inst) {
                 body: JSON.stringify({
                     channel: dmChannel,
                     text: approvalMsg,
-                    username: 'Sandy',
+                    username: 'Johnny Boombotz',
                     icon_url: 'https://pricerr.vercel.app/sandy-avatar.jpg',
                 }),
             });
@@ -835,7 +835,7 @@ async function saveDealIntelToNotes(deals) {
         const timestamp = new Date().toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
         const intelLines = deal.intel.map(i => `- ${i}`).join('\n');
         const sugLines = deal.suggestions.length ? '\nSuggestions:\n' + deal.suggestions.map(s => `> ${s}`).join('\n') : '';
-        const newNote = `\n\n--- Sandy Intel (${timestamp}) ---\n${deal.rep ? `Rep: ${deal.rep}\n` : ''}${intelLines}${sugLines}`;
+        const newNote = `\n\n--- Johnny Boombotz Intel (${timestamp}) ---\n${deal.rep ? `Rep: ${deal.rep}\n` : ''}${intelLines}${sugLines}`;
 
         // Avoid duplicates: check if the first intel line already exists in notes
         if (existingNotes.includes(deal.intel[0])) continue;
@@ -901,7 +901,7 @@ function extractTeamActivity(messages) {
     const activity = {};
     for (const m of messages) {
         const name = m.senderName || 'unknown';
-        if (name === 'unknown' || name === 'Sandy') continue;
+        if (name === 'unknown' || name === 'Sandy' || name === 'Johnny Boombotz') continue;
         if (!activity[name]) activity[name] = { messages: 0, pricing_asks: 0, transfers: 0, otps: 0, bookings: 0, drops: 0 };
         activity[name].messages++;
         const text = (m.text || '').toLowerCase();
@@ -956,7 +956,7 @@ async function upsertTeamStats(activity) {
     }
 }
 
-// ── Sandy's personality — never repeat, always fresh ─────────────────────────
+// ── Johnny Boombotz's personality — never repeat, always fresh ─────────────────────────
 
 let _recentlySent = new Set();
 
@@ -1117,7 +1117,7 @@ async function runLearn() {
     };
 }
 
-// ── Slack: post a message as Sandy ─────────────────────────────────────────────
+// ── Slack: post a message as Johnny Boombotz ─────────────────────────────────────────────
 
 async function sandyPost(channel, text) {
     const token = process.env.SLACK_BOT_TOKEN;
@@ -1131,14 +1131,14 @@ async function sandyPost(channel, text) {
         body: JSON.stringify({
             channel,
             text,
-            username: 'Sandy',
+            username: 'Johnny Boombotz',
             icon_url: 'https://pricerr.vercel.app/sandy-avatar.jpg',
         }),
     });
     return res.json();
 }
 
-// ── Sandy's smart alerts — only posts when something actually matters ─────────
+// ── Johnny Boombotz's smart alerts — only posts when something actually matters ─────────
 
 async function runSmartAlerts() {
     if (isQuietHours()) return { skipped: true, reason: 'quiet_hours' };
@@ -1160,7 +1160,7 @@ async function runSmartAlerts() {
     });
 
     if (allOverdue.length > 0) {
-        // Check which job numbers Sandy already alerted about today
+        // Check which job numbers Johnny Boombotz already alerted about today
         const alertedResult = await supabaseGet(
             `/rest/v1/sandy_sent_messages?message_preview=ilike.%25overdue%25&created_at=gt.${todayStr}T00:00:00Z&select=message_preview&order=created_at.desc&limit=50`
         );
@@ -1258,7 +1258,7 @@ async function runSmartAlerts() {
     }
 }
 
-// ── Sandy's periodic tips (shares knowledge she's built up) ───────────────────
+// ── Johnny Boombotz's periodic tips (shares knowledge he's built up) ───────────────────
 
 async function shareRandomTip() {
     if (isQuietHours()) return { skipped: true, reason: 'quiet_hours' };
@@ -1601,7 +1601,7 @@ module.exports = async (req, res) => {
             error: 'Missing or invalid action. Use ?action=learn, ?action=knowledge, or ?action=stats',
         });
     } catch (err) {
-        console.error('sandy-learn error:', err);
+        console.error('johnny-boombotz-learn error:', err);
         return res.status(500).json({ ok: false, error: err.message });
     }
 };

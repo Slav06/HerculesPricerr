@@ -985,7 +985,7 @@
             we.setDate(we.getDate() + 6);
             const weekLabel = currentWeekStart.toLocaleDateString('en-US',{month:'short',day:'numeric'}) + ' - ' + we.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
 
-            if (!confirm('Finalize commission for ' + weekLabel + '?\n\nThis will:\n- Snapshot all commission assignments for this week\n- Send each employee a confirmation link via Sandy\n- Commission won\'t be paid until they confirm')) return;
+            if (!confirm('Finalize commission for ' + weekLabel + '?\n\nThis will:\n- Snapshot all commission assignments for this week\n- Send each employee a confirmation link via Johnny Boombotz\n- Commission won\'t be paid until they confirm')) return;
 
             var container = document.getElementById('payslipContainer');
             container.innerHTML = '<div class="loading-container"><div class="spinner"></div><div class="loading-text">Finalizing commission...</div></div>';

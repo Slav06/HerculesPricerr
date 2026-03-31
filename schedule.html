@@ -371,7 +371,7 @@
             <div class="app-bar-actions">
                 <button class="btn btn-ghost" onclick="openAddEmployee()">+ Add Employee</button>
                 <a href="/payslips" class="btn btn-orange" style="text-decoration:none">Payslips</a>
-                <button class="btn btn-success" onclick="sendToTeam()">Send to Team via Sandy</button>
+                <button class="btn btn-success" onclick="sendToTeam()">Send to Team via Johnny Boombotz</button>
             </div>
         </div>
     </div>
@@ -411,11 +411,11 @@
         </div>
     </div>
 
-    <!-- Sandy's Conversations -->
+    <!-- Johnny Boombotz's Conversations -->
     <div class="conversations-section" style="margin-top:16px">
         <div class="schedule-card">
             <div class="schedule-card-header" style="display:flex;justify-content:space-between;align-items:center">
-                Sandy's Conversations
+                Johnny Boombotz's Conversations
                 <div style="display:flex;gap:6px;align-items:center">
                     <button class="btn btn-primary btn-sm" onclick="triggerCheckIn()">Check In All</button>
                     <button class="btn btn-sm" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:#fff;border:none" onclick="weekendCheckIn()">Weekend Check-In</button>
@@ -426,7 +426,7 @@
             </div>
             <div class="convo-tabs" id="convoTabs"></div>
             <div class="convo-chat" id="convoChat">
-                <div class="empty-state" style="padding:40px">Select an employee above to view Sandy's conversation</div>
+                <div class="empty-state" style="padding:40px">Select an employee above to view Johnny Boombotz's conversation</div>
             </div>
         </div>
     </div>
@@ -1042,7 +1042,7 @@
         showToast('Changes discarded', 'info');
     };
 
-    // Send schedule to team via Sandy
+    // Send schedule to team via Johnny Boombotz
     window.sendToTeam = async function() {
         // Save any pending changes first
         if (Object.keys(pendingChanges).length > 0) {
@@ -1077,7 +1077,7 @@
         msg += `View your schedule: app.herculesmovingsolutions.com/my-schedule\n`;
         msg += `_Please confirm your shifts or let me know if you need to swap._`;
 
-        if (!confirm('Send this week\'s schedule to the team channel via Sandy?')) return;
+        if (!confirm('Send this week\'s schedule to the team channel via Johnny Boombotz?')) return;
 
         showLoading();
         try {
@@ -1090,7 +1090,7 @@
             hideLoading();
 
             if (result.ok) {
-                showToast('Sandy sent the schedule to the team', 'success');
+                showToast('Johnny Boombotz sent the schedule to the team', 'success');
             } else {
                 showToast('Failed: ' + (result.error || 'Unknown error'), 'error');
             }
@@ -1208,7 +1208,7 @@
         }
     };
 
-    // ── Sandy's Conversations ──
+    // ── Johnny Boombotz's Conversations ──
     let convosData = [];
     let activeConvo = null;
     let autoRefreshInterval = null;

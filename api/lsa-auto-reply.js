@@ -206,7 +206,7 @@ async function processNewLeads() {
             });
             replied++;
 
-            // Alert admin via Sandy DM
+            // Alert admin via Johnny Boombotz DM
             await sendAdminDM(`📩 *New LSA Message Lead*\nName: ${customerName || 'Unknown'}\nPhone: ${lead.contactDetails?.phoneNumber || '—'}\nEmail: ${lead.contactDetails?.email || '—'}\nStatus: ${lead.leadStatus}\n\nAuto-reply sent.`);
         } catch (e) {
             console.error(`Failed to reply to lead ${lead.id}:`, e);

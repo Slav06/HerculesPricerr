@@ -1,4 +1,4 @@
-// Fetch Sandy's DM conversations with employees
+// Fetch Johnny Boombotz's DM conversations with employees
 const { supabaseGet } = require('./_supabase');
 
 const BOT_TOKEN = process.env.SLACK_BOT_TOKEN;
@@ -59,7 +59,7 @@ module.exports = async function handler(req, res) {
                 ts: m.ts,
                 time: new Date(parseFloat(m.ts) * 1000).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }),
                 isBot: !!m.bot_id,
-                user: m.bot_id ? 'Sandy' : emp.name
+                user: m.bot_id ? 'Johnny Boombotz' : emp.name
             }));
 
             conversations.push({ name: emp.name, channelId: dmData.channel.id, messages });
