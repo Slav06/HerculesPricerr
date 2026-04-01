@@ -19,17 +19,17 @@ module.exports = async function handler(req, res) {
         const event = body.event;
         if (event.bot_id || event.subtype === 'bot_message') return res.status(200).end();
 
-        // Deduplicate Slack retries AND duplicate event types (message + app_mention)
-        const eventId = body.event_id;
-        const dedupeKey = `${event.user}-${event.channel}-${event.ts}`;
-        if ((eventId && seenEvents.has(eventId)) || seenEvents.has(dedupeKey)) return res.status(200).end();
-        if (eventId) { seenEvents.add(eventId); setTimeout(() => seenEvents.delete(eventId), 60000); }
-        seenEvents.add(dedupeKey); setTimeout(() => seenEvents.delete(dedupeKey), 60000);
+        // In channels: only respond to app_mention (ignore message events to avoid duplicates)
+        // In DMs: respond to message events
+        const isDM = event.channel_type === 'im' || (event.channel && event.channel.startsWith('D'));
+        if (event.type === 'message' && !isDM) return res.status(200).end();
 
-        // Only respond to app_mention in channels (avoids duplicate with message event)
-        // Respond to message events only in DMs (channel starts with D)
-        if (event.type === 'message' && !event.channel?.startsWith('D')) return res.status(200).end();
-        if (event.type === 'message' || event.type === 'app_mention') {
+        // Deduplicate Slack retries
+        const eventId = body.event_id;
+        if (eventId && seenEvents.has(eventId)) return res.status(200).end();
+        if (eventId) { seenEvents.add(eventId); setTimeout(() => seenEvents.delete(eventId), 60000); }
+
+        if (event.type === 'app_mention' || (event.type === 'message' && isDM)) {
             const text = (event.text || '').replace(/<@[A-Z0-9]+>/gi, '').trim() || 'hi';
             const userId = event.user;
             const channel = event.channel;
