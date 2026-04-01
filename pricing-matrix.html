@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pricing Matrix - Admin</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #FFA23F 0%, #e8891f 50%, #d4780a 100%);
+            min-height: 100vh; color: #333;
+        }
+        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+
+        .app-bar {
+            background: rgba(8, 12, 28, 0.92);
+            backdrop-filter: blur(16px);
+            border-radius: 12px; margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            padding: 16px 24px; position: relative; overflow: hidden;
+        }
+        .app-bar::before {
+            content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+            background: linear-gradient(90deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+        }
+        .app-bar h1 { color: #fff; font-size: 20px; font-weight: 600; }
+        .app-bar p { color: rgba(255,255,255,0.6); font-size: 13px; margin-top: 4px; }
+
+        .card {
+            background: rgba(8, 12, 28, 0.92);
+            backdrop-filter: blur(16px);
+            border-radius: 12px; padding: 20px;
+            border: 1px solid rgba(255,255,255,0.07);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            margin-bottom: 16px;
+        }
+        .card-title { color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+
+        table { width: 100%; border-collapse: collapse; }
+        th {
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.7);
+            padding: 10px 12px; text-align: left; font-size: 12px; font-weight: 600;
+            text-transform: uppercase; letter-spacing: 0.5px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        td {
+            padding: 10px 12px; color: #fff; font-size: 14px;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        tr:hover td { background: rgba(255,255,255,0.03); }
+
+        .btn {
+            padding: 8px 16px; border: none; border-radius: 8px;
+            font-size: 13px; font-weight: 600; cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-primary { background: #3b82f6; color: #fff; }
+        .btn-primary:hover { background: #2563eb; }
+        .btn-success { background: #22c55e; color: #fff; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-danger { background: #ef4444; color: #fff; font-size: 12px; padding: 5px 10px; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-edit { background: #8b5cf6; color: #fff; font-size: 12px; padding: 5px 10px; }
+        .btn-edit:hover { background: #7c3aed; }
+
+        .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+        .form-group { flex: 1; min-width: 120px; }
+        .form-group label {
+            display: block; color: rgba(255,255,255,0.6); font-size: 12px;
+            font-weight: 600; margin-bottom: 4px; text-transform: uppercase;
+        }
+        .form-group input, .form-group select {
+            width: 100%; padding: 8px 12px; border-radius: 8px;
+            border: 1px solid rgba(255,255,255,0.15);
+            background: rgba(255,255,255,0.08); color: #fff;
+            font-size: 14px; outline: none;
+        }
+        .form-group input:focus { border-color: #3b82f6; }
+        .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+
+        .actions { display: flex; gap: 6px; }
+
+        .rate-highlight { color: #22c55e; font-weight: 700; }
+        .fuel-highlight { color: #f59e0b; }
+
+        .empty-state { color: rgba(255,255,255,0.4); text-align: center; padding: 40px; font-size: 14px; }
+
+        .toast {
+            position: fixed; bottom: 20px; right: 20px;
+            padding: 12px 20px; border-radius: 8px; color: #fff;
+            font-size: 14px; font-weight: 600; z-index: 1000;
+            animation: slideIn 0.3s ease;
+        }
+        .toast-success { background: #22c55e; }
+        .toast-error { background: #ef4444; }
+        @keyframes slideIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .back-link { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 13px; }
+        .back-link:hover { color: #fff; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="app-bar">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+            <div>
+                <h1>Pricing Matrix</h1>
+                <p>Manage per-CF rates by distance and volume tiers for Johnny Boombotz</p>
+            </div>
+            <a href="/dashboard" class="back-link">Back to Dashboard</a>
+        </div>
+    </div>
+
+    <!-- Add New Tier -->
+    <div class="card">
+        <div class="card-title" id="formTitle">Add New Tier</div>
+        <form id="tierForm" onsubmit="saveTier(event)">
+            <input type="hidden" id="editId" value="">
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Min Miles</label>
+                    <input type="number" id="minMiles" placeholder="0" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Max Miles</label>
+                    <input type="number" id="maxMiles" placeholder="100" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Min Cubes (CF)</label>
+                    <input type="number" id="minCubes" placeholder="0" required min="0">
+                </div>
+                <div class="form-group">
+                    <label>Max Cubes (CF)</label>
+                    <input type="number" id="maxCubes" placeholder="300" required min="0">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Rate per CF ($)</label>
+                    <input type="number" id="perCfRate" placeholder="10.00" required min="0" step="0.01">
+                </div>
+                <div class="form-group">
+                    <label>Fuel Surcharge (%)</label>
+                    <input type="number" id="fuelPct" placeholder="15" value="15" required min="0" step="0.5">
+                </div>
+                <div class="form-group">
+                    <label>Label</label>
+                    <input type="text" id="label" placeholder="Short / Small">
+                </div>
+                <div class="form-group" style="display:flex;align-items:flex-end;min-width:auto">
+                    <button type="submit" class="btn btn-success" id="saveBtn">Add Tier</button>
+                    <button type="button" class="btn" style="margin-left:6px;background:rgba(255,255,255,0.1);color:#fff;display:none" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Pricing Table -->
+    <div class="card">
+        <div class="card-title">Current Pricing Tiers</div>
+        <div id="tableContainer">
+            <div class="empty-state">Loading...</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const SUPABASE_URL = 'https://jntjffdbqnklfcrfrndz.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
+
+    let tiers = [];
+
+    async function sbFetch(path, opts = {}) {
+        const res = await fetch(SUPABASE_URL + path, {
+            ...opts,
+            headers: {
+                apikey: SUPABASE_KEY,
+                Authorization: `Bearer ${SUPABASE_KEY}`,
+                'Content-Type': 'application/json',
+                Prefer: opts.method === 'POST' ? 'return=representation' : 'return=representation',
+                ...(opts.headers || {})
+            }
+        });
+        return res.json().catch(() => null);
+    }
+
+    async function loadTiers() {
+        const data = await sbFetch('/rest/v1/pricing_matrix?order=min_miles,min_cubes');
+        tiers = Array.isArray(data) ? data : [];
+        renderTable();
+    }
+
+    function renderTable() {
+        const el = document.getElementById('tableContainer');
+        if (!tiers.length) {
+            el.innerHTML = '<div class="empty-state">No pricing tiers yet. Add your first one above.</div>';
+            return;
+        }
+        let html = `<table>
+            <thead><tr>
+                <th>Label</th><th>Miles</th><th>Cubes (CF)</th><th>Rate/CF</th><th>Fuel %</th><th>Example (500 CF)</th><th></th>
+            </tr></thead><tbody>`;
+
+        for (const t of tiers) {
+            const exBase = 500 * t.per_cf_rate;
+            const exFuel = exBase * (t.fuel_surcharge_pct / 100);
+            const exTotal = Math.round(exBase + exFuel);
+            html += `<tr>
+                <td>${t.label || '-'}</td>
+                <td>${t.min_miles} - ${t.max_miles}</td>
+                <td>${t.min_cubes} - ${t.max_cubes}</td>
+                <td class="rate-highlight">$${parseFloat(t.per_cf_rate).toFixed(2)}</td>
+                <td class="fuel-highlight">${t.fuel_surcharge_pct}%</td>
+                <td>$${exTotal.toLocaleString()}</td>
+                <td class="actions">
+                    <button class="btn btn-edit" onclick="editTier('${t.id}')">Edit</button>
+                    <button class="btn btn-danger" onclick="deleteTier('${t.id}')">Delete</button>
+                </td>
+            </tr>`;
+        }
+        html += '</tbody></table>';
+        el.innerHTML = html;
+    }
+
+    async function saveTier(e) {
+        e.preventDefault();
+        const editId = document.getElementById('editId').value;
+        const body = {
+            min_miles: parseInt(document.getElementById('minMiles').value),
+            max_miles: parseInt(document.getElementById('maxMiles').value),
+            min_cubes: parseInt(document.getElementById('minCubes').value),
+            max_cubes: parseInt(document.getElementById('maxCubes').value),
+            per_cf_rate: parseFloat(document.getElementById('perCfRate').value),
+            fuel_surcharge_pct: parseFloat(document.getElementById('fuelPct').value),
+            label: document.getElementById('label').value || null,
+            updated_at: new Date().toISOString()
+        };
+
+        if (editId) {
+            await sbFetch(`/rest/v1/pricing_matrix?id=eq.${editId}`, {
+                method: 'PATCH', body: JSON.stringify(body)
+            });
+            showToast('Tier updated');
+            cancelEdit();
+        } else {
+            await sbFetch('/rest/v1/pricing_matrix', {
+                method: 'POST', body: JSON.stringify(body)
+            });
+            showToast('Tier added');
+        }
+
+        document.getElementById('tierForm').reset();
+        document.getElementById('fuelPct').value = '15';
+        await loadTiers();
+    }
+
+    function editTier(id) {
+        const t = tiers.find(x => x.id === id);
+        if (!t) return;
+        document.getElementById('editId').value = t.id;
+        document.getElementById('minMiles').value = t.min_miles;
+        document.getElementById('maxMiles').value = t.max_miles;
+        document.getElementById('minCubes').value = t.min_cubes;
+        document.getElementById('maxCubes').value = t.max_cubes;
+        document.getElementById('perCfRate').value = t.per_cf_rate;
+        document.getElementById('fuelPct').value = t.fuel_surcharge_pct;
+        document.getElementById('label').value = t.label || '';
+        document.getElementById('formTitle').textContent = 'Edit Tier';
+        document.getElementById('saveBtn').textContent = 'Update Tier';
+        document.getElementById('cancelBtn').style.display = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function cancelEdit() {
+        document.getElementById('editId').value = '';
+        document.getElementById('tierForm').reset();
+        document.getElementById('fuelPct').value = '15';
+        document.getElementById('formTitle').textContent = 'Add New Tier';
+        document.getElementById('saveBtn').textContent = 'Add Tier';
+        document.getElementById('cancelBtn').style.display = 'none';
+    }
+
+    async function deleteTier(id) {
+        if (!confirm('Delete this pricing tier?')) return;
+        await sbFetch(`/rest/v1/pricing_matrix?id=eq.${id}`, { method: 'DELETE' });
+        showToast('Tier deleted');
+        await loadTiers();
+    }
+
+    function showToast(msg, type = 'success') {
+        const el = document.createElement('div');
+        el.className = `toast toast-${type}`;
+        el.textContent = msg;
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 3000);
+    }
+
+    loadTiers();
+</script>
+</body>
+</html>

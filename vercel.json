@@ -30,6 +30,7 @@
     { "source": "/sales-invoice", "destination": "/sales-invoice.html" },
     { "source": "/invoices", "destination": "/invoice-summary.html" },
     { "source": "/dispatch", "destination": "/dispatch.html" },
-    { "source": "/agent", "destination": "/agent.html" }
+    { "source": "/agent", "destination": "/agent.html" },
+    { "source": "/pricing-matrix", "destination": "/pricing-matrix.html" }
   ]
 }
