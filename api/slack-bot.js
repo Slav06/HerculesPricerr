@@ -26,6 +26,9 @@ module.exports = async function handler(req, res) {
         if (eventId) { seenEvents.add(eventId); setTimeout(() => seenEvents.delete(eventId), 60000); }
         seenEvents.add(dedupeKey); setTimeout(() => seenEvents.delete(dedupeKey), 60000);
 
+        // Only respond to app_mention in channels (avoids duplicate with message event)
+        // Respond to message events only in DMs (channel starts with D)
+        if (event.type === 'message' && !event.channel?.startsWith('D')) return res.status(200).end();
         if (event.type === 'message' || event.type === 'app_mention') {
             const text = (event.text || '').replace(/<@[A-Z0-9]+>/gi, '').trim() || 'hi';
             const userId = event.user;
