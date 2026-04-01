@@ -69,10 +69,25 @@ async function processWithClaude(userMessage, userId, channel) {
     const matrixResult = await supabaseGet('/rest/v1/pricing_matrix?order=min_miles,min_cubes');
     pricingMatrix = Array.isArray(matrixResult.data) ? matrixResult.data : [];
 
-    const pricingTable = pricingMatrix.length > 0
-        ? pricingMatrix.map(r =>
-            `${r.label}: ${r.min_miles}-${r.max_miles} miles, ${r.min_cubes}-${r.max_cubes} CF → $${r.per_cf_rate}/CF + ${r.fuel_surcharge_pct}% fuel`
+    const baseRates = pricingMatrix.filter(r => (r.tier_type || 'base') === 'base');
+    const mileageAdj = pricingMatrix.filter(r => r.tier_type === 'mileage');
+    const regionAdj = pricingMatrix.filter(r => r.tier_type === 'region');
+
+    const pricingTable = baseRates.length > 0
+        ? 'BASE RATES (at 1000 miles):\n' + baseRates.map(r =>
+            `- ${r.label || ''}: ${r.min_cubes}-${r.max_cubes} CF → $${Number(r.per_cf_rate).toFixed(2)}/CF`
         ).join('\n')
+        + (mileageAdj.length ? '\n\nMILEAGE ADJUSTMENTS:\n' + mileageAdj.map(r => {
+            const adjType = r.region_applies_to || 'flat';
+            if (adjType === 'percent') return `- ${r.min_miles}-${r.max_miles} miles: ${r.fuel_surcharge_pct >= 0 ? '+' : ''}${r.fuel_surcharge_pct}% of base`;
+            if (adjType === 'per_mile') return `- ${r.min_miles}-${r.max_miles} miles: $${r.per_cf_rate}/mile difference from 1000`;
+            return `- ${r.min_miles}-${r.max_miles} miles: ${r.per_cf_rate >= 0 ? '+' : ''}$${r.per_cf_rate} flat (${r.label || ''})`;
+        }).join('\n') : '')
+        + (regionAdj.length ? '\n\nREGIONAL ADJUSTMENTS:\n' + regionAdj.map(r => {
+            const isPercent = r.fuel_surcharge_pct !== 0;
+            const amt = isPercent ? `${r.fuel_surcharge_pct >= 0 ? '+' : ''}${r.fuel_surcharge_pct}%` : `${r.per_cf_rate >= 0 ? '+' : ''}$${r.per_cf_rate}`;
+            return `- ${r.label}: ${amt} (applies to ${r.region_adj_applies || 'either'}, zips: ${(r.label_extra || '').substring(0, 60)})`;
+        }).join('\n') : '')
         : 'No pricing matrix found in database.';
 
     // Fetch recent channel messages for context
@@ -102,19 +117,21 @@ PRICING MATRIX:
 ${pricingTable}
 
 HOW TO PRICE A JOB:
-1. Calculate distance between the two zip codes. You know approximate US zip code distances. If unsure, estimate based on regions.
-2. Find the matching row in the pricing matrix based on distance (miles) and volume (CF).
-3. Calculate: Base Price = CF × per_cf_rate
-4. Calculate: Fuel Surcharge = Base Price × fuel_surcharge_pct%
-5. Calculate: Total = Base Price + Fuel Surcharge
+1. Estimate distance between the two zip codes using your knowledge of US geography.
+2. Find the matching BASE RATE tier based on volume (CF). The rate is per cubic foot.
+3. Calculate: Base Price = CF x rate/CF
+4. Apply MILEAGE ADJUSTMENT if one matches the distance (could be flat $, % of base, or $/mile from 1000).
+5. Apply REGIONAL ADJUSTMENT if origin or destination zip prefix matches a region rule.
+6. Total = Base Price + Mileage Adjustment + Regional Adjustment
 
 RESPONSE FORMAT for pricing:
 *Move:* [from zip] → [to zip]
 *Distance:* ~[X] miles
 *Volume:* [X] CF
-*Rate:* $[X]/CF ([tier label])
-*Base Price:* $[X]
-*Fuel Surcharge ([X]%):* $[X]
+*Rate:* $[X.XX]/CF ([tier label])
+*Base Price:* [X] CF x $[X.XX] = $[X]
+*Mileage Adj:* [+/- $X] ([reason])
+*Regional Adj:* [+/- $X] ([reason]) _(only if applicable)_
 *Total:* *$[X]*
 
 RULES:

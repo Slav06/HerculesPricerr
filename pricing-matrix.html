@@ -178,8 +178,8 @@
                         <input type="number" id="baseMaxCubes" placeholder="300" required min="0">
                     </div>
                     <div class="form-group">
-                        <label>Base Price ($)</label>
-                        <input type="number" id="basePrice" placeholder="3000" required min="0" step="1">
+                        <label>Rate per CF ($)</label>
+                        <input type="number" id="basePrice" placeholder="4.50" required min="0" step="0.01">
                     </div>
                     <div class="form-group">
                         <label>Label</label>
@@ -374,12 +374,15 @@
         const rows = byType('base');
         const el = document.getElementById('baseTable');
         if (!rows.length) { el.innerHTML = '<div class="empty-state">No base rates yet. Add your cube tiers above.</div>'; return; }
-        let html = `<table><thead><tr><th>Label</th><th>Cubes (CF)</th><th>Base Price</th><th></th></tr></thead><tbody>`;
+        let html = `<table><thead><tr><th>Label</th><th>Cubes (CF)</th><th>Rate/CF</th><th>Example Total</th><th></th></tr></thead><tbody>`;
         for (const r of rows) {
+            const midCubes = Math.round((r.min_cubes + r.max_cubes) / 2);
+            const exTotal = Math.round(midCubes * Number(r.per_cf_rate));
             html += `<tr>
                 <td>${r.label || '-'}</td>
                 <td>${r.min_cubes} - ${r.max_cubes} CF</td>
-                <td class="rate-highlight">$${Number(r.per_cf_rate).toLocaleString()}</td>
+                <td class="rate-highlight">$${Number(r.per_cf_rate).toFixed(2)}/CF</td>
+                <td style="color:rgba(255,255,255,0.5)">${midCubes} CF = $${exTotal.toLocaleString()}</td>
                 <td class="actions">
                     <button class="btn btn-edit btn-sm" onclick="editBase('${r.id}')">Edit</button>
                     <button class="btn btn-danger btn-sm" onclick="delTier('${r.id}')">Delete</button>
@@ -605,8 +608,9 @@
             document.getElementById('calcBreakdown').textContent = `No base rate covers ${cubes} CF. Add one in Base Rates tab.`;
             return;
         }
-        const basePrice = Number(baseMatch.per_cf_rate);
-        let breakdown = [`Base (${baseMatch.label || cubes + ' CF'}): $${basePrice.toLocaleString()}`];
+        const perCf = Number(baseMatch.per_cf_rate);
+        const basePrice = perCf * cubes;
+        let breakdown = [`Base: ${cubes} CF x $${perCf.toFixed(2)}/CF = $${basePrice.toLocaleString()}`];
 
         // 2. Mileage adjustment
         let mileAdj = 0;
