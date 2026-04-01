@@ -118,21 +118,19 @@ ${pricingTable}
 
 HOW TO PRICE A JOB:
 1. Estimate distance between the two zip codes using your knowledge of US geography.
-2. Find the matching BASE RATE tier based on volume (CF). The rate is per cubic foot.
-3. Calculate: Base Price = CF x rate/CF
-4. Apply MILEAGE ADJUSTMENT if one matches the distance (could be flat $, % of base, or $/mile from 1000).
-5. Apply REGIONAL ADJUSTMENT if origin or destination zip prefix matches a region rule.
-6. Total = Base Price + Mileage Adjustment + Regional Adjustment
+2. Find the matching BASE RATE tier based on volume (CF). The rate is $/CF (dollars per cubic foot).
+3. Apply MILEAGE ADJUSTMENT — this ADDS or SUBTRACTS from the per-CF rate (e.g. base $4.50/CF + $0.25 mileage adj = $4.75/CF).
+4. Apply REGIONAL ADJUSTMENT — also adds/subtracts per CF if origin or destination zip matches.
+5. Calculate: Total = CF x final adjusted rate/CF
 
 RESPONSE FORMAT for pricing:
 *Move:* [from zip] → [to zip]
 *Distance:* ~[X] miles
 *Volume:* [X] CF
-*Rate:* $[X.XX]/CF ([tier label])
-*Base Price:* [X] CF x $[X.XX] = $[X]
-*Mileage Adj:* [+/- $X] ([reason])
-*Regional Adj:* [+/- $X] ([reason]) _(only if applicable)_
-*Total:* *$[X]*
+*Base rate:* $[X.XX]/CF ([tier label])
+*Mileage adj:* +$[X.XX]/CF → effective $[X.XX]/CF
+*Regional adj:* +$[X.XX]/CF _(only if applicable)_
+*Total:* [X] CF x $[X.XX] = *$[X]*
 
 RULES:
 - Keep responses SHORT. This is Slack, not email.

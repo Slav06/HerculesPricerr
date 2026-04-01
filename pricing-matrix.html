@@ -219,14 +219,13 @@
                     <div class="form-group">
                         <label>Adjustment Type</label>
                         <select id="mileAdjType">
-                            <option value="flat">Flat $ Amount</option>
-                            <option value="percent">% of Base</option>
-                            <option value="per_mile">$ per Mile from 1000</option>
+                            <option value="per_cf">$/CF adjustment</option>
+                            <option value="percent">% of base rate</option>
                         </select>
                     </div>
                     <div class="form-group">
-                        <label>Amount (+/-)</label>
-                        <input type="number" id="mileAmount" placeholder="-500" required step="0.01">
+                        <label>+/- per CF ($) or %</label>
+                        <input type="number" id="mileAmount" placeholder="0.25" required step="0.01">
                     </div>
                     <div class="form-group">
                         <label>Label</label>
@@ -440,17 +439,22 @@
         const rows = byType('mileage');
         const el = document.getElementById('mileageTable');
         if (!rows.length) { el.innerHTML = '<div class="empty-state">No mileage adjustments yet.</div>'; return; }
-        let html = `<table><thead><tr><th>Label</th><th>Mile Range</th><th>Type</th><th>Adjustment</th><th></th></tr></thead><tbody>`;
+        let html = `<table><thead><tr><th>Label</th><th>Mile Range</th><th>Rate Adjustment</th><th>Example (500 CF @ $4.50 base)</th><th></th></tr></thead><tbody>`;
         for (const r of rows) {
-            const adjType = r.region_applies_to || 'flat';
-            const fmtAmt = adjType === 'percent' ? `${r.fuel_surcharge_pct >= 0 ? '+' : ''}${r.fuel_surcharge_pct}%`
-                : adjType === 'per_mile' ? `$${r.per_cf_rate}/mi from 1000`
-                : `${r.per_cf_rate >= 0 ? '+' : ''}$${Number(r.per_cf_rate).toLocaleString()}`;
+            const adjType = r.region_applies_to || 'per_cf';
+            const isPercent = adjType === 'percent';
+            const amt = isPercent ? r.fuel_surcharge_pct : Number(r.per_cf_rate);
+            const fmtAmt = isPercent
+                ? `${amt >= 0 ? '+' : ''}${amt}% per CF`
+                : `${amt >= 0 ? '+' : ''}$${amt.toFixed(2)}/CF`;
+            const exAdj = isPercent ? 4.50 * (amt / 100) : amt;
+            const exRate = (4.50 + exAdj).toFixed(2);
+            const exTotal = Math.round(500 * (4.50 + exAdj));
             html += `<tr>
                 <td>${r.label || '-'}</td>
                 <td>${r.min_miles} - ${r.max_miles} miles</td>
-                <td>${adjType}</td>
-                <td style="color:${r.per_cf_rate < 0 || r.fuel_surcharge_pct < 0 ? '#ef4444' : '#22c55e'};font-weight:600">${fmtAmt}</td>
+                <td style="color:${amt < 0 ? '#ef4444' : '#22c55e'};font-weight:600">${fmtAmt}</td>
+                <td style="color:rgba(255,255,255,0.5)">$${exRate}/CF = $${exTotal.toLocaleString()}</td>
                 <td class="actions">
                     <button class="btn btn-edit btn-sm" onclick="editMileage('${r.id}')">Edit</button>
                     <button class="btn btn-danger btn-sm" onclick="delTier('${r.id}')">Delete</button>
@@ -608,32 +612,33 @@
             document.getElementById('calcBreakdown').textContent = `No base rate covers ${cubes} CF. Add one in Base Rates tab.`;
             return;
         }
-        const perCf = Number(baseMatch.per_cf_rate);
-        const basePrice = perCf * cubes;
-        let breakdown = [`Base: ${cubes} CF x $${perCf.toFixed(2)}/CF = $${basePrice.toLocaleString()}`];
+        let perCf = Number(baseMatch.per_cf_rate);
+        let breakdown = [`Base rate: $${perCf.toFixed(2)}/CF`];
 
-        // 2. Mileage adjustment
-        let mileAdj = 0;
+        // 2. Mileage adjustment — modifies the per-CF rate
+        let milePerCfAdj = 0;
         const mileRows = byType('mileage');
         const mileMatch = mileRows.find(r => miles >= r.min_miles && miles <= r.max_miles);
         if (mileMatch) {
-            const adjType = mileMatch.region_applies_to || 'flat';
+            const adjType = mileMatch.region_applies_to || 'per_cf';
             if (adjType === 'percent') {
-                mileAdj = basePrice * (mileMatch.fuel_surcharge_pct / 100);
-                breakdown.push(`Mileage (${mileMatch.label || mileMatch.fuel_surcharge_pct + '%'}): ${mileAdj >= 0 ? '+' : ''}$${Math.round(mileAdj).toLocaleString()}`);
-            } else if (adjType === 'per_mile') {
-                const diff = miles - 1000;
-                mileAdj = diff * mileMatch.per_cf_rate;
-                breakdown.push(`Mileage (${mileMatch.label || '$' + mileMatch.per_cf_rate + '/mi'}): ${mileAdj >= 0 ? '+' : ''}$${Math.round(mileAdj).toLocaleString()}`);
+                milePerCfAdj = perCf * (mileMatch.fuel_surcharge_pct / 100);
+                breakdown.push(`Mileage adj (${mileMatch.label || ''}): ${milePerCfAdj >= 0 ? '+' : ''}$${milePerCfAdj.toFixed(2)}/CF (${mileMatch.fuel_surcharge_pct}%)`);
             } else {
-                mileAdj = Number(mileMatch.per_cf_rate);
-                breakdown.push(`Mileage (${mileMatch.label || 'flat'}): ${mileAdj >= 0 ? '+' : ''}$${Math.round(mileAdj).toLocaleString()}`);
+                milePerCfAdj = Number(mileMatch.per_cf_rate);
+                breakdown.push(`Mileage adj (${mileMatch.label || ''}): ${milePerCfAdj >= 0 ? '+' : ''}$${milePerCfAdj.toFixed(2)}/CF`);
             }
+            perCf += milePerCfAdj;
+            breakdown.push(`Effective rate: $${perCf.toFixed(2)}/CF`);
         }
+
+        const basePrice = perCf * cubes;
+        breakdown.push(`Subtotal: ${cubes} CF x $${perCf.toFixed(2)} = $${Math.round(basePrice).toLocaleString()}`);
 
         // 3. Regional adjustments
         let regionAdj = 0;
         const regionRows = byType('region');
+        let regionFlatAdj = 0;
         for (const r of regionRows) {
             const zips = (r.label_extra || '').split(',');
             const applies = r.region_adj_applies || 'either';
@@ -644,13 +649,14 @@
             if (applies === 'destination' || applies === 'either') match = match || zips.some(z => toPrefix.startsWith(z.trim()));
             if (match) {
                 const isPercent = r.fuel_surcharge_pct !== 0;
-                const adj = isPercent ? basePrice * (r.fuel_surcharge_pct / 100) : Number(r.per_cf_rate);
-                regionAdj += adj;
-                breakdown.push(`Region (${r.label}): ${adj >= 0 ? '+' : ''}$${Math.round(adj).toLocaleString()}`);
+                const adj = isPercent ? basePrice * (r.fuel_surcharge_pct / 100) : Number(r.per_cf_rate) * cubes;
+                regionFlatAdj += adj;
+                const perCfAdj = isPercent ? `${r.fuel_surcharge_pct}%` : `$${Number(r.per_cf_rate).toFixed(2)}/CF`;
+                breakdown.push(`Region (${r.label}): ${adj >= 0 ? '+' : ''}$${Math.round(adj).toLocaleString()} (${perCfAdj})`);
             }
         }
 
-        const total = Math.round(basePrice + mileAdj + regionAdj);
+        const total = Math.round(basePrice + regionFlatAdj);
         document.getElementById('calcResult').style.display = 'block';
         document.getElementById('calcTotal').textContent = '$' + total.toLocaleString();
         document.getElementById('calcTotal').style.color = '#22c55e';
