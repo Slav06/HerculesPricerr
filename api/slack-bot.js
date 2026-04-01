@@ -86,7 +86,7 @@ async function processWithClaude(userMessage, userId, channel) {
         + (regionAdj.length ? '\n\nREGIONAL ADJUSTMENTS:\n' + regionAdj.map(r => {
             const isPercent = r.fuel_surcharge_pct !== 0;
             const amt = isPercent ? `${r.fuel_surcharge_pct >= 0 ? '+' : ''}${r.fuel_surcharge_pct}%` : `${r.per_cf_rate >= 0 ? '+' : ''}$${r.per_cf_rate}`;
-            return `- ${r.label}: ${amt} (applies to ${r.region_adj_applies || 'either'}, zips: ${(r.label_extra || '').substring(0, 60)})`;
+            return `- ${r.label}: ${amt}/CF (applies to ${r.region_adj_applies || 'either'} end of move)`;
         }).join('\n') : '')
         : 'No pricing matrix found in database.';
 
