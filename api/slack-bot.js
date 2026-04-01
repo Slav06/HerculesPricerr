@@ -124,6 +124,7 @@ HOW TO PRICE A JOB:
 5. Calculate: Total = CF x final adjusted rate/CF
 
 RESPONSE FORMAT for pricing:
+*Job:* #[job number]
 *Move:* [from zip] → [to zip]
 *Distance:* ~[X] miles
 *Volume:* [X] CF
@@ -134,14 +135,22 @@ RESPONSE FORMAT for pricing:
 
 Do NOT show a total dollar amount. Only show the final per-CF rate. Never multiply rate x cubes. The rep just needs the rate.
 
+After giving the rate, add this action tag so we can log it:
+<!--PRICE_LOG:JOB_NUMBER:FROM_ZIP:TO_ZIP:CUBES:FINAL_RATE:REP_NAME-->
+
+JOB NUMBER REQUIREMENT:
+- A job number looks like 6134545 or 7134545 (7 digits).
+- If the rep provides a job number WITH their pricing request, use it and give the rate immediately.
+- If the rep does NOT provide a job number, give the rate anyway BUT ask for the job number afterward. Say something like: "What's the job number so I can log this?"
+- Once they reply with the job number, log it with the action tag.
+
 RULES:
 - Keep responses SHORT. This is Slack, not email.
 - Be direct and confident with pricing. Don't hedge.
-- If someone just says zip codes and cubes, price it immediately. Don't ask clarifying questions.
-- If someone asks "how much for 500 cubes from 33101 to 10001" — just price it.
+- If someone just says zip codes and cubes, price it immediately. Don't hold back the rate waiting for a job number.
 - If someone gives partial info (like just zip codes, no cubes), ask for the missing piece.
 - NEVER show a total dollar amount. Only the final $/CF rate.
-- Use Slack markdown: *bold* for the total price.
+- Use Slack markdown: *bold* for the final rate.
 - If someone asks something unrelated to pricing, be friendly but brief.
 - You can also answer general questions about pricing tiers if asked.
 - If zip codes are clearly in the same metro area, use 0-50 miles as estimate.
@@ -181,7 +190,42 @@ ${recentMessages ? `RECENT MESSAGES:\n${recentMessages}` : ''}`;
         break;
     }
 
-    return claudeData?.content?.[0]?.text || "Sorry, I couldn't process that. Try again?";
+    let response = claudeData?.content?.[0]?.text || "Sorry, I couldn't process that. Try again?";
+
+    // Process PRICE_LOG actions
+    const priceLogMatches = [...response.matchAll(/<!--PRICE_LOG:(.+?):(.+?):(.+?):(.+?):(.+?):(.+?)-->/g)];
+    for (const match of priceLogMatches) {
+        const [, jobNumber, fromZip, toZip, cubes, finalRate, repName] = match;
+        try {
+            const env = getSupabaseEnv();
+            if (env.url && env.anonKey) {
+                await fetch(env.url + '/rest/v1/price_quotes', {
+                    method: 'POST',
+                    headers: {
+                        apikey: env.anonKey,
+                        Authorization: `Bearer ${env.anonKey}`,
+                        'Content-Type': 'application/json',
+                        Prefer: 'return=minimal',
+                    },
+                    body: JSON.stringify({
+                        job_number: jobNumber,
+                        from_zip: fromZip,
+                        to_zip: toZip,
+                        cubes: parseInt(cubes) || 0,
+                        final_rate: parseFloat(finalRate) || 0,
+                        rep_name: repName,
+                        quoted_at: new Date().toISOString(),
+                        status: 'quoted',
+                    }),
+                });
+            }
+        } catch (e) {
+            console.error('Failed to log price quote:', e);
+        }
+        response = response.replace(match[0], '');
+    }
+
+    return response.trim();
 }
 
 // ─── Helpers ───
