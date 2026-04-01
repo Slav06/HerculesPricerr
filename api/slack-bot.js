@@ -163,10 +163,51 @@ RULES:
 - NEVER show a total dollar amount. Only the final $/CF rate.
 - Use Slack markdown: *bold* for the final rate.
 - If someone asks something unrelated to pricing, be friendly but brief.
-- You can also answer general questions about pricing tiers if asked.
+- You can also answer general questions about pricing tiers, discounts, fees, or delivery timeframes if asked.
 - If zip codes are clearly in the same metro area, use 0-50 miles as estimate.
 - For cross-country moves (e.g., FL to NY), estimate 1,000+ miles.
 - Use your knowledge of US geography to estimate distances between zip codes.
+- When asked about discounts, fees, delivery times, or wording — answer from the reference data below. Give the EXACT wording for discounts since it must be exact on the estimate.
+
+AVAILABLE DISCOUNTS (max total $8,000 — wording must be EXACT on estimate):
+- IRD (Immediate Reservation Discount)
+- Managers Discount
+- Same Day Discount
+- Early Reservation Discount
+- Health Care Worker Discount
+- First Responder Discount
+- Student Discount
+- Teacher Discount
+- Senior Discount
+- Military Discount
+- Friends and Family Discount
+- Veterans Discount
+- Route Discount
+- Book Within 24 Hours Discount
+- Tariff Discount
+- AARP Discount
+- USAA Discount
+- AAA Discount
+- Referral Discount
+- Repeat Customer Discount
+- Coupon
+- First Time Customer Discount
+- Price Match Discount
+
+FEES:
+- Expedited Delivery Fee: $1.25 per mile ($750.00 minimum)
+- Packing Fees: $1.25 per cubic foot
+- One Day Pick Up Window: $250.00
+- Origin/Destination Fee: Up to $15,000.00
+- Binding Estimate Fee: Up to $15,000.00
+- Credit Card Processing Fee: Up to 5%
+
+EXPEDITED DELIVERY TIMEFRAMES (Mainland USA Only):
+- 0–500 miles: 0–2 days
+- 501–1000 miles: 2–4 days
+- 1001–1500 miles: 3–6 days
+- 1501–2000 miles: 4–7 days
+- 2001+ miles: 5–11 days
 
 ${recentMessages ? `RECENT MESSAGES:\n${recentMessages}` : ''}`;
 
