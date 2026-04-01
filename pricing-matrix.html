@@ -12,7 +12,7 @@
             background: linear-gradient(135deg, #FFA23F 0%, #e8891f 50%, #d4780a 100%);
             min-height: 100vh; color: #333;
         }
-        .container { max-width: 900px; margin: 0 auto; padding: 20px; }
+        .container { max-width: 960px; margin: 0 auto; padding: 20px; }
 
         .app-bar {
             background: rgba(8, 12, 28, 0.92);
@@ -37,7 +37,11 @@
             box-shadow: 0 8px 32px rgba(0,0,0,0.45);
             margin-bottom: 16px;
         }
-        .card-title { color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 16px; }
+        .card-title {
+            color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 16px;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-subtitle { color: rgba(255,255,255,0.5); font-size: 12px; font-weight: 400; }
 
         table { width: 100%; border-collapse: collapse; }
         th {
@@ -54,22 +58,24 @@
 
         .btn {
             padding: 8px 16px; border: none; border-radius: 8px;
-            font-size: 13px; font-weight: 600; cursor: pointer;
-            transition: all 0.2s;
+            font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s;
         }
+        .btn-sm { padding: 5px 10px; font-size: 12px; }
         .btn-primary { background: #3b82f6; color: #fff; }
         .btn-primary:hover { background: #2563eb; }
         .btn-success { background: #22c55e; color: #fff; }
         .btn-success:hover { background: #16a34a; }
-        .btn-danger { background: #ef4444; color: #fff; font-size: 12px; padding: 5px 10px; }
+        .btn-danger { background: #ef4444; color: #fff; }
         .btn-danger:hover { background: #dc2626; }
-        .btn-edit { background: #8b5cf6; color: #fff; font-size: 12px; padding: 5px 10px; }
+        .btn-edit { background: #8b5cf6; color: #fff; }
         .btn-edit:hover { background: #7c3aed; }
+        .btn-orange { background: #f59e0b; color: #fff; }
+        .btn-orange:hover { background: #d97706; }
 
         .form-row { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
-        .form-group { flex: 1; min-width: 120px; }
+        .form-group { flex: 1; min-width: 100px; }
         .form-group label {
-            display: block; color: rgba(255,255,255,0.6); font-size: 12px;
+            display: block; color: rgba(255,255,255,0.6); font-size: 11px;
             font-weight: 600; margin-bottom: 4px; text-transform: uppercase;
         }
         .form-group input, .form-group select {
@@ -78,15 +84,13 @@
             background: rgba(255,255,255,0.08); color: #fff;
             font-size: 14px; outline: none;
         }
-        .form-group input:focus { border-color: #3b82f6; }
+        .form-group input:focus, .form-group select:focus { border-color: #3b82f6; }
         .form-group input::placeholder { color: rgba(255,255,255,0.3); }
+        .form-group select option { background: #1a1a2e; color: #fff; }
 
         .actions { display: flex; gap: 6px; }
-
         .rate-highlight { color: #22c55e; font-weight: 700; }
-        .fuel-highlight { color: #f59e0b; }
-
-        .empty-state { color: rgba(255,255,255,0.4); text-align: center; padding: 40px; font-size: 14px; }
+        .empty-state { color: rgba(255,255,255,0.4); text-align: center; padding: 30px; font-size: 14px; }
 
         .toast {
             position: fixed; bottom: 20px; right: 20px;
@@ -100,6 +104,38 @@
 
         .back-link { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 13px; }
         .back-link:hover { color: #fff; }
+
+        .tab-bar { display: flex; gap: 4px; margin-bottom: 16px; }
+        .tab {
+            padding: 10px 20px; border-radius: 8px; cursor: pointer;
+            font-size: 13px; font-weight: 600; transition: all 0.2s;
+            background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.5);
+            border: 1px solid transparent;
+        }
+        .tab.active { background: rgba(59,130,246,0.2); color: #3b82f6; border-color: rgba(59,130,246,0.3); }
+        .tab:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.8); }
+
+        .section { display: none; }
+        .section.active { display: block; }
+
+        .badge {
+            display: inline-block; padding: 2px 8px; border-radius: 4px;
+            font-size: 11px; font-weight: 600;
+        }
+        .badge-east { background: rgba(59,130,246,0.2); color: #60a5fa; }
+        .badge-west { background: rgba(249,115,22,0.2); color: #fb923c; }
+        .badge-both { background: rgba(139,92,246,0.2); color: #a78bfa; }
+
+        /* Pricing calculator */
+        .calc-card {
+            background: rgba(34,197,94,0.08); border: 1px solid rgba(34,197,94,0.2);
+            border-radius: 12px; padding: 20px; margin-bottom: 16px;
+        }
+        .calc-result {
+            font-size: 32px; font-weight: 700; color: #22c55e;
+            text-align: center; margin: 16px 0 8px;
+        }
+        .calc-breakdown { color: rgba(255,255,255,0.5); font-size: 13px; text-align: center; }
     </style>
 </head>
 <body>
@@ -109,188 +145,515 @@
         <div style="display:flex;justify-content:space-between;align-items:center">
             <div>
                 <h1>Pricing Matrix</h1>
-                <p>Manage per-CF rates by distance and volume tiers for Johnny Boombotz</p>
+                <p>Manage rates for Johnny Boombotz - base rates, mileage adjustments, and regional pricing</p>
             </div>
             <a href="/dashboard" class="back-link">Back to Dashboard</a>
         </div>
     </div>
 
-    <!-- Add New Tier -->
-    <div class="card">
-        <div class="card-title" id="formTitle">Add New Tier</div>
-        <form id="tierForm" onsubmit="saveTier(event)">
-            <input type="hidden" id="editId" value="">
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Min Miles</label>
-                    <input type="number" id="minMiles" placeholder="0" required min="0">
-                </div>
-                <div class="form-group">
-                    <label>Max Miles</label>
-                    <input type="number" id="maxMiles" placeholder="100" required min="0">
-                </div>
-                <div class="form-group">
-                    <label>Min Cubes (CF)</label>
-                    <input type="number" id="minCubes" placeholder="0" required min="0">
-                </div>
-                <div class="form-group">
-                    <label>Max Cubes (CF)</label>
-                    <input type="number" id="maxCubes" placeholder="300" required min="0">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-group">
-                    <label>Rate per CF ($)</label>
-                    <input type="number" id="perCfRate" placeholder="10.00" required min="0" step="0.01">
-                </div>
-                <div class="form-group">
-                    <label>Fuel Surcharge (%)</label>
-                    <input type="number" id="fuelPct" placeholder="15" value="15" required min="0" step="0.5">
-                </div>
-                <div class="form-group">
-                    <label>Label</label>
-                    <input type="text" id="label" placeholder="Short / Small">
-                </div>
-                <div class="form-group" style="display:flex;align-items:flex-end;min-width:auto">
-                    <button type="submit" class="btn btn-success" id="saveBtn">Add Tier</button>
-                    <button type="button" class="btn" style="margin-left:6px;background:rgba(255,255,255,0.1);color:#fff;display:none" id="cancelBtn" onclick="cancelEdit()">Cancel</button>
-                </div>
-            </div>
-        </form>
+    <!-- Tabs -->
+    <div class="tab-bar">
+        <div class="tab active" onclick="switchTab('base')">Base Rates (1000 mi)</div>
+        <div class="tab" onclick="switchTab('mileage')">Mileage Adjustments</div>
+        <div class="tab" onclick="switchTab('regions')">Regional Adjustments</div>
+        <div class="tab" onclick="switchTab('calc')">Price Calculator</div>
     </div>
 
-    <!-- Pricing Table -->
-    <div class="card">
-        <div class="card-title">Current Pricing Tiers</div>
-        <div id="tableContainer">
-            <div class="empty-state">Loading...</div>
+    <!-- ═══ BASE RATES ═══ -->
+    <div class="section active" id="section-base">
+        <div class="card">
+            <div class="card-title">
+                Base Rates at 1,000 Miles
+                <span class="card-subtitle">The starting price for each cube tier</span>
+            </div>
+            <form id="baseForm" onsubmit="saveBase(event)">
+                <input type="hidden" id="baseEditId" value="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min Cubes (CF)</label>
+                        <input type="number" id="baseMinCubes" placeholder="0" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Cubes (CF)</label>
+                        <input type="number" id="baseMaxCubes" placeholder="300" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Base Price ($)</label>
+                        <input type="number" id="basePrice" placeholder="3000" required min="0" step="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Label</label>
+                        <input type="text" id="baseLabel" placeholder="Small Move">
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;min-width:auto;gap:6px">
+                        <button type="submit" class="btn btn-success" id="baseSaveBtn">Add</button>
+                        <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;display:none" id="baseCancelBtn" onclick="cancelBaseEdit()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card">
+            <div class="card-title">Current Base Rates</div>
+            <div id="baseTable"><div class="empty-state">Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- ═══ MILEAGE ADJUSTMENTS ═══ -->
+    <div class="section" id="section-mileage">
+        <div class="card">
+            <div class="card-title">
+                Mileage Adjustments
+                <span class="card-subtitle">Add or subtract from base price based on distance from 1000 miles</span>
+            </div>
+            <form id="mileageForm" onsubmit="saveMileage(event)">
+                <input type="hidden" id="mileageEditId" value="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Min Miles</label>
+                        <input type="number" id="mileMinMiles" placeholder="0" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Max Miles</label>
+                        <input type="number" id="mileMaxMiles" placeholder="500" required min="0">
+                    </div>
+                    <div class="form-group">
+                        <label>Adjustment Type</label>
+                        <select id="mileAdjType">
+                            <option value="flat">Flat $ Amount</option>
+                            <option value="percent">% of Base</option>
+                            <option value="per_mile">$ per Mile from 1000</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (+/-)</label>
+                        <input type="number" id="mileAmount" placeholder="-500" required step="0.01">
+                    </div>
+                    <div class="form-group">
+                        <label>Label</label>
+                        <input type="text" id="mileLabel" placeholder="Short haul discount">
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;min-width:auto;gap:6px">
+                        <button type="submit" class="btn btn-success" id="mileSaveBtn">Add</button>
+                        <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;display:none" id="mileCancelBtn" onclick="cancelMileageEdit()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card">
+            <div class="card-title">Current Mileage Adjustments</div>
+            <div id="mileageTable"><div class="empty-state">Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- ═══ REGIONAL ADJUSTMENTS ═══ -->
+    <div class="section" id="section-regions">
+        <div class="card">
+            <div class="card-title">
+                Regional Adjustments
+                <span class="card-subtitle">Price modifiers based on origin/destination region</span>
+            </div>
+            <form id="regionForm" onsubmit="saveRegion(event)">
+                <input type="hidden" id="regionEditId" value="">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Region Name</label>
+                        <input type="text" id="regionName" placeholder="East Coast" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Applies To</label>
+                        <select id="regionApplies">
+                            <option value="origin">Origin (from)</option>
+                            <option value="destination">Destination (to)</option>
+                            <option value="either">Either</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Adjustment Type</label>
+                        <select id="regionAdjType">
+                            <option value="percent">% of Base</option>
+                            <option value="flat">Flat $ Amount</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Amount (+/-)</label>
+                        <input type="number" id="regionAmount" placeholder="10" required step="0.01">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group" style="flex:3">
+                        <label>Zip Code Prefixes (comma separated)</label>
+                        <input type="text" id="regionZips" placeholder="100,110,112,070,080,191,200,210,021,022" required>
+                    </div>
+                    <div class="form-group" style="display:flex;align-items:flex-end;min-width:auto;gap:6px">
+                        <button type="submit" class="btn btn-success" id="regionSaveBtn">Add</button>
+                        <button type="button" class="btn btn-sm" style="background:rgba(255,255,255,0.1);color:#fff;display:none" id="regionCancelBtn" onclick="cancelRegionEdit()">Cancel</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="card">
+            <div class="card-title">Current Regional Adjustments</div>
+            <div id="regionTable"><div class="empty-state">Loading...</div></div>
+        </div>
+    </div>
+
+    <!-- ═══ PRICE CALCULATOR ═══ -->
+    <div class="section" id="section-calc">
+        <div class="calc-card">
+            <div class="card-title" style="color:#22c55e;">Quick Price Calculator</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>From Zip</label>
+                    <input type="text" id="calcFrom" placeholder="33101" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>To Zip</label>
+                    <input type="text" id="calcTo" placeholder="10001" maxlength="5">
+                </div>
+                <div class="form-group">
+                    <label>Miles (estimate)</label>
+                    <input type="number" id="calcMiles" placeholder="1280">
+                </div>
+                <div class="form-group">
+                    <label>Cubic Feet</label>
+                    <input type="number" id="calcCubes" placeholder="500">
+                </div>
+                <div class="form-group" style="display:flex;align-items:flex-end;min-width:auto">
+                    <button class="btn btn-success" onclick="calcPrice()">Calculate</button>
+                </div>
+            </div>
+            <div id="calcResult" style="display:none">
+                <div class="calc-result" id="calcTotal">$0</div>
+                <div class="calc-breakdown" id="calcBreakdown"></div>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    const SUPABASE_URL = 'https://jntjffdbqnklfcrfrndz.supabase.co';
-    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
+    const SB_URL = 'https://jntjffdbqnklfcrfrndz.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpudGpmZmRicW5rbGZjcmZybmR6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTQyNjAwMzQsImV4cCI6MjA2OTgzNjAzNH0.GBOG9PwrIzWihxBvJX3HeF3YtyxE4qe5tuj5ADHhHOU';
 
-    let tiers = [];
+    // We store everything in pricing_matrix with a "tier_type" column:
+    // tier_type = 'base' | 'mileage' | 'region'
+    let allTiers = [];
 
-    async function sbFetch(path, opts = {}) {
-        const res = await fetch(SUPABASE_URL + path, {
+    async function sb(path, opts = {}) {
+        const res = await fetch(SB_URL + path, {
             ...opts,
             headers: {
-                apikey: SUPABASE_KEY,
-                Authorization: `Bearer ${SUPABASE_KEY}`,
+                apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}`,
                 'Content-Type': 'application/json',
-                Prefer: opts.method === 'POST' ? 'return=representation' : 'return=representation',
+                Prefer: 'return=representation',
                 ...(opts.headers || {})
             }
         });
         return res.json().catch(() => null);
     }
 
-    async function loadTiers() {
-        const data = await sbFetch('/rest/v1/pricing_matrix?order=min_miles,min_cubes');
-        tiers = Array.isArray(data) ? data : [];
-        renderTable();
+    async function loadAll() {
+        const data = await sb('/rest/v1/pricing_matrix?order=min_cubes,min_miles');
+        allTiers = Array.isArray(data) ? data : [];
+        renderBase();
+        renderMileage();
+        renderRegions();
     }
 
-    function renderTable() {
-        const el = document.getElementById('tableContainer');
-        if (!tiers.length) {
-            el.innerHTML = '<div class="empty-state">No pricing tiers yet. Add your first one above.</div>';
-            return;
-        }
-        let html = `<table>
-            <thead><tr>
-                <th>Label</th><th>Miles</th><th>Cubes (CF)</th><th>Rate/CF</th><th>Fuel %</th><th>Example (500 CF)</th><th></th>
-            </tr></thead><tbody>`;
+    function byType(type) { return allTiers.filter(t => (t.tier_type || 'base') === type); }
 
-        for (const t of tiers) {
-            const exBase = 500 * t.per_cf_rate;
-            const exFuel = exBase * (t.fuel_surcharge_pct / 100);
-            const exTotal = Math.round(exBase + exFuel);
+    // ═══ TABS ═══
+    function switchTab(name) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+        event.target.classList.add('active');
+        document.getElementById('section-' + name).classList.add('active');
+    }
+
+    // ═══ BASE RATES ═══
+    function renderBase() {
+        const rows = byType('base');
+        const el = document.getElementById('baseTable');
+        if (!rows.length) { el.innerHTML = '<div class="empty-state">No base rates yet. Add your cube tiers above.</div>'; return; }
+        let html = `<table><thead><tr><th>Label</th><th>Cubes (CF)</th><th>Base Price</th><th></th></tr></thead><tbody>`;
+        for (const r of rows) {
             html += `<tr>
-                <td>${t.label || '-'}</td>
-                <td>${t.min_miles} - ${t.max_miles}</td>
-                <td>${t.min_cubes} - ${t.max_cubes}</td>
-                <td class="rate-highlight">$${parseFloat(t.per_cf_rate).toFixed(2)}</td>
-                <td class="fuel-highlight">${t.fuel_surcharge_pct}%</td>
-                <td>$${exTotal.toLocaleString()}</td>
+                <td>${r.label || '-'}</td>
+                <td>${r.min_cubes} - ${r.max_cubes} CF</td>
+                <td class="rate-highlight">$${Number(r.per_cf_rate).toLocaleString()}</td>
                 <td class="actions">
-                    <button class="btn btn-edit" onclick="editTier('${t.id}')">Edit</button>
-                    <button class="btn btn-danger" onclick="deleteTier('${t.id}')">Delete</button>
+                    <button class="btn btn-edit btn-sm" onclick="editBase('${r.id}')">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="delTier('${r.id}')">Delete</button>
                 </td>
             </tr>`;
         }
-        html += '</tbody></table>';
-        el.innerHTML = html;
+        el.innerHTML = html + '</tbody></table>';
     }
 
-    async function saveTier(e) {
+    async function saveBase(e) {
         e.preventDefault();
-        const editId = document.getElementById('editId').value;
+        const id = document.getElementById('baseEditId').value;
         const body = {
-            min_miles: parseInt(document.getElementById('minMiles').value),
-            max_miles: parseInt(document.getElementById('maxMiles').value),
-            min_cubes: parseInt(document.getElementById('minCubes').value),
-            max_cubes: parseInt(document.getElementById('maxCubes').value),
-            per_cf_rate: parseFloat(document.getElementById('perCfRate').value),
-            fuel_surcharge_pct: parseFloat(document.getElementById('fuelPct').value),
-            label: document.getElementById('label').value || null,
+            tier_type: 'base',
+            min_miles: 1000, max_miles: 1000,
+            min_cubes: parseInt(document.getElementById('baseMinCubes').value),
+            max_cubes: parseInt(document.getElementById('baseMaxCubes').value),
+            per_cf_rate: parseFloat(document.getElementById('basePrice').value),
+            fuel_surcharge_pct: 0,
+            label: document.getElementById('baseLabel').value || null,
             updated_at: new Date().toISOString()
         };
-
-        if (editId) {
-            await sbFetch(`/rest/v1/pricing_matrix?id=eq.${editId}`, {
-                method: 'PATCH', body: JSON.stringify(body)
-            });
-            showToast('Tier updated');
-            cancelEdit();
+        if (id) {
+            await sb(`/rest/v1/pricing_matrix?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+            showToast('Base rate updated');
         } else {
-            await sbFetch('/rest/v1/pricing_matrix', {
-                method: 'POST', body: JSON.stringify(body)
-            });
-            showToast('Tier added');
+            await sb('/rest/v1/pricing_matrix', { method: 'POST', body: JSON.stringify(body) });
+            showToast('Base rate added');
+        }
+        cancelBaseEdit();
+        await loadAll();
+    }
+
+    function editBase(id) {
+        const t = allTiers.find(x => x.id === id);
+        if (!t) return;
+        document.getElementById('baseEditId').value = t.id;
+        document.getElementById('baseMinCubes').value = t.min_cubes;
+        document.getElementById('baseMaxCubes').value = t.max_cubes;
+        document.getElementById('basePrice').value = t.per_cf_rate;
+        document.getElementById('baseLabel').value = t.label || '';
+        document.getElementById('baseSaveBtn').textContent = 'Update';
+        document.getElementById('baseCancelBtn').style.display = '';
+    }
+
+    function cancelBaseEdit() {
+        document.getElementById('baseEditId').value = '';
+        document.getElementById('baseForm').reset();
+        document.getElementById('baseSaveBtn').textContent = 'Add';
+        document.getElementById('baseCancelBtn').style.display = 'none';
+    }
+
+    // ═══ MILEAGE ADJUSTMENTS ═══
+    function renderMileage() {
+        const rows = byType('mileage');
+        const el = document.getElementById('mileageTable');
+        if (!rows.length) { el.innerHTML = '<div class="empty-state">No mileage adjustments yet.</div>'; return; }
+        let html = `<table><thead><tr><th>Label</th><th>Mile Range</th><th>Type</th><th>Adjustment</th><th></th></tr></thead><tbody>`;
+        for (const r of rows) {
+            const adjType = r.region_applies_to || 'flat';
+            const fmtAmt = adjType === 'percent' ? `${r.fuel_surcharge_pct >= 0 ? '+' : ''}${r.fuel_surcharge_pct}%`
+                : adjType === 'per_mile' ? `$${r.per_cf_rate}/mi from 1000`
+                : `${r.per_cf_rate >= 0 ? '+' : ''}$${Number(r.per_cf_rate).toLocaleString()}`;
+            html += `<tr>
+                <td>${r.label || '-'}</td>
+                <td>${r.min_miles} - ${r.max_miles} miles</td>
+                <td>${adjType}</td>
+                <td style="color:${r.per_cf_rate < 0 || r.fuel_surcharge_pct < 0 ? '#ef4444' : '#22c55e'};font-weight:600">${fmtAmt}</td>
+                <td class="actions">
+                    <button class="btn btn-edit btn-sm" onclick="editMileage('${r.id}')">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="delTier('${r.id}')">Delete</button>
+                </td>
+            </tr>`;
+        }
+        el.innerHTML = html + '</tbody></table>';
+    }
+
+    async function saveMileage(e) {
+        e.preventDefault();
+        const id = document.getElementById('mileageEditId').value;
+        const adjType = document.getElementById('mileAdjType').value;
+        const amount = parseFloat(document.getElementById('mileAmount').value);
+        const body = {
+            tier_type: 'mileage',
+            min_miles: parseInt(document.getElementById('mileMinMiles').value),
+            max_miles: parseInt(document.getElementById('mileMaxMiles').value),
+            min_cubes: 0, max_cubes: 99999,
+            per_cf_rate: adjType === 'percent' ? 0 : amount,
+            fuel_surcharge_pct: adjType === 'percent' ? amount : 0,
+            region_applies_to: adjType,
+            label: document.getElementById('mileLabel').value || null,
+            updated_at: new Date().toISOString()
+        };
+        if (id) {
+            await sb(`/rest/v1/pricing_matrix?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+            showToast('Mileage adjustment updated');
+        } else {
+            await sb('/rest/v1/pricing_matrix', { method: 'POST', body: JSON.stringify(body) });
+            showToast('Mileage adjustment added');
+        }
+        cancelMileageEdit();
+        await loadAll();
+    }
+
+    function editMileage(id) {
+        const t = allTiers.find(x => x.id === id);
+        if (!t) return;
+        document.getElementById('mileageEditId').value = t.id;
+        document.getElementById('mileMinMiles').value = t.min_miles;
+        document.getElementById('mileMaxMiles').value = t.max_miles;
+        document.getElementById('mileAdjType').value = t.region_applies_to || 'flat';
+        document.getElementById('mileAmount').value = (t.region_applies_to === 'percent') ? t.fuel_surcharge_pct : t.per_cf_rate;
+        document.getElementById('mileLabel').value = t.label || '';
+        document.getElementById('mileSaveBtn').textContent = 'Update';
+        document.getElementById('mileCancelBtn').style.display = '';
+    }
+
+    function cancelMileageEdit() {
+        document.getElementById('mileageEditId').value = '';
+        document.getElementById('mileageForm').reset();
+        document.getElementById('mileSaveBtn').textContent = 'Add';
+        document.getElementById('mileCancelBtn').style.display = 'none';
+    }
+
+    // ═══ REGIONAL ADJUSTMENTS ═══
+    function renderRegions() {
+        const rows = byType('region');
+        const el = document.getElementById('regionTable');
+        if (!rows.length) { el.innerHTML = '<div class="empty-state">No regional adjustments yet. Add zip code prefixes for East Coast, West Coast, etc.</div>'; return; }
+        let html = `<table><thead><tr><th>Region</th><th>Applies To</th><th>Adjustment</th><th>Zip Prefixes</th><th></th></tr></thead><tbody>`;
+        for (const r of rows) {
+            const adjType = r.region_applies_to || 'either';
+            const isPercent = r.fuel_surcharge_pct !== 0;
+            const fmtAmt = isPercent
+                ? `${r.fuel_surcharge_pct >= 0 ? '+' : ''}${r.fuel_surcharge_pct}%`
+                : `${r.per_cf_rate >= 0 ? '+' : ''}$${Number(r.per_cf_rate).toLocaleString()}`;
+            const zips = (r.label_extra || '').split(',').slice(0, 6).join(', ');
+            const moreCount = (r.label_extra || '').split(',').length - 6;
+            html += `<tr>
+                <td>${r.label || '-'}</td>
+                <td>${r.region_adj_applies || 'either'}</td>
+                <td style="color:${(isPercent ? r.fuel_surcharge_pct : r.per_cf_rate) < 0 ? '#ef4444' : '#22c55e'};font-weight:600">${fmtAmt}</td>
+                <td style="font-size:12px;color:rgba(255,255,255,0.5)">${zips}${moreCount > 0 ? ` +${moreCount} more` : ''}</td>
+                <td class="actions">
+                    <button class="btn btn-edit btn-sm" onclick="editRegion('${r.id}')">Edit</button>
+                    <button class="btn btn-danger btn-sm" onclick="delTier('${r.id}')">Delete</button>
+                </td>
+            </tr>`;
+        }
+        el.innerHTML = html + '</tbody></table>';
+    }
+
+    async function saveRegion(e) {
+        e.preventDefault();
+        const id = document.getElementById('regionEditId').value;
+        const adjType = document.getElementById('regionAdjType').value;
+        const amount = parseFloat(document.getElementById('regionAmount').value);
+        const body = {
+            tier_type: 'region',
+            min_miles: 0, max_miles: 99999, min_cubes: 0, max_cubes: 99999,
+            per_cf_rate: adjType === 'flat' ? amount : 0,
+            fuel_surcharge_pct: adjType === 'percent' ? amount : 0,
+            region_applies_to: document.getElementById('regionApplies').value,
+            region_adj_applies: document.getElementById('regionApplies').value,
+            label: document.getElementById('regionName').value,
+            label_extra: document.getElementById('regionZips').value.replace(/\s/g, ''),
+            updated_at: new Date().toISOString()
+        };
+        if (id) {
+            await sb(`/rest/v1/pricing_matrix?id=eq.${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+            showToast('Regional adjustment updated');
+        } else {
+            await sb('/rest/v1/pricing_matrix', { method: 'POST', body: JSON.stringify(body) });
+            showToast('Regional adjustment added');
+        }
+        cancelRegionEdit();
+        await loadAll();
+    }
+
+    function editRegion(id) {
+        const t = allTiers.find(x => x.id === id);
+        if (!t) return;
+        document.getElementById('regionEditId').value = t.id;
+        document.getElementById('regionName').value = t.label || '';
+        document.getElementById('regionApplies').value = t.region_adj_applies || t.region_applies_to || 'either';
+        document.getElementById('regionAdjType').value = t.fuel_surcharge_pct !== 0 ? 'percent' : 'flat';
+        document.getElementById('regionAmount').value = t.fuel_surcharge_pct !== 0 ? t.fuel_surcharge_pct : t.per_cf_rate;
+        document.getElementById('regionZips').value = t.label_extra || '';
+        document.getElementById('regionSaveBtn').textContent = 'Update';
+        document.getElementById('regionCancelBtn').style.display = '';
+    }
+
+    function cancelRegionEdit() {
+        document.getElementById('regionEditId').value = '';
+        document.getElementById('regionForm').reset();
+        document.getElementById('regionSaveBtn').textContent = 'Add';
+        document.getElementById('regionCancelBtn').style.display = 'none';
+    }
+
+    // ═══ DELETE ═══
+    async function delTier(id) {
+        if (!confirm('Delete this pricing tier?')) return;
+        await sb(`/rest/v1/pricing_matrix?id=eq.${id}`, { method: 'DELETE' });
+        showToast('Deleted');
+        await loadAll();
+    }
+
+    // ═══ PRICE CALCULATOR ═══
+    function calcPrice() {
+        const fromZip = document.getElementById('calcFrom').value;
+        const toZip = document.getElementById('calcTo').value;
+        const miles = parseInt(document.getElementById('calcMiles').value) || 0;
+        const cubes = parseInt(document.getElementById('calcCubes').value) || 0;
+        if (!miles || !cubes) { showToast('Enter miles and cubes', 'error'); return; }
+
+        // 1. Find base rate
+        const baseRows = byType('base');
+        const baseMatch = baseRows.find(r => cubes >= r.min_cubes && cubes <= r.max_cubes);
+        if (!baseMatch) {
+            document.getElementById('calcResult').style.display = 'block';
+            document.getElementById('calcTotal').textContent = 'No matching base rate';
+            document.getElementById('calcTotal').style.color = '#ef4444';
+            document.getElementById('calcBreakdown').textContent = `No base rate covers ${cubes} CF. Add one in Base Rates tab.`;
+            return;
+        }
+        const basePrice = Number(baseMatch.per_cf_rate);
+        let breakdown = [`Base (${baseMatch.label || cubes + ' CF'}): $${basePrice.toLocaleString()}`];
+
+        // 2. Mileage adjustment
+        let mileAdj = 0;
+        const mileRows = byType('mileage');
+        const mileMatch = mileRows.find(r => miles >= r.min_miles && miles <= r.max_miles);
+        if (mileMatch) {
+            const adjType = mileMatch.region_applies_to || 'flat';
+            if (adjType === 'percent') {
+                mileAdj = basePrice * (mileMatch.fuel_surcharge_pct / 100);
+                breakdown.push(`Mileage (${mileMatch.label || mileMatch.fuel_surcharge_pct + '%'}): ${mileAdj >= 0 ? '+' : ''}$${Math.round(mileAdj).toLocaleString()}`);
+            } else if (adjType === 'per_mile') {
+                const diff = miles - 1000;
+                mileAdj = diff * mileMatch.per_cf_rate;
+                breakdown.push(`Mileage (${mileMatch.label || '$' + mileMatch.per_cf_rate + '/mi'}): ${mileAdj >= 0 ? '+' : ''}$${Math.round(mileAdj).toLocaleString()}`);
+            } else {
+                mileAdj = Number(mileMatch.per_cf_rate);
+                breakdown.push(`Mileage (${mileMatch.label || 'flat'}): ${mileAdj >= 0 ? '+' : ''}$${Math.round(mileAdj).toLocaleString()}`);
+            }
         }
 
-        document.getElementById('tierForm').reset();
-        document.getElementById('fuelPct').value = '15';
-        await loadTiers();
+        // 3. Regional adjustments
+        let regionAdj = 0;
+        const regionRows = byType('region');
+        for (const r of regionRows) {
+            const zips = (r.label_extra || '').split(',');
+            const applies = r.region_adj_applies || 'either';
+            const fromPrefix = (fromZip || '').substring(0, 3);
+            const toPrefix = (toZip || '').substring(0, 3);
+            let match = false;
+            if (applies === 'origin' || applies === 'either') match = match || zips.some(z => fromPrefix.startsWith(z.trim()));
+            if (applies === 'destination' || applies === 'either') match = match || zips.some(z => toPrefix.startsWith(z.trim()));
+            if (match) {
+                const isPercent = r.fuel_surcharge_pct !== 0;
+                const adj = isPercent ? basePrice * (r.fuel_surcharge_pct / 100) : Number(r.per_cf_rate);
+                regionAdj += adj;
+                breakdown.push(`Region (${r.label}): ${adj >= 0 ? '+' : ''}$${Math.round(adj).toLocaleString()}`);
+            }
+        }
+
+        const total = Math.round(basePrice + mileAdj + regionAdj);
+        document.getElementById('calcResult').style.display = 'block';
+        document.getElementById('calcTotal').textContent = '$' + total.toLocaleString();
+        document.getElementById('calcTotal').style.color = '#22c55e';
+        document.getElementById('calcBreakdown').innerHTML = breakdown.join('<br>');
     }
 
-    function editTier(id) {
-        const t = tiers.find(x => x.id === id);
-        if (!t) return;
-        document.getElementById('editId').value = t.id;
-        document.getElementById('minMiles').value = t.min_miles;
-        document.getElementById('maxMiles').value = t.max_miles;
-        document.getElementById('minCubes').value = t.min_cubes;
-        document.getElementById('maxCubes').value = t.max_cubes;
-        document.getElementById('perCfRate').value = t.per_cf_rate;
-        document.getElementById('fuelPct').value = t.fuel_surcharge_pct;
-        document.getElementById('label').value = t.label || '';
-        document.getElementById('formTitle').textContent = 'Edit Tier';
-        document.getElementById('saveBtn').textContent = 'Update Tier';
-        document.getElementById('cancelBtn').style.display = '';
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function cancelEdit() {
-        document.getElementById('editId').value = '';
-        document.getElementById('tierForm').reset();
-        document.getElementById('fuelPct').value = '15';
-        document.getElementById('formTitle').textContent = 'Add New Tier';
-        document.getElementById('saveBtn').textContent = 'Add Tier';
-        document.getElementById('cancelBtn').style.display = 'none';
-    }
-
-    async function deleteTier(id) {
-        if (!confirm('Delete this pricing tier?')) return;
-        await sbFetch(`/rest/v1/pricing_matrix?id=eq.${id}`, { method: 'DELETE' });
-        showToast('Tier deleted');
-        await loadTiers();
-    }
-
+    // ═══ UTILS ═══
     function showToast(msg, type = 'success') {
         const el = document.createElement('div');
         el.className = `toast toast-${type}`;
@@ -299,7 +662,7 @@
         setTimeout(() => el.remove(), 3000);
     }
 
-    loadTiers();
+    loadAll();
 </script>
 </body>
 </html>
